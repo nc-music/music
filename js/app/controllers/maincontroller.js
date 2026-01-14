@@ -7,7 +7,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2017 - 2025
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 angular.module('Music').controller('MainController', [
@@ -18,9 +18,6 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 
 	// retrieve language from backend - is set in ng-app HTML element
 	gettextCatalog.currentLanguage = $rootScope.lang;
-
-	// setup dark theme support for Nextcloud versions older than 25
-	OCA.Music.DarkThemeLegacySupport.applyOnElement(document.getElementById('app'));
 
 	// Create a global rule to use themed icons for folders everywhere, the default icon-folder is not themed on NC 25 and later.
 	// It happens sometimes (at least on Chrome), that OC.MimeType is not yet present when we come here (see 
@@ -598,20 +595,6 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 			appContent.css('margin-inline-end', '');
 		}
 	});
-
-	if (OCA.Music.Utils.isLegacyLayout()) {
-		$('.app-music').addClass('legacy-layout');
-	} else if (OCA.Music.Utils.getScrollContainer()[0] instanceof HTMLDocument) {
-		// Nextcloud versions 14..24 need some special handling because of different container
-		$('.app-music').addClass('nc14to24');
-		// To be compatible with NC25, we have set the #app-content position as absolute. To fix problems
-		// this causes on older platforms, we need to set the #content to use top-margin instead of top-padding,
-		// just as it has been declared by the core on NC25.
-		const headerHeight = $('#header').outerHeight();
-		$('#content').css('padding-top', 0);
-		$('#content').css('margin-top', headerHeight);
-		$('#content').css('min-height', `var(--body-height, calc(100% - ${headerHeight}px))`);
-	}
 
 	$scope.scanning = false;
 	$scope.scanningScanned = 0;

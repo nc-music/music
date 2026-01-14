@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2023 - 2025
+ * @copyright Pauli Järvinen 2023 - 2026
  */
  
  /* Playlist tab view shown in the Files sidebar */
@@ -42,9 +42,4 @@
 .musicPlaylistTabView ol li.current {
 	transition: background-color 0.3s ease;
 	background-color: var(--color-background-dark, #f7f7f7);
-}
-
-.ie .musicPlaylistTabView ol li:hover,
-.ie .musicPlaylistTabView ol li.current {
-	background-color: #f7f7f7;
 }

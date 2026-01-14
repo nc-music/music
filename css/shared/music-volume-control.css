@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2023 - 2025
+ * @copyright Pauli Järvinen 2023 - 2026
  */
 
 .music-volume-control {
@@ -74,19 +74,4 @@
 
 .music-volume-control .volume-slider:hover::-moz-range-thumb {
 	cursor: pointer;
-}
-
-/**
- * Support for Internet Explorer 
- */
-
-.ie .music-volume-control .volume-slider {
-	height:auto;
-	top: 3px;
-	left: 26px;
-	background-color: transparent;
-}
-
-.ie .music-volume-control .volume-icon-and-percent * {
-	left: 0;
 }

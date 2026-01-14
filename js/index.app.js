@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2020 - 2025
+ * @copyright Pauli Järvinen 2020 - 2026
  */
 
 /**
@@ -14,17 +14,6 @@
 function requireAll(context) {
 	context.keys().forEach(context);
 }
-
-/* Polyfills for IE compatibility */
-require('node_modules/core-js/features/array/includes');
-require('node_modules/core-js/features/number/is-finite');
-require('node_modules/core-js/features/string/includes');
-require('node_modules/core-js/features/string/replace-all');
-require('node_modules/core-js/features/string/starts-with');
-require('node_modules/core-js/features/string/ends-with');
-require('node_modules/core-js/features/weak-map');
-require('node_modules/core-js/features/weak-set');
-require('vendor/polyfill/keyboard.js');
 
 /* Vendor libraries */
 window.angular = require('angular');

@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2023 - 2025
+ * @copyright Pauli Järvinen 2023 - 2026
  */
 
 OCA.Music = OCA.Music || {};
@@ -25,12 +25,12 @@ OCA.Music.Dialogs = class {
 
 		OC.dialogs.filepicker(
 			title,
-			(datapath : string, _returnType : any) => callback(datapath), // arg _returnType is passed by NC but not by OC
+			(datapath : string, _returnType : any) => callback(datapath),
 			false, // multiselect
 			mimetype,
 			true, // modal
-			OC.dialogs.FILEPICKER_TYPE_CHOOSE, // type (only on NC)
-			path // initial folder, only on NC16+
+			OC.dialogs.FILEPICKER_TYPE_CHOOSE, // type
+			path // initial folder
 		);
 	}
 
@@ -44,13 +44,12 @@ OCA.Music.Dialogs = class {
 				callback(selectedPath);
 			},
 			'httpd/unix-directory',
-			path // initial folder, only on NC16+
+			path // initial folder
 		);
 	}
 
 	static prompt(title : string, text : string, callback : CallableFunction, defaultValue : string = '', allowEmpty : boolean = false) {
-		// The class name of the dialog differs/ between NC/OC. Also, OC leaks the dialogs and leaves
-		// the old dialogs in the DOM tree as hidden; hence target only visible dialogs.
+		// The class name of the dialog differs between NC30+ and older versions
 		const getInputEl = () => $('.dialog__content:visible input')[0] ?? $('.oc-dialog:visible input')[0];
 
 		OC.dialogs.prompt(
@@ -74,7 +73,7 @@ OCA.Music.Dialogs = class {
 		// Setting the default value requires major hacking because the spawning is an asynchronous operation,
 		// involving loading a new JS file at least on newer NC versions.
 		OCA.Music.Utils.executeOnceRefAvailable(
-			getInputEl, 
+			getInputEl,
 			(inputElem : HTMLInputElement) => $(inputElem).val(defaultValue),
 			100
 		);

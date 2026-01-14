@@ -7,7 +7,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 /**
@@ -27,7 +27,7 @@ body#body-user.dark {
 	width: 100%;
 }
 
-.app-music:not(.legacy-layout) #app-navigation:not(.hidden) + #app-content {
+.app-music #app-navigation:not(.hidden) + #app-content {
 	position: absolute;
 	top: 0px;
 	inset-inline-start: 300px;
@@ -35,7 +35,7 @@ body#body-user.dark {
 	margin-inline-start: 0;
 }
 
-.app-music:not(.nc14to24) #app {
+.app-music #app {
 	contain: content;
 }
 
@@ -282,20 +282,12 @@ div:hover > .play-pause,
 	opacity: .4;
 }
 
-.ie #updateData {
-	bottom: 0;
-}
-
 #updateData:hover, #updateData:focus {
 	opacity: 1;
 }
 
 .highlight {
 	background-color: var(--color-background-hover, #f5f5f5);
-}
-
-.ie .highlight {
-	background-color: #f5f5f5;
 }
 
 .flip-vertically {

@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2024, 2025
+ * @copyright Pauli Järvinen 2024 - 2026
  */
 
 .music-progress-info {
@@ -36,10 +36,6 @@
 	height: 15px;
 	width: 0%;
 	background-color: var(--color-primary, #1d2d44);
-}
-
-.ie .music-progress-info .play-bar, .ie .music-progress-info .buffer-bar {
-	background-color: #1d2d44;
 }
 
 .music-progress-info .translucent {

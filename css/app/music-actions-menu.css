@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2021 - 2025
+ * @copyright Pauli Järvinen 2021 - 2026
  */
 
 .app-music #app .popovermenu {
@@ -63,16 +63,4 @@
 
 .app-music #app .popovermenu.submenu span {
 	margin-inline-start: 16px;
-}
-
-/* Compatibility for Internet Explorer which doesn't support the var() syntax; IE is supported on OC but not on NC */
-.ie .app-music #app .popovermenu ul li,
-.ie .app-music #app .popovermenu ul li a {
-	line-height: 44px;
-}
-
-.ie .app-music #app .popovermenu ul li a .icon {
-	padding-top: 22px;
-	padding-bottom: 22px;
-	padding-left: 44px;
 }

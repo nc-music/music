@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2018 - 2024
+ * @copyright Pauli Järvinen 2018 - 2026
  */
 
 declare var OCA : any;
@@ -33,14 +33,6 @@ OCA.Music.Utils = class {
 		} else {
 			return $(window.document);
 		}
-	}
-
-	/**
-	 * Nextcloud versions up to 13 and all ownCloud versions use the "legacy layout structure" which requires some
-	 * adjustments on our side, too.
-	 */
-	static isLegacyLayout() : boolean {
-		return $('#content-wrapper').length > 0;
 	}
 
 	/**

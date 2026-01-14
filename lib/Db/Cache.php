@@ -136,7 +136,10 @@ class Cache {
 	private function executeUpdate(string $sql, array $params) : int {
 		try {
 			return $this->db->executeUpdate($sql, $params);
+		} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+			throw new UniqueConstraintViolationException($e->getMessage(), $e->getCode(), $e);
 		} catch (\OCP\DB\Exception $e) {
+			// Nextcloud 21
 			if ($e->getReason() == \OCP\DB\Exception::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
 				throw new UniqueConstraintViolationException($e->getMessage(), $e->getCode(), $e);
 			} else {

@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2017 - 2021
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -48,7 +48,7 @@ class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 					$q->setValue($column, $qb->createNamedParameter($value));
 				}
 
-				$q->execute();
+				$q->executeStatement();
 			}
 		}
 	}
@@ -66,7 +66,7 @@ class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 				->from($table)
 				->where('user_id = :user_id')
 				->setParameter('user_id', $user);
-			$stmt = $qb->execute();
+			$stmt = $qb->executeQuery();
 			$row = $stmt->fetch();
 			$stmt->closeCursor();
 			$count = $row['count'];

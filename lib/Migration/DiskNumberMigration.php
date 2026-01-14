@@ -7,7 +7,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2020 - 2026
+ * @copyright Pauli Järvinen 2020 - 2025
  */
 
 namespace OCA\Music\Migration;
@@ -169,7 +169,7 @@ class DiskNumberMigration implements IRepairStep {
 						'UPDATE `*PREFIX*music_albums` SET `hash` = ? WHERE `id` = ?',
 						[$hash, $row['id']]
 				);
-			} catch (\OCP\DB\Exception $e) {
+			} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException | \OCP\DB\Exception $e) {
 				$this->mergeFailureAlbums[] = $row['id'];
 			}
 		}

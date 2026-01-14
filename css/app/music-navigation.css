@@ -7,7 +7,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 .app-music #app-navigation {
@@ -113,16 +113,6 @@
 .app-music #app-navigation-toggle {
 	height: 66px;
 	top: 0;
-}
-
-body:not(.snapjs-left):not(.snapjs-right) .app-music.nc14to24 #app-navigation-toggle {
-	top: 50px;
-}
-
-.app-music.nc14to24 #app-navigation {
-	top: 50px;
-	bottom: 0;
-	height: unset;
 }
 
 #app-navigation .action {
@@ -295,10 +285,6 @@ body:not(.snapjs-left):not(.snapjs-right) .app-music.nc14to24 #app-navigation-to
 	z-index: 0;
 }
 
-.legacy-layout #app-navigation > ul > li.docked-navigation-item {
-	max-width: 250px;
-}
-
 #app-navigation #music-nav-search {
 	bottom: calc(var(--music-nav-item-height) + var(--default-grid-baseline, 0px));
 	z-index: 1;
@@ -322,82 +308,4 @@ body:not(.snapjs-left):not(.snapjs-right) .app-music.nc14to24 #app-navigation-to
 	margin-inline-end: 11px;
 	margin-top: 1.5px;
 	margin-inline-start: 0;
-}
-
-/* Compatibility for Internet Explorer which doesn't support the var() syntax nor bi-directionality; IE is supported on OC but not on NC */
-.ie #app-navigation .music-navigation-item,
-.ie #app-navigation .music-navigation-item-content,
-.ie #app-navigation .music-navigation-item-content > *,
-.ie #app-navigation .music-navigation-item-content [class^="icon-"],
-.ie #app-navigation #music-nav-settings > a {
-	height: 44px;
-	line-height: 44px;
-}
-
-.ie #app-navigation #new-playlist .track-count-badge {
-	background-color: #1d2d44;
-	color: #fff;
-	width: 32px;
-	height: 32px;
-	line-height: 32px;
-}
-
-.ie #app-navigation .action.icon-checkmark, 
-.ie #app-navigation .action.icon-close {
-	margin-top: 10px;
-}
-
-.ie #app-navigation .app-navigation-separator {
-	border-color: #222;
-}
-
-.ie #app-navigation li.drag-hover {
-	background-color: #ededed;
-}
-
-.ie #app-navigation-toggle {
-	top: 45px;
-}
-
-.ie #app-navigation #music-nav-search {
-	bottom: 44px;
-}
-
-.ie .app-music #app-navigation {
-	padding-bottom: 88px !important;
-}
-
-.ie #app-navigation .input-container.with-buttons {
-	right: 65px;
-}
-
-.ie #app-navigation .item-with-actions .input-container:not(.with-buttons) {
-	right: 40px;
-}
-
-.ie #app-navigation .input-container #search-input {
-	padding-right: 32px;
-}
-
-.ie #app-navigation .input-container #clear-search {
-	left: -40px;
-}
-
-.ie #app-navigation .icon-checkmark {
-	right: 30px;
-}
-
-.ie #app-navigation .action {
-	margin-right: 5px;
-	float: right;
-}
-
-.ie #app-navigation .actions {
-	right: 0;
-}
-
-.ie #app-navigation .music-navigation-item-content .label {
-	padding-left: 4px;
-	right: 0;
-	left: 40px;
 }

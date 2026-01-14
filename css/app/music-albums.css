@@ -7,7 +7,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 /**
@@ -69,7 +69,7 @@
 	float: inline-start;
 	width: 190px;
 	height: 190px;
-	line-height: 190px;
+	line-height: 180px;
 	font-size: 105px;
 	cursor: pointer;
 	border-radius: var(--music-albumart-large-border-radius);
@@ -94,7 +94,9 @@
 .view-container.compact .album-area h2 {
 	padding-inline-start: 48px;
 	font-size: 16px;
-	padding-bottom: 8px;
+	line-height: 20px;
+	padding-bottom: 12px;
+	padding-top: 8px;
 	max-width: 360px;
 }
 
@@ -110,8 +112,8 @@
 }
 
 .view-container.compact .album-area {
-	padding-top: 2px;
-	padding-bottom: 10px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 	width: 382px;
 }
 
@@ -121,7 +123,7 @@
 	margin-top: -40px;
 	width: 40px;
 	height: 40px;
-	line-height: 40px;
+	line-height: 38px;
 	font-size: 20px;
 	border-radius: var(--music-albumart-small-border-radius);
 }
@@ -148,19 +150,4 @@
 .view-container.single-col.compact .album-area > h2 {
 	/* in the compact mode, specifying width using a percent wouldn't work because the position is not absolute */
 	max-width: calc(100vw - 60px);
-}
-
-/**
- * Rudimentary support for Internet Explorer
- */
-
-.ie .album-area,
-.ie .album-area > h2 > span,
-.ie .album-area > .albumart {
-	float: left;
-}
-
-.ie .album-area > .overlay {
-	float: left;
-	margin-left: -190px;
 }

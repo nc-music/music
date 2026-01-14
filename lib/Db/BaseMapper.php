@@ -7,7 +7,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2016 - 2026
+ * @copyright Pauli Järvinen 2016 - 2025
  */
 
 namespace OCA\Music\Db;
@@ -435,7 +435,10 @@ abstract class BaseMapper extends Mapper {
 
 		try {
 			return parent::insert($entity);
+		} catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+			throw new UniqueConstraintViolationException($e->getMessage(), $e->getCode(), $e);
 		} catch (\OCP\DB\Exception $e) {
+			// Nextcloud 21+
 			if ($e->getReason() == \OCP\DB\Exception::REASON_UNIQUE_CONSTRAINT_VIOLATION) {
 				throw new UniqueConstraintViolationException($e->getMessage(), $e->getCode(), $e);
 			} else {

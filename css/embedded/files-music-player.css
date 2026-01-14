@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2017 - 2025
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 #music-controls .icon-music-dark {
@@ -190,39 +190,4 @@
 #music-controls .music-volume-control {
 	position: absolute;
 	inset-inline-end: 54px;
-}
-
-
-/**
- * Support for Internet Explorer which doesn't support the var() syntax nor bidirectional UI layout
- */
-
-.ie #music-controls {
-	background-color: rgba(255, 255, 255, .95);
-}
-
-.ie #music-controls #albumart {
-	border-color: #ededed;
-}
-
-.ie #music-controls #playlist-area #playlist-name {
-	left: 10px;
-}
-
-.ie #music-controls #playlist-area > span,
-.ie #music-controls #playlist-area #menu-container {
-	margin-left: 10px;
-}
-
-.ie #music-controls #info-and-progress {
-	left: 260px;
-	right: 180px;
-}
-
-.ie #music-controls .music-volume-control {
-	right: 54px;
-}
-
-.ie #music-controls .control#close {
-	right: 0;
 }

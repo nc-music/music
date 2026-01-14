@@ -9,7 +9,7 @@
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
  * @copyright Jan-Christoph Borchardt 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 /* Adjust layout so that there is room for the toggle button of the collapsible navigation pane.
@@ -20,7 +20,7 @@
 		padding-top: 66px;
 	}
 
-	#content.app-music:not(.legacy-layout) #app-navigation:not(.hidden) + #app-content {
+	#content.app-music #app-navigation:not(.hidden) + #app-content {
 		inset-inline-start: 0;
 	}
 }
@@ -49,22 +49,5 @@
 
 .tablet #controls .title {
 	font-size: 14px;
-}
-
-
-/**
- * Support for Internet Explorer which doesn't have bi-di support
- */
-
-.ie .tablet #controls .albumart {
-	margin-left: 8px;
-	margin-right: 0;
-}
-
-.ie .tablet #controls .song-info {
-	left: 260px;
-}
-
-.ie .tablet #controls:not(.two-line) .music-progress-info {
-	left: 460px;
+	line-height: 26px;
 }

@@ -20,10 +20,6 @@
 	z-index: unset;
 }
 
-body:not(.snapjs-left):not(.snapjs-right) .app-music.nc14to24 #controls {
-	top: 50px;
-}
-
 #controls, #controls * {
 	display: none;
 }
@@ -202,65 +198,4 @@ body:not(.snapjs-left):not(.snapjs-right) .app-music.nc14to24 #controls {
 	position: absolute;
 	width: auto;
 	inset-inline: 0;
-}
-
-
-/**
- * Support for Internet Explorer
- */
-
-.ie #controls {
-	top: 45px;
-}
-
-.ie #controls #playback-rate-control input {
-	height: auto;
-	padding: 0;
-}
-
-.ie #controls .music-progress-info {
-	left: 710px;
-	right: 165px;
-}
-
-.ie #shuffle {
-	right: 55px;
-}
-
-.ie #repeat {
-	right: 5px;
-}
-
-.ie #controls .music-volume-control {
-	right: 100px;
-}
-
-.ie #controls.two-line #shuffle {
-	right: unset;
-	left: 65px;
-}
-
-.ie #controls.two-line #repeat {
-	right: unset;
-	left: 124px;
-}
-
-.ie #controls.two-line .music-volume-control {
-	right: 9px;
-}
-
-.ie #controls.two-line .music-progress-info {
-	left: 212px;
-	right: 20px;
-}
-
-.ie #controls.two-line .music-progress-info .progress-text {
-	left: 0;
-	right: 0;
-	color: #fff;
-}
-
-.ie #controls.two-line .music-progress-info .seek-bar {
-	left: 0;
-	right: 0;
 }
