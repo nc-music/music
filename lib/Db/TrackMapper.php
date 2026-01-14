@@ -555,7 +555,8 @@ class TrackMapper extends BaseMapper {
 	}
 
 	public function setNowPlaying(int $trackId, string $userId, \DateTime $timeOfPlay) : void {
-		$track = $this->find($trackId, $userId);
+		// validate track exists
+		$this->find($trackId, $userId);
 		$data = [
 			'trackId' => $trackId,
 			'timeOfPlay' => $timeOfPlay->getTimestamp()
@@ -564,22 +565,21 @@ class TrackMapper extends BaseMapper {
 	}
 
 	/**
-	 * @return array{track: Track, timeOfPlay: \DateTimeInterface}
+	 * @return array{trackId: int|null, timeOfPlay: int|null}|null
 	 */
-	public function getNowPlaying(string $userId) : array {
+	public function getNowPlaying(string $userId) : ?array {
 		$nowPlayingData = $this->config->getUserValue($userId, 'music', 'music.nowPlaying');
-		if (!$nowPlayingData) {
-			return null;
+		$nowPlaying = \array_filter(
+			\array_merge(['trackId' => null, 'timeOfPlay' => null], \json_decode($nowPlayingData, true)),
+			fn ($val, $key) => \in_array($key, ['trackId', 'timeOfPlay']),
+			\ARRAY_FILTER_USE_BOTH
+		);
+		foreach ($nowPlaying as $value) {
+			if ($value === null) {
+				return null;
+			}
 		}
-		['trackId' => $trackId, 'timeOfPlay' => $timestamp] = \json_decode($nowPlayingData, true);
-		if (!$trackId || !$timestamp) {
-			return null;
-		}
-
-		$timeOfPlay = \DateTime::createFromTimestamp($timestamp);
-		$track = $this->find($trackId, $userId);
-
-		return ['track' => $track, 'timeOfPlay' => $timeOfPlay];
+		return $nowPlaying;
 	}
 
 	/**

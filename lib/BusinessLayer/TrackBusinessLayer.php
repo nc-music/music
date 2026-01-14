@@ -241,10 +241,15 @@ class TrackBusinessLayer extends BusinessLayer implements Scrobbler {
 
 	/**
 	 * Return the "now playing" track along with its time of play
-	 * @return array{track: Track, timeOfPlay: \DateTimeInterface}
+	 * @return array{trackId: int, timeOfPlay: int}
 	 */
 	public function getNowPlaying(string $userId) : array {
-		return $this->mapper->getNowPlaying($userId);
+		$nowPlaying = $this->mapper->getNowPlaying($userId);
+		if (!$nowPlaying) {
+			throw new BusinessLayerException('Malformed now playing data');
+		}
+
+		return $nowPlaying;
 	}
 
 	/**
