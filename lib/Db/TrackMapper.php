@@ -23,7 +23,8 @@ use OCP\IDBConnection;
  * @extends BaseMapper<Track>
  */
 class TrackMapper extends BaseMapper {
-	public function __construct(IDBConnection $db, IConfig $config) {
+
+	public function __construct(IDBConnection $db, private IConfig $config) {
 		parent::__construct($db, $config, 'music_tracks', Track::class, 'title', ['file_id', 'user_id'], 'album_id');
 	}
 
@@ -551,6 +552,34 @@ class TrackMapper extends BaseMapper {
 		$result->closeCursor();
 
 		return $updated;
+	}
+
+	public function setNowPlaying(int $trackId, string $userId, \DateTime $timeOfPlay) : void {
+		$track = $this->find($trackId, $userId);
+		$data = [
+			'trackId' => $trackId,
+			'timeOfPlay' => $timeOfPlay->getTimestamp()
+		];
+		$this->config->setUserValue($userId, 'music', 'music.nowPlaying', \json_encode($data));
+	}
+
+	/**
+	 * @return array{track: Track, timeOfPlay: \DateTimeInterface}
+	 */
+	public function getNowPlaying(string $userId) : array {
+		$nowPlayingData = $this->config->getUserValue($userId, 'music', 'music.nowPlaying');
+		if (!$nowPlayingData) {
+			return null;
+		}
+		['trackId' => $trackId, 'timeOfPlay' => $timestamp] = \json_decode($nowPlayingData, true);
+		if (!$trackId || !$timestamp) {
+			return null;
+		}
+
+		$timeOfPlay = \DateTime::createFromTimestamp($timestamp);
+		$track = $this->find($trackId, $userId);
+
+		return ['track' => $track, 'timeOfPlay' => $timeOfPlay];
 	}
 
 	/**

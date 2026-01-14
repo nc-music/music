@@ -233,6 +233,21 @@ class TrackBusinessLayer extends BusinessLayer implements Scrobbler {
 	}
 
 	/**
+	 * Save the track to config as the "now playing" track with the provided timestamp
+	 */
+	public function setNowPlaying(int $trackId, string $userId, ?\DateTime $timeOfPlay = null) : void {
+		$this->mapper->setNowPlaying($trackId, $userId, $timeOfPlay ?? new \DateTime());
+	}
+
+	/**
+	 * Return the "now playing" track along with its time of play
+	 * @return array{track: Track, timeOfPlay: \DateTimeInterface}
+	 */
+	public function getNowPlaying(string $userId) : array {
+		return $this->mapper->getNowPlaying($userId);
+	}
+
+	/**
 	 * Adds a track if it does not exist already or updates an existing track
 	 * @param string $title the title of the track
 	 * @param int|null $number the number of the track

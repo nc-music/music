@@ -817,12 +817,6 @@ class SubsonicController extends ApiController {
 	 * @SubsonicAPI
 	 */
 	protected function scrobble(array $id, array $time, bool $submission = true) : array {
-		// suppress non-submission scrobbles: we retrieve the nowPlaying track from recent plays
-		// todo: track "now playing" separately
-		if (!$submission) {
-			return [];
-		}
-
 		if (\count($id) === 0) {
 			throw new SubsonicException("Required parameter 'id' missing", 10);
 		}
@@ -837,7 +831,11 @@ class SubsonicController extends ApiController {
 				} else {
 					$timeOfPlay = null;
 				}
-				$this->scrobbler->recordTrackPlayed((int)$trackId, $userId, $timeOfPlay);
+				if ($submission) {
+					$this->scrobbler->recordTrackPlayed((int)$trackId, $userId, $timeOfPlay);
+				} else {
+					$this->scrobbler->setNowPlaying((int)$trackId, $userId, $timeOfPlay);
+				}
 			}
 		}
 
@@ -1208,18 +1206,17 @@ class SubsonicController extends ApiController {
 	protected function getNowPlaying() : array {
 		// Note: This is documented to return latest play of all users on the server but we don't want to
 		// provide access to other people's data => Always return just this user's data.
-		$recent = $this->trackBusinessLayer->findRecentPlay($this->user(), 1);
+		['track' => $track, 'timeOfPlay' => $timeOfPlay] = $this->trackBusinessLayer->getNowPlaying($this->user());
 
-		if (!empty($recent)) {
-			$playTime = new \DateTime($recent[0]->getLastPlayed());
+		if (!empty($track)) {;
 			$now = new \DateTime();
-			$recent = $this->tracksToApi($recent);
-			$recent[0]['username'] = $this->user();
-			$recent[0]['minutesAgo'] = (int)(($now->getTimestamp() - $playTime->getTimestamp()) / 60);
-			$recent[0]['playerId'] = 0; // dummy
+			$apiTrack = $this->tracksToApi([$track]);
+			$apiTrack[0]['username'] = $this->user();
+			$apiTrack[0]['minutesAgo'] = (int)(($now->getTimestamp() - $timeOfPlay->getTimestamp()) / 60);
+			$apiTrack[0]['playerId'] = 0; // dummy
 		}
 
-		return ['nowPlaying' => ['entry' => $recent]];
+		return ['nowPlaying' => ['entry' => $apiTrack]];
 	}
 
 	/**
