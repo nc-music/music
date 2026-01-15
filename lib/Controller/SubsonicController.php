@@ -1209,7 +1209,7 @@ class SubsonicController extends ApiController {
 		$apiTrack = [];
 		try {
 			$nowPlaying = $this->trackBusinessLayer->getNowPlaying($this->user());
-			$track = $this->trackBusinessLayer->find($nowPlaying['trackId'], $this->user());
+			$track = $nowPlaying['track'];
 			if (!empty($track)) {;
 				$now = new \DateTime();
 				$apiTrack = $this->tracksToApi([$track]);

@@ -28,6 +28,7 @@ use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\StringUtil;
 
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IConfig;
 
 /**
  * Base class functions with the actually used inherited types to help IDE and Scrutinizer:
@@ -39,13 +40,8 @@ use OCP\AppFramework\Db\DoesNotExistException;
  */
 class TrackBusinessLayer extends BusinessLayer implements Scrobbler {
 
-	private FileSystemService $fileSystemService;
-	private Logger $logger;
-
-	public function __construct(TrackMapper $trackMapper, FileSystemService $fileSystemService, Logger $logger) {
+	public function __construct(TrackMapper $trackMapper, private FileSystemService $fileSystemService, private Logger $logger, private IConfig $config) {
 		parent::__construct($trackMapper);
-		$this->fileSystemService = $fileSystemService;
-		$this->logger = $logger;
 	}
 
 	/**
@@ -236,20 +232,33 @@ class TrackBusinessLayer extends BusinessLayer implements Scrobbler {
 	 * Save the track to config as the "now playing" track with the provided timestamp
 	 */
 	public function setNowPlaying(int $trackId, string $userId, ?\DateTime $timeOfPlay = null) : void {
-		$this->mapper->setNowPlaying($trackId, $userId, $timeOfPlay ?? new \DateTime());
+		$this->find($trackId, $userId);
+		$data = [
+			'trackId' => $trackId,
+			'timeOfPlay' => ($timeOfPlay ?? new \DateTime())->getTimestamp()
+		];
+		$this->config->setUserValue($userId, 'music', 'music.nowPlaying', \json_encode($data));
 	}
 
 	/**
 	 * Return the "now playing" track along with its time of play
-	 * @return array{trackId: int, timeOfPlay: int}
+	 * @return array{track: Track, timeOfPlay: int}
+	 * @throws BusinessLayerException
 	 */
 	public function getNowPlaying(string $userId) : array {
-		$nowPlaying = $this->mapper->getNowPlaying($userId);
-		if (!$nowPlaying) {
+		$nowPlayingData = \json_decode($this->config->getUserValue($userId, 'music', 'music.nowPlaying', '{}'), true);
+		if (!isset($nowPlayingData['trackId'], $nowPlayingData['timeOfPlay'])) {
 			throw new BusinessLayerException('Malformed now playing data');
 		}
 
-		return $nowPlaying;
+		[$trackId, $timeOfPlay] = ArrayUtil::multiGet($nowPlayingData, ['trackId', 'timeOfPlay']);
+
+		$track = $this->find($trackId, $userId);
+
+		return [
+			'track' => $track,
+			'timeOfPlay' => $timeOfPlay
+		];
 	}
 
 	/**

@@ -24,7 +24,7 @@ use OCP\IDBConnection;
  */
 class TrackMapper extends BaseMapper {
 
-	public function __construct(IDBConnection $db, private IConfig $config) {
+	public function __construct(IDBConnection $db, IConfig $config) {
 		parent::__construct($db, $config, 'music_tracks', Track::class, 'title', ['file_id', 'user_id'], 'album_id');
 	}
 
@@ -552,34 +552,6 @@ class TrackMapper extends BaseMapper {
 		$result->closeCursor();
 
 		return $updated;
-	}
-
-	public function setNowPlaying(int $trackId, string $userId, \DateTime $timeOfPlay) : void {
-		// validate track exists
-		$this->find($trackId, $userId);
-		$data = [
-			'trackId' => $trackId,
-			'timeOfPlay' => $timeOfPlay->getTimestamp()
-		];
-		$this->config->setUserValue($userId, 'music', 'music.nowPlaying', \json_encode($data));
-	}
-
-	/**
-	 * @return array{trackId: int|null, timeOfPlay: int|null}|null
-	 */
-	public function getNowPlaying(string $userId) : ?array {
-		$nowPlayingData = $this->config->getUserValue($userId, 'music', 'music.nowPlaying');
-		$nowPlaying = \array_filter(
-			\array_merge(['trackId' => null, 'timeOfPlay' => null], \json_decode($nowPlayingData, true)),
-			fn ($val, $key) => \in_array($key, ['trackId', 'timeOfPlay']),
-			\ARRAY_FILTER_USE_BOTH
-		);
-		foreach ($nowPlaying as $value) {
-			if ($value === null) {
-				return null;
-			}
-		}
-		return $nowPlaying;
 	}
 
 	/**
