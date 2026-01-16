@@ -226,6 +226,7 @@ class TrackBusinessLayer extends BusinessLayer implements Scrobbler {
 		if (!$this->mapper->recordTrackPlayed($trackId, $userId, $timeOfPlay)) {
 			throw new BusinessLayerException("Track with ID $trackId was not found");
 		}
+		$this->setNowPlaying($trackId, $userId, $timeOfPlay);
 	}
 
 	/**
