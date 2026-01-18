@@ -18,6 +18,7 @@ use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
 use OCA\Music\Service\FileSystemService;
+use OCP\IConfig;
 
 class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 	private $mapper;
@@ -28,6 +29,7 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 	private $artistId;
 	private $albumId;
 	private $fileId;
+	private $config;
 
 	protected function setUp() : void {
 		$this->mapper = $this->getMockBuilder(TrackMapper::class)
@@ -39,7 +41,9 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$this->logger = $this->getMockBuilder(Logger::class)
 			->disableOriginalConstructor()
 			->getMock();
-		$this->trackBusinessLayer = new TrackBusinessLayer($this->mapper, $this->fileSystemService, $this->logger);
+		$this->config = $this->getMockBuilder(IConfig::class)
+			->getMock();
+		$this->trackBusinessLayer = new TrackBusinessLayer($this->mapper, $this->fileSystemService, $this->logger, $this->config);
 		$this->userId = 'jack';
 		$this->artistId = 3;
 		$this->albumId = 3;

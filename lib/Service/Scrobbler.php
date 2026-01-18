@@ -14,4 +14,5 @@ namespace OCA\Music\Service;
 
 interface Scrobbler {
 	public function recordTrackPlayed(int $trackId, string $userId, ?\DateTime $timeOfPlay = null) : void;
+	public function setNowPlaying(int $trackId, string $userId, ?\DateTime $timeOfPlay = null) : void;
 }
