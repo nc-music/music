@@ -702,21 +702,25 @@ class SubsonicController extends ApiController {
 
 		// Silently omit IDs other than track IDs (likely podcast episode IDs), as we don't support recording anything else as played
 		$parsedIds = \array_map(fn($aId) => self::parseEntityId($aId), $id);
-		$trackIds = \array_map(
-			fn ($entry) => $entry[1],
-			\array_filter($parsedIds, fn ($parsedId) => $parsedId[0] === 'track')
+		$filteredIds = \array_filter($parsedIds, fn ($parsedId) => $parsedId[0] === 'track');
+
+		// Get only the numeric part of the track IDs, as that's what the business layer expects. Keep the original keys from the $id array to
+		// allow matching them with the corresponding timestamps in the $time array.
+		$trackIds = \array_combine(
+			\array_keys($filteredIds),
+			\array_map(fn ($entry) => $entry[1], $filteredIds)
 		);
 
 		$userId = $this->user();
-		$tracks = $this->trackBusinessLayer->findById($trackIds, $userId, /*preserveOrder=*/ true);
+		$tracks = $this->trackBusinessLayer->findById($trackIds, $userId);
+		$tracksById = ArrayUtil::createIdLookupTable($tracks);
+
+		$invalidTrackIds = ArrayUtil::diff($trackIds, \array_keys($tracksById));
 
 		// Log the event if any of the requested track IDs were not found. Throw an error only if none of the requested track IDs were found,
 		// to allow for partial success in case of multiple IDs. The likely reason for some IDs not being found is that the client is scrobbling
 		// old plays from its local history and some of the tracks have been deleted since then.
-		if (\count($tracks) !== \count($trackIds)) {
-			$foundTrackIds = ArrayUtil::extractIds($tracks);
-			$invalidTrackIds = ArrayUtil::diff($trackIds, $foundTrackIds);
-
+		if (\count($invalidTrackIds) > 0) {
 			$this->logger->warning("Scrobble request with some invalid track IDs: " . \json_encode($invalidTrackIds));
 			if (\count($tracks) === 0) {
 				throw new SubsonicException('No track(s) found with ID(s): ' . \json_encode($invalidTrackIds), 70);
@@ -728,17 +732,22 @@ class SubsonicController extends ApiController {
 		$mutex = $this->concurrency->mutexReserve($userId, 'scrobble');
 
 		try {
-			foreach ($tracks as $index => $track) {
-				if (isset($time[$index])) {
-					$timestamp = \substr($time[$index], 0, -3); // cut down from milliseconds to seconds
-					$timeOfPlay = new \DateTime('@' . $timestamp);
-				} else {
-					$timeOfPlay = null;
-				}
-				if ($submission) {
-					$this->scrobbler->recordTrackPlayed($track, $timeOfPlay);
-				} else {
-					$this->scrobbler->setNowPlaying($track, $timeOfPlay);
+			foreach ($trackIds as $index => $trackId) {
+				// Some of the track IDs may be invalid/obsolete, just skip those. The looping happens in the same order as the IDs were passed in,
+				// to properly match the timestamps from the $time and handle any duplicate IDs.
+				if (isset($tracksById[$trackId])) {
+					if (isset($time[$index])) {
+						$timestamp = \substr($time[$index], 0, -3); // cut down from milliseconds to seconds
+						$timeOfPlay = new \DateTime('@' . $timestamp);
+					} else {
+						$timeOfPlay = null;
+					}
+
+					if ($submission) {
+						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $timeOfPlay);
+					} else {
+						$this->scrobbler->setNowPlaying($tracksById[$trackId], $timeOfPlay);
+					}
 				}
 			}
 		} catch (\Exception $ex) {
