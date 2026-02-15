@@ -17,6 +17,8 @@
   * Set the "now playing" data locally and in the connected Last.fm account when the client calls `scrobble` with `submission=false`
     [#112](https://github.com/nc-music/music/pull/112) @mattwellss
   * If `scrobble` is called with multiple `id` values, they must all be valid or nothing gets recorded (previously, songs were recorded one-by-one until hitting the invalid ID)
+  * Remove OpenSubsonic property `artists` from the album results as it was being used wrong (added in v2.5.0)
+    [#118](https://github.com/nc-music/music/issues/118)
 - Don't scrobble songs shorter than 30 seconds to Last.fm to comply with the service's guideline
   [#116](https://github.com/nc-music/music/pull/116) @mattwellss
 - Record a track played only if at least 50 % or 4 minutes has been played, to comply with Last.fm's guideline. Mark the track immediately as "playing" on the server.
