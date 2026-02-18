@@ -8,6 +8,10 @@
  * @copyright Pauli Järvinen 2017 - 2026
  */
 
+import * as ncFiles3 from '@nextcloud/files-3';
+import * as ncFiles4 from '@nextcloud/files-4';
+import * as ncSharingPublic from '@nextcloud/sharing/public';
+
 (function() {
 	let mPlayer = new OCA.Music.EmbeddedPlayer();
 
@@ -34,22 +38,16 @@
 	function register() {
 		OCA.Music.folderView = new OCA.Music.FolderView(mPlayer, mAudioMimes, mPlaylistMimes);
 
-		// First, try to load the Nextcloud Files API. This works on NC28+ within the Files app but only on NC31+
+		// First, try to register using Nextcloud Files API. This works on NC28+ within the Files app but only on NC31+
 		// within a link-shared public folder. Note that we can't wait for the page load to be finished before doing
 		// this because that would be too late for the registration and cause the issue https://github.com/owncloud/music/issues/1126.
-		import('@nextcloud/sharing/public').then(ncSharingPublic => {
-			const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
-			// @nextcloud/files 4.x supports only NC33+ while @nextcloud/files 3.x supports NC 26-32
-			if (OCA.Music.Utils.ncMajorVersion() >= 33) {
-				import('@nextcloud/files-4').then(ncFiles => {
-					OCA.Music.folderView.registerToNcFiles4(ncFiles, sharingToken);
-				});
-			} else {
-				import('@nextcloud/files-3').then(ncFiles => {
-					OCA.Music.folderView.registerToNcFiles3(ncFiles, sharingToken);
-				});
-			}
-		}).catch(e => console.error('Failed to load the NC API library: ', e));
+		const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
+		// @nextcloud/files 4.x supports only NC33+ while @nextcloud/files 3.x supports NC 26-32
+		if (OCA.Music.Utils.ncMajorVersion() >= 33) {
+			OCA.Music.folderView.registerToNcFiles4(ncFiles4, sharingToken);
+		} else {
+			OCA.Music.folderView.registerToNcFiles3(ncFiles3, sharingToken);
+		}
 
 		// The older fileActions API is used in NC28..30 when operating within a link-shared folder
 		window.addEventListener('DOMContentLoaded', () => {
