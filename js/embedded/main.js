@@ -37,12 +37,19 @@
 		// First, try to load the Nextcloud Files API. This works on NC28+ within the Files app but only on NC31+
 		// within a link-shared public folder. Note that we can't wait for the page load to be finished before doing
 		// this because that would be too late for the registration and cause the issue https://github.com/owncloud/music/issues/1126.
-		import('@nextcloud/files').then(ncFiles => {
-			import('@nextcloud/sharing/public').then(ncSharingPublic => {
-				const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
-				OCA.Music.folderView.registerToNcFiles(ncFiles, sharingToken);
-			});
-		}).catch(_e => {/*ignore*/});
+		import('@nextcloud/sharing/public').then(ncSharingPublic => {
+			const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
+			// @nextcloud/files 4.x supports only NC33+ while @nextcloud/files 3.x supports NC 26-32
+			if (OCA.Music.Utils.ncMajorVersion() >= 33) {
+				import('@nextcloud/files-4').then(ncFiles => {
+					OCA.Music.folderView.registerToNcFiles4(ncFiles, sharingToken);
+				});
+			} else {
+				import('@nextcloud/files-3').then(ncFiles => {
+					OCA.Music.folderView.registerToNcFiles3(ncFiles, sharingToken);
+				});
+			}
+		}).catch(e => console.error('Failed to load the NC API library: ', e));
 
 		// The older fileActions API is used in NC28..30 when operating within a link-shared folder
 		window.addEventListener('DOMContentLoaded', () => {

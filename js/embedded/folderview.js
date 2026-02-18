@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2017 - 2025
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 import playIconPath from '../../img/music-dark.svg';
@@ -43,24 +43,22 @@ OCA.Music.FolderView = class {
 		);
 	}
 
-	registerToNcFiles(ncFiles, sharingToken) {
+	registerToNcFiles4(ncFiles, sharingToken) {
 		this.#shareToken = sharingToken;
+		this.#registerToNcFiles4(ncFiles, this.#audioMimes, this.#toggleOrOpenAudioFile, 'music_play_audio_file');
+		this.#registerToNcFiles4(ncFiles, this.#playlistMimes, this.#toggleOrOpenPlaylistFile, 'music_play_playlist_file');
+	}
 
-		const audioFileCb = this.#createFileClickCallback(() => this.#openAudioFile());
-		const plFileCb = this.#createFileClickCallback(() => this.#openPlaylistFile());
-
-		this.#registerToNcFiles(ncFiles, this.#audioMimes, audioFileCb, 'music_play_audio_file');
-		this.#registerToNcFiles(ncFiles, this.#playlistMimes, plFileCb, 'music_play_playlist_file');
+	registerToNcFiles3(ncFiles, sharingToken) {
+		this.#shareToken = sharingToken;
+		this.#registerToNcFiles3(ncFiles, this.#audioMimes, this.#toggleOrOpenAudioFile, 'music_play_audio_file');
+		this.#registerToNcFiles3(ncFiles, this.#playlistMimes, this.#toggleOrOpenPlaylistFile, 'music_play_playlist_file');
 	}
 
 	registerToFileActions(fileActions, sharingToken) {
 		this.#shareToken = sharingToken;
-
-		const audioFileCb = this.#createFileClickCallback(() => this.#openAudioFile());
-		const plFileCb = this.#createFileClickCallback(() => this.#openPlaylistFile());
-
-		this.#registerToFileActions(fileActions, this.#audioMimes, audioFileCb, 'music_play_audio_file');
-		this.#registerToFileActions(fileActions, this.#playlistMimes, plFileCb, 'music_play_playlist_file');
+		this.#registerToFileActions(fileActions, this.#audioMimes, this.#toggleOrOpenAudioFile, 'music_play_audio_file');
+		this.#registerToFileActions(fileActions, this.#playlistMimes, this.#toggleOrOpenPlaylistFile, 'music_play_playlist_file');
 	}
 
 	onPlaylistItemClick(playlistFile, itemIdx) {
@@ -248,7 +246,49 @@ OCA.Music.FolderView = class {
 		};
 	}
 
-	#registerToNcFiles(ncFiles, mimes, onActionCallback, actionId) {
+	#toggleOrOpenAudioFile = this.#createFileClickCallback(() => this.#openAudioFile());
+	#toggleOrOpenPlaylistFile = this.#createFileClickCallback(() => this.#openPlaylistFile());
+
+	#registerToNcFiles4(ncFiles, mimes, onActionCallback, actionId) {
+		ncFiles.registerFileAction({
+			id: actionId,
+			displayName: () => t('music', 'Play'),
+			iconSvgInline: () => playIconSvgData,
+			default: ncFiles.DefaultType.DEFAULT,
+			order: -1, // prioritize over the built-in Viewer app
+			inline: () => false,
+
+			enabled: ({nodes}) => {
+				if (nodes.length !== 1) {
+					return false;
+				}	
+				return mimes.includes(nodes[0].mime);
+			},
+
+			/**
+			 * Function executed on single file action
+			 * @return true if the action was executed successfully,
+			 * false otherwise and null if the action is silent/undefined.
+			 * @throws Error if the action failed
+			 */
+			exec: ({nodes, contents}) => {
+				const adaptFile = (f) => {
+					return {id: f.fileid, name: f.basename, mimetype: f.mime, path: f.dirname};
+				};
+				onActionCallback(adaptFile(nodes[0]));
+
+				if (!this.#playingListFile) {
+					const dirFiles = _.map(contents, adaptFile);
+					this.#playlist = new OCA.Music.Playlist(dirFiles, this.#audioMimes, this.#currentFile.id);
+					this.#player.setNextAndPrevEnabled(this.#playlist.length() > 1);
+				}
+
+				return true;
+			},
+		});
+	}
+
+	#registerToNcFiles3(ncFiles, mimes, onActionCallback, actionId) {
 		ncFiles.registerFileAction(new ncFiles.FileAction({
 			id: actionId,
 			displayName: () => t('music', 'Play'),
