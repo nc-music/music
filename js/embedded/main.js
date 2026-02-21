@@ -11,6 +11,7 @@
 import * as ncFiles3 from '@nextcloud/files-3';
 import * as ncFiles4 from '@nextcloud/files-4';
 import * as ncSharingPublic from '@nextcloud/sharing/public';
+import * as playlistTabView from './playlisttabview.js';
 
 (function() {
 	let mPlayer = new OCA.Music.EmbeddedPlayer();
@@ -45,6 +46,7 @@ import * as ncSharingPublic from '@nextcloud/sharing/public';
 		// @nextcloud/files 4.x supports only NC33+ while @nextcloud/files 3.x supports NC 26-32
 		if (OCA.Music.Utils.ncMajorVersion() >= 33) {
 			OCA.Music.folderView.registerToNcFiles4(ncFiles4, sharingToken);
+			playlistTabView.initForNcFiles4(ncFiles4, mPlaylistMimes);
 		} else {
 			OCA.Music.folderView.registerToNcFiles3(ncFiles3, sharingToken);
 		}
@@ -58,7 +60,7 @@ import * as ncSharingPublic from '@nextcloud/sharing/public';
 				OCA.Music.folderView.registerToFileActions(OCA.Files.fileActions, sharingToken);
 			}
 
-			OCA.Music.initPlaylistTabView(mPlaylistMimes);
+			playlistTabView.initLegacy(mPlaylistMimes);
 			connectPlaylistTabViewEvents(OCA.Music.folderView);
 		});
 	}
