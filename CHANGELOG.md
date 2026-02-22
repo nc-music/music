@@ -1,4 +1,4 @@
-## [Unreleased]
+## 3.0.0 - 2026-02-23
 
 ### Breaking changes
 - Drop support for ownCloud
