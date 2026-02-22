@@ -20,6 +20,7 @@ build:
     image: default-bionic
     environment:
         php: 8.0.2
+        node: 16
     nodes:
         analysis:
             tests:
