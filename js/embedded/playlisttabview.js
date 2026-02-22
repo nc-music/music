@@ -14,6 +14,12 @@ OCA.Music = OCA.Music || {};
 
 let sidebarNode = null; // for ncFiles 4
 
+const msgBus = _.extend({}, OC.Backbone.Events);
+
+export function getMsgBus() {
+	return msgBus;
+}
+
 class PlaylistTabView extends HTMLElement {
 
 	constructor() {
@@ -63,7 +69,7 @@ class PlaylistTabView extends HTMLElement {
 				// click handler
 				list.on('click', 'li', (event) => {
 					const idx = parseInt(event.target.id.split('-').pop());
-					this.trigger('playlistItemClick', fileInfo, idx);
+					msgBus.trigger('playlistItemClick', fileInfo, idx);
 				});
 
 				if (data.invalid_paths.length > 0) {
@@ -76,7 +82,7 @@ class PlaylistTabView extends HTMLElement {
 					}
 				}
 
-				this.trigger('rendered');
+				msgBus.trigger('rendered');
 			};
 
 			let onError = function(_error) {
@@ -95,7 +101,6 @@ class PlaylistTabView extends HTMLElement {
 		}
 	}
 }
-_.extend(PlaylistTabView.prototype, OC.Backbone.Events);
 
 // Registration for NC versions 28 ... 32
 export function initLegacy(playlistMimes) {

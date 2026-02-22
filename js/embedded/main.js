@@ -66,18 +66,16 @@ import * as playlistTabView from './playlisttabview.js';
 	}
 
 	function connectPlaylistTabViewEvents(folderView) {
-		if (OCA.Music.playlistTabView) {
-			OCA.Music.playlistTabView.on('playlistItemClick', (file, index) => folderView.onPlaylistItemClick(file, index));
+		playlistTabView.getMsgBus().on('playlistItemClick', (file, index) => folderView.onPlaylistItemClick(file, index));
 
-			OCA.Music.playlistTabView.on('rendered', () => {
-				const plState = folderView.playlistFileState();
-				if (plState !== null) {
-					OCA.Music.playlistTabView.setCurrentTrack(plState.fileId, plState.index);
-				} else {
-					OCA.Music.playlistTabView.setCurrentTrack(null);
-				}
-			});
-		}
+		playlistTabView.getMsgBus().on('rendered', () => {
+			const plState = folderView.playlistFileState();
+			if (plState !== null) {
+				OCA.Music.playlistTabView.setCurrentTrack(plState.fileId, plState.index);
+			} else {
+				OCA.Music.playlistTabView.setCurrentTrack(null);
+			}
+		});
 	}
 
 	register();
