@@ -28,7 +28,7 @@ jobs:
             php: 8.4
             db: mysql
           - cloud: nextcloud
-            version: 33.0.0rc1
+            version: 33.0.0
             php: 8.5
             db: sqlite
 
