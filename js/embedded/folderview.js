@@ -19,8 +19,10 @@ OCA.Music = OCA.Music || {};
 OCA.Music.FolderView = class {
 
 	#currentFile = null; // may be an audio file or a playlist file
+	#currentNode = null; // current file when using ncFiles4, also legacy #currentFile is still defined
 	#playingListFile = false;
-	#fileList = null; // FileList from Files (prior to NC28) or Sharing app
+	#fileList = null; // FileList from the Sharing app prior to NC 31
+	#ncFiles4Sidebar = null; // Sidebar on NC 33+
 	#shareToken = null;
 	#audioMimes = null;
 	#playlistMimes = null;
@@ -47,6 +49,7 @@ OCA.Music.FolderView = class {
 		this.#shareToken = sharingToken;
 		this.#registerToNcFiles4(ncFiles, this.#audioMimes, this.#toggleOrOpenAudioFile, 'music_play_audio_file');
 		this.#registerToNcFiles4(ncFiles, this.#playlistMimes, this.#toggleOrOpenPlaylistFile, 'music_play_playlist_file');
+		this.#ncFiles4Sidebar = ncFiles.getSidebar();
 	}
 
 	registerToNcFiles3(ncFiles, sharingToken) {
@@ -71,11 +74,11 @@ OCA.Music.FolderView = class {
 		}
 		else {
 			if (OCA.Files.App) {
-				// Before NC28
+				// Share app on NC30 or earlier
 				this.#fileList = OCA.Files.App.fileList;
 				this.#currentFile = this.#fileList.findFile(playlistFile.name);
 			} else {
-				// NC28 or later
+				// Share app on NC 31+ or Files app
 				this.#currentFile = playlistFile;
 			}
 			this.#openPlaylistFile(() => this.#jumpToPlaylistFile(this.#playlist.jumpToIndex(itemIdx)));
@@ -107,6 +110,7 @@ OCA.Music.FolderView = class {
 
 	#onClose() {
 		this.#currentFile = null;
+		this.#currentNode = null;
 		this.#playingListFile = false;
 		this.#playlist?.reset();
 		OCA.Music.playlistTabView?.setCurrentTrack(null, null);
@@ -124,23 +128,7 @@ OCA.Music.FolderView = class {
 		}
 	}
 
-	#viewingCurrentFileFolder() {
-		// Note: this is always false on NC28+
-		return this.#currentFile && this.#fileList && this.#currentFile.path == this.#fileList.breadcrumb.dir;
-	}
-
 	#onMenuOpen($menu) {
-		// disable/enable the "Show list" item
-		let $showItem = $menu.find('#playlist-menu-show');
-		// the new sidebar API introduced in NC18 enabled viewing details also for files outside the current folder
-		if (OCA.Files.Sidebar || this.#viewingCurrentFileFolder()) {
-			$showItem.removeClass('disabled');
-			$showItem.removeAttr('title');
-		} else {
-			$showItem.addClass('disabled');
-			$showItem.attr('title', t('music', 'The option is available only while the parent folder of the playlist file is shown'));
-		}
-
 		// disable/enable the "Import list to Music" item
 		let inLibraryFilesCount = _(this.#playlist.files()).filter('in_library').size();
 		let extStreamsCount = _(this.#playlist.files()).filter('external').size();
@@ -180,14 +168,10 @@ OCA.Music.FolderView = class {
 
 	#onShowList() {
 		if (OCA.Files.Sidebar) {
-			// This API is available starting from NC18 and after NC28, it's the only one available.
-			// This is better than the older API because this can be used also for files which are not
-			// present in the currently viewed folder.
 			OCA.Files.Sidebar.open(this.#currentFile.path + '/' + this.#currentFile.name);
 			OCA.Files.Sidebar.setActiveTab(OCA.Music.playlistTabView.id);
-		} else {
-			this.#fileList.scrollTo(this.#currentFile.name);
-			this.#fileList.showDetailsView(this.#currentFile.name, OCA.Music.playlistTabView.id);
+		} else if (this.#ncFiles4Sidebar?.available) {
+			this.#ncFiles4Sidebar.open(this.#currentNode, 'music_playlist');
 		}
 	}
 
@@ -258,12 +242,7 @@ OCA.Music.FolderView = class {
 			order: -1, // prioritize over the built-in Viewer app
 			inline: () => false,
 
-			enabled: ({nodes}) => {
-				if (nodes.length !== 1) {
-					return false;
-				}	
-				return mimes.includes(nodes[0].mime);
-			},
+			enabled: ({nodes}) => (nodes.length == 1 && mimes.includes(nodes[0].mime)),
 
 			/**
 			 * Function executed on single file action
@@ -272,6 +251,8 @@ OCA.Music.FolderView = class {
 			 * @throws Error if the action failed
 			 */
 			exec: ({nodes, contents}) => {
+				this.#currentNode = nodes[0];
+
 				const adaptFile = (f) => {
 					return {id: f.fileid, name: f.basename, mimetype: f.mime, path: f.dirname};
 				};
@@ -296,12 +277,7 @@ OCA.Music.FolderView = class {
 			default: ncFiles.DefaultType.DEFAULT,
 			order: -1, // prioritize over the built-in Viewer app
 
-			enabled: (nodes, _view) => {
-				if (nodes.length !== 1) {
-					return false;
-				}	
-				return mimes.includes(nodes[0].mime);
-			},
+			enabled: (nodes, _view) => (nodes.length == 1 && mimes.includes(nodes[0].mime)),
 
 			/**
 			 * Function executed on single file action
@@ -383,7 +359,7 @@ OCA.Music.FolderView = class {
 		this.#player.stop();
 		this.#playlist = null;
 
-		this.#player.show(this.#currentFile.name);
+		this.#player.show(this.#currentFile.name, !!(this.#ncFiles4Sidebar?.available || OCA.Files.Sidebar));
 		this.#player.showBusy(true);
 
 		const listFileId = this.#currentFile.id;
@@ -398,6 +374,7 @@ OCA.Music.FolderView = class {
 				}
 				else {
 					this.#currentFile = null;
+					this.#currentNode = null;
 					this.#player.close();
 					OC.Notification.showTemporary(t('music', 'No files from the playlist could be found'));
 				}
@@ -423,6 +400,7 @@ OCA.Music.FolderView = class {
 				this.#player.close();
 				this.#player.showBusy(false);
 				this.#currentFile = null;
+				this.#currentNode = null;
 				OC.Notification.showTemporary(t('music', 'Error reading playlist file'));
 			}
 		};

@@ -61,6 +61,7 @@ import * as playlistTabView from './playlisttabview.js';
 			}
 
 			playlistTabView.initLegacy(mPlaylistMimes);
+
 			connectPlaylistTabViewEvents(OCA.Music.folderView);
 		});
 	}
