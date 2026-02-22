@@ -8,6 +8,11 @@
  * @copyright Pauli Järvinen 2017 - 2026
  */
 
+import * as ncFiles3 from '@nextcloud/files-3';
+import * as ncFiles4 from '@nextcloud/files-4';
+import * as ncSharingPublic from '@nextcloud/sharing/public';
+import * as playlistTabView from './playlisttabview.js';
+
 (function() {
 	let mPlayer = new OCA.Music.EmbeddedPlayer();
 
@@ -34,15 +39,17 @@
 	function register() {
 		OCA.Music.folderView = new OCA.Music.FolderView(mPlayer, mAudioMimes, mPlaylistMimes);
 
-		// First, try to load the Nextcloud Files API. This works on NC28+ within the Files app but only on NC31+
+		// First, try to register using Nextcloud Files API. This works on NC28+ within the Files app but only on NC31+
 		// within a link-shared public folder. Note that we can't wait for the page load to be finished before doing
 		// this because that would be too late for the registration and cause the issue https://github.com/owncloud/music/issues/1126.
-		import('@nextcloud/files').then(ncFiles => {
-			import('@nextcloud/sharing/public').then(ncSharingPublic => {
-				const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
-				OCA.Music.folderView.registerToNcFiles(ncFiles, sharingToken);
-			});
-		}).catch(_e => {/*ignore*/});
+		const sharingToken = ncSharingPublic.isPublicShare() ? ncSharingPublic.getSharingToken() : null;
+		// @nextcloud/files 4.x supports only NC33+ while @nextcloud/files 3.x supports NC 26-32
+		if (OCA.Music.Utils.ncMajorVersion() >= 33) {
+			OCA.Music.folderView.registerToNcFiles4(ncFiles4, sharingToken);
+			playlistTabView.initForNcFiles4(ncFiles4, mPlaylistMimes);
+		} else {
+			OCA.Music.folderView.registerToNcFiles3(ncFiles3, sharingToken);
+		}
 
 		// The older fileActions API is used in NC28..30 when operating within a link-shared folder
 		window.addEventListener('DOMContentLoaded', () => {
@@ -53,24 +60,23 @@
 				OCA.Music.folderView.registerToFileActions(OCA.Files.fileActions, sharingToken);
 			}
 
-			OCA.Music.initPlaylistTabView(mPlaylistMimes);
+			playlistTabView.initLegacy(mPlaylistMimes);
+
 			connectPlaylistTabViewEvents(OCA.Music.folderView);
 		});
 	}
 
 	function connectPlaylistTabViewEvents(folderView) {
-		if (OCA.Music.playlistTabView) {
-			OCA.Music.playlistTabView.on('playlistItemClick', (file, index) => folderView.onPlaylistItemClick(file, index));
+		playlistTabView.getMsgBus().on('playlistItemClick', (file, index) => folderView.onPlaylistItemClick(file, index));
 
-			OCA.Music.playlistTabView.on('rendered', () => {
-				const plState = folderView.playlistFileState();
-				if (plState !== null) {
-					OCA.Music.playlistTabView.setCurrentTrack(plState.fileId, plState.index);
-				} else {
-					OCA.Music.playlistTabView.setCurrentTrack(null);
-				}
-			});
-		}
+		playlistTabView.getMsgBus().on('rendered', () => {
+			const plState = folderView.playlistFileState();
+			if (plState !== null) {
+				OCA.Music.playlistTabView.setCurrentTrack(plState.fileId, plState.index);
+			} else {
+				OCA.Music.playlistTabView.setCurrentTrack(null);
+			}
+		});
 	}
 
 	register();

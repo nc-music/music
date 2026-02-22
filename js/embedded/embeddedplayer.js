@@ -128,26 +128,24 @@ OCA.Music.EmbeddedPlayer = function() {
 		playlistNumberText = $(document.createElement('span'));
 		area.append(playlistNumberText);
 
-		if (typeof OCA.Music.playlistTabView != 'undefined') {
-			let menuContainer = $(document.createElement('div')).attr('id', 'menu-container');
-			// "more" button which toggles the popup menu open/closed
-			menuContainer.append($(document.createElement('button'))
-								.attr('class', 'icon-more')
-								.attr('alt', t('music', 'Actions'))
-								.click(function(event) {
-									if (!playlistMenu.is(':visible')) {
-										onMenuOpen(playlistMenu);
-									}
-									playlistMenu.toggleClass('open');
-									event.stopPropagation();
-								}));
-			// clicking anywhere else in the document closes the menu
-			$(document).click(function() { playlistMenu.removeClass('open'); });
+		let menuContainer = $(document.createElement('div')).attr('id', 'menu-container');
+		// "more" button which toggles the popup menu open/closed
+		menuContainer.append($(document.createElement('button'))
+							.attr('class', 'icon-more')
+							.attr('alt', t('music', 'Actions'))
+							.on('click', (event) => {
+								if (!playlistMenu.is(':visible')) {
+									onMenuOpen(playlistMenu);
+								}
+								playlistMenu.toggleClass('open');
+								event.stopPropagation();
+							}));
+		// clicking anywhere else in the document closes the menu
+		$(document).on('click', () => playlistMenu.removeClass('open'));
 
-			playlistMenu = createPopupMenu();
-			menuContainer.append(playlistMenu);
-			area.append(menuContainer);
-		}
+		playlistMenu = createPopupMenu();
+		menuContainer.append(playlistMenu);
+		area.append(menuContainer);
 
 		return area;
 	}
@@ -466,7 +464,7 @@ OCA.Music.EmbeddedPlayer = function() {
 		onImportRadio = importRadioCb;
 	};
 
-	this.show = function(playlistName = null) {
+	this.show = function(playlistName = null, hasPlaylistSidebar = false) {
 		if (!musicControls) {
 			createUi();
 		}
@@ -481,6 +479,13 @@ OCA.Music.EmbeddedPlayer = function() {
 			});
 			playlistNumberText.hide();
 			playlistText.text(OCA.Music.Utils.dropFileExtension(playlistName));
+
+			const menuToggle = musicControls.find('#playlist-area .icon-more');
+			if (hasPlaylistSidebar) {
+				menuToggle.show();
+			} else {
+				menuToggle.hide();
+			}
 		} else {
 			musicControls.removeClass('with-playlist');
 		}

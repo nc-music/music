@@ -10,7 +10,8 @@
 	},
 	"bugs": "https://github.com/nc-music/music/issues",
 	"dependencies": {
-		"@nextcloud/files": "^3.0.0",
+		"@nextcloud/files-3": "npm:@nextcloud/files@^3.0.0",
+		"@nextcloud/files-4": "npm:@nextcloud/files@^4.0.0",
 		"@nextcloud/sharing": "^0.2.4",
 		"angular": "^1.8.3",
 		"angular-gettext": "^2.4.2",

@@ -17,6 +17,13 @@ OCA.Music = OCA.Music || {};
 OCA.Music.Utils = class {
 
 	/**
+	 * Get major version of Nextcloud
+	 */
+	static ncMajorVersion() : number {
+		return parseInt(OC.config.version.split('.').at(0));
+	}
+
+	/**
 	 * Originally in ownCloud and in Nextcloud up to version 13, the #app-content element acted as the main scroll container.
 	 * Nextcloud 14 changed this so that the document became the main scrollable container, and this needed some adjustments
 	 * to the Music app. Then, Nextcloud 25 changed this back to the original system. In Nextcloud 28, this changed once again
