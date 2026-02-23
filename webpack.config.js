@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright 2020 - 2024 Pauli Järvinen
+ * @copyright 2020 - 2026 Pauli Järvinen
  *
  */
 
@@ -41,7 +41,8 @@ module.exports = {
       'blueimp-md5': path.resolve('node_modules', 'blueimp-md5'),
     },
     fallback: {
-      path: require.resolve("path-browserify")
+      path: require.resolve("path-browserify"),
+      stream: require.resolve("stream-browserify")
     }
   },
   plugins: [
