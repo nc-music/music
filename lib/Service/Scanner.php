@@ -180,7 +180,8 @@ class Scanner extends PublicEmitter {
 		// add/update track and get track entity
 		$track = $this->trackBusinessLayer->addOrUpdateTrack(
 				$meta['title'], $meta['trackNumber'], $meta['discNumber'], $meta['year'], $genre->getId(),
-				$artistId, $albumId, $fileId, $mimetype, $userId, $meta['length'], $meta['bitrate']);
+				$artistId, $albumId, $fileId, $mimetype, $userId, $meta['length'], $meta['bitrate'],
+				$meta['bpm'], $meta['composer']);
 
 		// if present, use the embedded album art as cover for the respective album
 		if ($meta['picture'] != null) {
@@ -280,6 +281,12 @@ class Scanner extends PublicEmitter {
 		$meta['year'] = self::normalizeYear($meta['year']);
 
 		$meta['genre'] = ExtractorGetID3::getTag($fileInfo, 'genre') ?: ''; // empty string used for "scanned but unknown"
+
+		$bpmRaw = ExtractorGetID3::getTag($fileInfo, 'bpm');
+		$meta['bpm'] = ($bpmRaw !== null && \is_numeric($bpmRaw) && (int)$bpmRaw > 0)
+			? (int)$bpmRaw
+			: null;
+		$meta['composer'] = ExtractorGetID3::getTag($fileInfo, 'composer');
 
 		$meta['picture'] = ExtractorGetID3::getTag($fileInfo, 'picture', true);
 

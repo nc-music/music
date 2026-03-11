@@ -57,6 +57,12 @@ fi
 # extract
 unzip -o $name -d .
 
+# Add BPM and composer tags to test file "Médiane" (23969) for Subsonic API tests.
+# The upstream test content zip lacks these tags.
+if command -v mid3v2 &> /dev/null; then
+    mid3v2 --TBPM 92 --TCOM "Pascal Boiseau" "23969-[AudioTrimmer.com].mp3"
+fi
+
 # go back to the old folder
 cd -
 
