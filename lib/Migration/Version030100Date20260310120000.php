@@ -28,8 +28,11 @@ class Version030100Date20260310120000 extends SimpleMigrationStep {
 		if (!$tracks->hasColumn('bpm')) {
 			$tracks->addColumn('bpm', 'integer', ['notnull' => false, 'unsigned' => true]);
 		}
-		if (!$tracks->hasColumn('composer')) {
-			$tracks->addColumn('composer', 'string', ['notnull' => false, 'length' => 256]);
+		if (!$tracks->hasColumn('composer_id')) {
+			$tracks->addColumn('composer_id', 'integer', ['notnull' => false, 'unsigned' => true]);
+		}
+		if (!$tracks->hasIndex('music_tracks_composer_id_idx')) {
+			$tracks->addIndex(['composer_id'], 'music_tracks_composer_id_idx');
 		}
 
 		return $schema;

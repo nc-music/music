@@ -118,14 +118,14 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$this->assertEquals($track, $result);
 	}
 
-	public function testAddOrUpdateTrackWithBpmAndComposer() {
+	public function testAddOrUpdateTrackWithBpmAndComposerId() {
 		$fileId = 2;
 
 		$this->mapper->expects($this->once())
 			->method('insertOrUpdate')
 			->with($this->callback(function (Track $track) {
 				return $track->getBpm() === 120
-					&& $track->getComposer() === 'Johann Sebastian Bach';
+					&& $track->getComposerId() === 42;
 			}))
 			->will($this->returnCallback(function (Track $track) {
 				$track->setId(1);
@@ -134,19 +134,19 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 
 		$result = $this->trackBusinessLayer->addOrUpdateTrack(
 			'test', null, null, null, 1, 1, 1, $fileId, 'audio/mpeg', $this->userId,
-			null, null, 120, 'Johann Sebastian Bach');
+			null, null, 120, 42);
 		$this->assertEquals(120, $result->getBpm());
-		$this->assertEquals('Johann Sebastian Bach', $result->getComposer());
+		$this->assertEquals(42, $result->getComposerId());
 	}
 
-	public function testAddOrUpdateTrackWithNullBpmAndComposer() {
+	public function testAddOrUpdateTrackWithNullBpmAndComposerId() {
 		$fileId = 2;
 
 		$this->mapper->expects($this->once())
 			->method('insertOrUpdate')
 			->with($this->callback(function (Track $track) {
 				return $track->getBpm() === null
-					&& $track->getComposer() === null;
+					&& $track->getComposerId() === null;
 			}))
 			->will($this->returnCallback(function (Track $track) {
 				$track->setId(1);
@@ -156,7 +156,7 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$result = $this->trackBusinessLayer->addOrUpdateTrack(
 			'test', null, null, null, 1, 1, 1, $fileId, 'audio/mpeg', $this->userId);
 		$this->assertNull($result->getBpm());
-		$this->assertNull($result->getComposer());
+		$this->assertNull($result->getComposerId());
 	}
 
 	public function testDeleteTracksEmpty() {

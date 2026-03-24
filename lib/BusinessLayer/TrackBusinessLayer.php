@@ -315,7 +315,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
 			int $fileId, string $mimetype, string $userId, ?int $length=null, ?int $bitrate=null,
-			?int $bpm=null, ?string $composer=null) : Track {
+			?int $bpm=null, ?int $composerId=null) : Track {
 		$track = new Track();
 		$track->setTitle(StringUtil::truncate($title, 256)); // some DB setups can't truncate automatically to column max size
 		$track->setNumber($number);
@@ -330,7 +330,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		$track->setLength($length);
 		$track->setBitrate($bitrate);
 		$track->setBpm($bpm);
-		$track->setComposer($composer !== null ? StringUtil::truncate($composer, 256) : null);
+		$track->setComposerId($composerId);
 		$track->setDirty(0);
 		return $this->mapper->insertOrUpdate($track);
 	}
@@ -364,6 +364,9 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			$users = [];
 			foreach ($tracks as $track) {
 				$artists[$track->getArtistId()] = 1;
+				if ($track->getComposerId() !== null) {
+					$artists[$track->getComposerId()] = 1;
+				}
 				$albums[$track->getAlbumId()] = 1;
 				$users[$track->getUserId()] = 1;
 			}
@@ -375,7 +378,8 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			$remainingArtists = [];
 			$obsoleteArtists = [];
 			foreach ($artists as $artistId) {
-				if ($this->mapper->countByArtist($artistId) === 0) {
+				if ($this->mapper->countByArtist($artistId) === 0
+						&& $this->mapper->countByComposer($artistId) === 0) {
 					$obsoleteArtists[] = $artistId;
 				} else {
 					$remainingArtists[] = $artistId;

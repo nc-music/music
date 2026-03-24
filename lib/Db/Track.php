@@ -56,8 +56,8 @@ use OCP\IURLGenerator;
  * @method void setDirty(int $dirty)
  * @method ?int getBpm()
  * @method void setBpm(?int $bpm)
- * @method ?string getComposer()
- * @method void setComposer(?string $composer)
+ * @method ?int getComposerId()
+ * @method void setComposerId(?int $composerId)
  *
  * @method string getFilename()
  * @method int getSize()
@@ -65,6 +65,7 @@ use OCP\IURLGenerator;
  * @method ?string getAlbumName()
  * @method ?string getArtistName()
  * @method ?string getGenreName()
+ * @method ?string getComposerName()
  * @method int getFolderId()
  */
 class Track extends Entity {
@@ -86,7 +87,7 @@ class Track extends Entity {
 	public ?string $lastPlayed = null;
 	public int $dirty = 0;
 	public ?int $bpm = null;
-	public ?string $composer = null;
+	public ?int $composerId = null;
 
 	// not from the music_tracks table but still part of the standard content of this entity:
 	public string $filename = '';
@@ -95,6 +96,7 @@ class Track extends Entity {
 	public ?string $albumName = null;
 	public ?string $artistName = null;
 	public ?string $genreName = null;
+	public ?string $composerName = null;
 	public int $folderId = 0;
 
 	// the rest of the variables are injected separately when needed
@@ -117,6 +119,7 @@ class Track extends Entity {
 		$this->addType('rating', 'int');
 		$this->addType('dirty', 'int');
 		$this->addType('bpm', 'int');
+		$this->addType('composerId', 'int');
 		$this->addType('size', 'int');
 		$this->addType('fileModTime', 'int');
 		$this->addType('folderId', 'int');
@@ -325,7 +328,7 @@ class Track extends Entity {
 			'averageRating' => $this->getRating() ?: null,
 			'genre' => empty($this->getGenreId()) ? null : $this->getGenreNameString($l10n),
 			'bpm' => ($this->getBpm() !== null && $this->getBpm() > 0) ? $this->getBpm() : null,
-			'composer' => $this->getComposer() ?: null,
+			'composer' => $this->getComposerName() ?: null,
 			'coverArt' => !$hasCoverArt ? null : 'album-' . $albumId,
 			'playCount' => $this->getPlayCount(),
 			'played' => Util::formatZuluDateTime($this->getLastPlayed()) ?? '', // OpenSubsonic
