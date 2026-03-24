@@ -282,10 +282,7 @@ class Scanner extends PublicEmitter {
 
 		$meta['genre'] = ExtractorGetID3::getTag($fileInfo, 'genre') ?: ''; // empty string used for "scanned but unknown"
 
-		$bpmRaw = ExtractorGetID3::getTag($fileInfo, 'bpm');
-		$meta['bpm'] = ($bpmRaw !== null && \is_numeric($bpmRaw) && (int)$bpmRaw > 0)
-			? (int)$bpmRaw
-			: null;
+		$meta['bpm'] = self::normalizeUnsigned(ExtractorGetID3::getTag($fileInfo, 'bpm'));
 		$meta['composer'] = ExtractorGetID3::getTag($fileInfo, 'composer');
 
 		$meta['picture'] = ExtractorGetID3::getTag($fileInfo, 'picture', true);

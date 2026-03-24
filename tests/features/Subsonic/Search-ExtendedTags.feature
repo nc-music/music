@@ -8,4 +8,4 @@ Feature: Subsonic API - Extended song tags
     And I request the "search2" resource
     Then the XML result should contain "song" entries:
       | title   | bpm | composer       |
-      | Médiane | 92  | Pascal Boiseau |
+      | Médiane | 122 | Pascal Boiseau (Pascalb) |
