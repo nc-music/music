@@ -327,7 +327,7 @@ class Track extends Entity {
 			'userRating' => $this->getRating() ?: null,
 			'averageRating' => $this->getRating() ?: null,
 			'genre' => empty($this->getGenreId()) ? null : $this->getGenreNameString($l10n),
-			'bpm' => ($this->getBpm() !== null && $this->getBpm() > 0) ? $this->getBpm() : null,
+			'bpm' => $this->getBpm() ?: null,
 			'contributors' => $this->buildContributors($l10n),
 			'displayComposer' => $this->getComposerName() ?: null,
 			'coverArt' => !$hasCoverArt ? null : 'album-' . $albumId,
