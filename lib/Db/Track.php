@@ -328,12 +328,24 @@ class Track extends Entity {
 			'averageRating' => $this->getRating() ?: null,
 			'genre' => empty($this->getGenreId()) ? null : $this->getGenreNameString($l10n),
 			'bpm' => ($this->getBpm() !== null && $this->getBpm() > 0) ? $this->getBpm() : null,
-			'composer' => $this->getComposerName() ?: null,
+			'contributors' => $this->buildContributors($l10n),
+			'displayComposer' => $this->getComposerName() ?: null,
 			'coverArt' => !$hasCoverArt ? null : 'album-' . $albumId,
 			'playCount' => $this->getPlayCount(),
 			'played' => Util::formatZuluDateTime($this->getLastPlayed()) ?? '', // OpenSubsonic
 			'sortName' => StringUtil::splitPrefixAndBasename($this->getTitle(), $ignoredArticles)['basename'], // OpenSubsonic
 		];
+	}
+
+	private function buildContributors(IL10N $l10n) : ?array {
+		$contributors = [];
+		if ($this->getArtistId() !== null) {
+			$contributors[] = ['role' => 'performer', 'artist' => ['id' => 'artist-' . $this->getArtistId(), 'name' => $this->getArtistNameString($l10n)]];
+		}
+		if ($this->getComposerId() !== null) {
+			$contributors[] = ['role' => 'composer', 'artist' => ['id' => 'artist-' . $this->getComposerId(), 'name' => $this->getComposerName()]];
+		}
+		return empty($contributors) ? null : $contributors;
 	}
 
 	public function getAdjustedTrackNumber(bool $enablePlaylistNumbering=true) : ?int {
