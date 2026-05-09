@@ -277,7 +277,7 @@ angular.module('Music').controller('AdvancedSearchViewController', [
 		/** Results which may be saved to a playlist */
 		$scope.saveableResultCount = function() {
 			const res = $scope.results;
-			return res.tracks.length + res.albums.length + res.artists.length + res.playlists.length;
+			return res.tracks.length + res.albums.length + res.artists.length + res.playlists.length + res.genres.length;
 		};
 
 		$scope.onTrackClick = function(trackId) {
