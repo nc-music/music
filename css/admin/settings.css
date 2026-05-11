@@ -2,6 +2,11 @@
     padding: 30px;
 }
 
+#admin-music form.scrobbler {
+    background-position: calc(100% - 2 * var(--default-grid-baseline)) calc(100% - 2 * var(--default-grid-baseline));
+    width: min-content;
+}
+
 #admin-music a {
     text-decoration: underline;
 }
@@ -15,19 +20,14 @@
     width: 40rch;
 }
 
-#admin-music .scrobbler .status.success {
-    background-color: var(--color-success);
-}
-
-#admin-music .scrobbler .status.error {
-    background-color: var(--color-error);
+#admin-music .scrobbler .field input:invalid {
+    border-color: var(--color-error, red);
 }
 
 #admin-music .scrobbler fieldset {
     border: 1px solid var(--color-border-dark);
     border-radius: var(--border-radius-large);
     padding: calc(var(--default-grid-baseline) * 2);
-    width: min-content;
 }
 
 #admin-music .scrobbler legend {

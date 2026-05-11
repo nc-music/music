@@ -23,18 +23,17 @@ class ScrobblerAdmin implements MusicAdminSection {
 		formEl.classList.add('scrobbler', this.#identifier);
         const keyLabel = escape(t('music', 'API Key'));
         const secretLabel = escape(t('music', 'API Secret'));
+		const serviceLabel = escape(this.#name);
 		formEl.insertAdjacentHTML('afterbegin', `
 		<fieldset>
-			<legend><h3>${escape(this.#name)}</h3></legend>
+			<legend><h3>${serviceLabel}</h3></legend>
 			<div class="field">
 				<label for="${escape(this.#identifier)}_api_key">${keyLabel}</label>
-				<input name="api_key" placeholder="${keyLabel}" title="${keyLabel}" id="${escape(this.#identifier)}_api_key" type="text" value="${escape(this.#api_key)}" data-original-value="${escape(this.#api_key)}"/>
-				<span class="result"></span>
+				<input name="api_key" placeholder="${keyLabel}" aria-label="${serviceLabel} ${keyLabel}" id="${escape(this.#identifier)}_api_key" type="text" value="${escape(this.#api_key)}" data-original-value="${escape(this.#api_key)}"/>
 			</div>
 			<div class="field">
 				<label for="${escape(this.#identifier)}_api_secret">${secretLabel}</label>
-				<input name="api_secret" placeholder="${secretLabel}" title="${secretLabel}" id="${escape(this.#identifier)}_api_secret" type="password" value="${escape(this.#api_secret)}" data-original-value="${escape(this.#api_secret)}"/>
-				<span class="result"></span>
+				<input name="api_secret" placeholder="${secretLabel}" aria-label="${serviceLabel} ${secretLabel}" id="${escape(this.#identifier)}_api_secret" type="password" value="${escape(this.#api_secret)}" data-original-value="${escape(this.#api_secret)}"/>
 			</div>
 			<div class="field">
 				<button type="submit" title="${escape(t('music', 'Update API credentials for {service}', { service: this.#name }))}">Save</button>
@@ -47,35 +46,64 @@ class ScrobblerAdmin implements MusicAdminSection {
 
 	#attachListener(formEl: HTMLFormElement) {
 		const apiKeyEl = <HTMLInputElement> formEl.elements.namedItem('api_key');
-		const apiKeyStatusEl = apiKeyEl.nextElementSibling;
 		const apiSecretEl = <HTMLInputElement> formEl.elements.namedItem('api_secret');
-		const apiSecretStatusEl = apiSecretEl.nextElementSibling;
 
 		formEl.addEventListener('submit', function (e: SubmitEvent) {
 			e.preventDefault();
 
-			setLoadingState(apiKeyStatusEl);
+			setLoadingState(formEl);
 			// Update the api key, then update the api secret if the key update succeeded.
 			OCP.AppConfig.setValue('music', apiKeyEl.id, apiKeyEl.value, {
 				success: () => {
-					setSuccessState(apiKeyStatusEl);
-
-					setLoadingState(apiSecretStatusEl);
 					OCP.AppConfig.setValue('music', apiSecretEl.id, apiSecretEl.value, {
 						success: () => {
-							setSuccessState(apiSecretStatusEl);
+							removeLoadingState(formEl);
+							setErrorState(apiKeyEl, 'ooh oho hoo');
 						},
 						error: (err: any) => {
-							setErrorState(apiSecretStatusEl);
+							removeLoadingState(formEl);
+							setErrorState(apiSecretEl, parseErr(err));
 						}
 					});
 				},
 				error: (err: any) => {
-					setErrorState(apiKeyStatusEl);
+					setErrorState(apiKeyEl, parseErr(err));
 				}
 			});
 		});
+
+		// reset validation state upon receiving new input
+		formEl.addEventListener('input', (e: InputEvent) => (<HTMLInputElement> e.target).setCustomValidity(''));
 	}
+}
+
+function setLoadingState(el: HTMLFormElement): void {
+	el.classList.add('icon-change');
+	[...el.querySelectorAll('input:invalid')].map(
+		(el: HTMLInputElement) => el.setCustomValidity('')
+	);
+}
+
+function removeLoadingState(el: HTMLElement): void {
+	el.classList.remove('icon-change');
+}
+
+function setErrorState(el: HTMLInputElement, message: string): void {
+	el.setCustomValidity(message);
+	el.reportValidity();
+}
+
+/**
+ * Parse error from OCP.AppConfig.setValue.
+ *
+ * Older versions of NextCloud use jQuery, which returns an XML document;
+ * Newer versions use Axios, which returns a plain object
+ */
+function parseErr(err: {responseXML: XMLDocument}|{message: string}): string {
+	if ('responseXML' in err) {
+		return err.responseXML.querySelector('data message').textContent;
+	}
+	return err.message;
 }
 
 export default class ScrobblersAdmin implements MusicAdminSection {
@@ -89,29 +117,14 @@ export default class ScrobblersAdmin implements MusicAdminSection {
 
 	mount(element: HTMLElement) {
 		const root = document.createElement('div');
-		console.log(t('music', '<a href={href} target="_blank"', {href: 'foo'}));
 		root.insertAdjacentHTML('afterbegin', `
 		<h2>${t('music', 'Scrobbler Configuration')}</h2>
-		<p>${t('music', 'Configure API connection to begin scrobbling. Check the <a target="_blank" href="{href}">documentation</a> for more details.', {
-			href: 'https://github.com/nc-music/music/wiki/'
-		})}</p>
+		<p>${t('music', 'Configure API connection to begin scrobbling. Check the <a target="_blank" href="https://github.com/nc-music/music/wiki/">documentation</a> for more details.')}</p>
 		`);
+		// DOMPurify removes the target attribute
+		// t() doesn't give us access to send args to DOMPurify, so we have to add it later
+		root.querySelector('a').target = '_blank';
 		this.#scrobblers.forEach(scrobbler => scrobbler.mount(root));
 		element.appendChild(root);
 	}
-}
-
-function setLoadingState(el: Element): void {
-	el.classList.add('icon-change');
-	el.classList.remove('icon-checkmark', 'success', 'icon-error', 'error');
-}
-
-function setSuccessState(el: Element): void {
-	el.classList.add('icon-checkmark', 'success');
-	el.classList.remove('icon-error', 'error', 'icon-change');
-}
-
-function setErrorState(el: Element): void {
-	el.classList.add('icon-error', 'error');
-	el.classList.remove('icon-change', 'icon-checkmark', 'success');
 }
