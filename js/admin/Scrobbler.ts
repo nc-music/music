@@ -58,7 +58,6 @@ class ScrobblerAdmin implements MusicAdminSection {
 					OCP.AppConfig.setValue('music', apiSecretEl.id, apiSecretEl.value, {
 						success: () => {
 							removeLoadingState(formEl);
-							setErrorState(apiKeyEl, 'ooh oho hoo');
 						},
 						error: (err: any) => {
 							removeLoadingState(formEl);
@@ -67,21 +66,20 @@ class ScrobblerAdmin implements MusicAdminSection {
 					});
 				},
 				error: (err: any) => {
+					removeLoadingState(formEl);
 					setErrorState(apiKeyEl, parseErr(err));
 				}
 			});
 		});
 
 		// reset validation state upon receiving new input
-		formEl.addEventListener('input', (e: InputEvent) => (<HTMLInputElement> e.target).setCustomValidity(''));
+		formEl.addEventListener('input', (e: InputEvent) => removeErrorState((<HTMLInputElement> e.target)));
 	}
 }
 
 function setLoadingState(el: HTMLFormElement): void {
 	el.classList.add('icon-change');
-	[...el.querySelectorAll('input:invalid')].map(
-		(el: HTMLInputElement) => el.setCustomValidity('')
-	);
+	[...el.querySelectorAll('input:invalid')].map(removeErrorState);
 }
 
 function removeLoadingState(el: HTMLElement): void {
@@ -91,6 +89,10 @@ function removeLoadingState(el: HTMLElement): void {
 function setErrorState(el: HTMLInputElement, message: string): void {
 	el.setCustomValidity(message);
 	el.reportValidity();
+}
+
+function removeErrorState(el: HTMLInputElement): void {
+	el.setCustomValidity('');
 }
 
 /**
