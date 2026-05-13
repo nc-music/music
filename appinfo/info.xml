@@ -51,6 +51,7 @@
 			<step>OCA\Music\Migration\DiskNumberMigration</step>
 			<step>OCA\Music\Migration\RegisterBackgroundJobs</step>
 			<step>OCA\Music\Migration\TimestampInit</step>
+			<step>OCA\Music\Migration\MigrateScrobblerCredentials</step>
 		</post-migration>
 	</repair-steps>
 	<commands>
