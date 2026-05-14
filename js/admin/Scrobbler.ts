@@ -103,7 +103,7 @@ function removeErrorState(el: HTMLInputElement): void {
  */
 function parseErr(err: {responseXML: XMLDocument}|{message: string}): string {
 	if ('responseXML' in err) {
-		return err.responseXML.querySelector('data message').textContent;
+		return err.responseXML.querySelector('data message')?.textContent || t('music', 'Unknown error, please refer to the Nextcloud log');
 	}
 	return err.message;
 }
