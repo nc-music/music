@@ -36,7 +36,8 @@ class TrackMapper extends BaseMapper {
 	 */
 	protected function selectEntities(string $condition, ?string $extension=null) : string {
 		return "SELECT `*PREFIX*music_tracks`.*, `file`.`name` AS `filename`, `file`.`size`, `file`.`mtime` AS `file_mod_time`, `file`.`parent` AS `folder_id`,
-						`album`.`name` AS `album_name`, `artist`.`name` AS `artist_name`, `genre`.`name` AS `genre_name`
+						`album`.`name` AS `album_name`, `artist`.`name` AS `artist_name`, `genre`.`name` AS `genre_name`,
+						`composer`.`name` AS `composer_name`
 				FROM `*PREFIX*music_tracks`
 				INNER JOIN `*PREFIX*filecache` `file`
 				ON `*PREFIX*music_tracks`.`file_id` = `file`.`fileid`
@@ -46,6 +47,8 @@ class TrackMapper extends BaseMapper {
 				ON `*PREFIX*music_tracks`.`artist_id` = `artist`.`id`
 				LEFT JOIN `*PREFIX*music_genres` `genre`
 				ON `*PREFIX*music_tracks`.`genre_id` = `genre`.`id`
+				LEFT JOIN `*PREFIX*music_artists` `composer`
+				ON `*PREFIX*music_tracks`.`composer_id` = `composer`.`id`
 				WHERE $condition $extension";
 	}
 
@@ -214,6 +217,14 @@ class TrackMapper extends BaseMapper {
 
 	public function countByArtist(int $artistId) : int {
 		$sql = 'SELECT COUNT(*) AS `count` FROM `*PREFIX*music_tracks` WHERE `artist_id` = ?';
+		$result = $this->execute($sql, [$artistId]);
+		$row = $result->fetch();
+		$result->closeCursor();
+		return (int)$row['count'];
+	}
+
+	public function countByComposer(int $artistId) : int {
+		$sql = 'SELECT COUNT(*) AS `count` FROM `*PREFIX*music_tracks` WHERE `composer_id` = ?';
 		$result = $this->execute($sql, [$artistId]);
 		$row = $result->fetch();
 		$result->closeCursor();

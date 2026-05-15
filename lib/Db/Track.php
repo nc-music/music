@@ -54,6 +54,10 @@ use OCP\IURLGenerator;
  * @method void setLastPlayed(?string $timestamp)
  * @method int getDirty()
  * @method void setDirty(int $dirty)
+ * @method ?int getBpm()
+ * @method void setBpm(?int $bpm)
+ * @method ?int getComposerId()
+ * @method void setComposerId(?int $composerId)
  *
  * @method string getFilename()
  * @method int getSize()
@@ -61,6 +65,7 @@ use OCP\IURLGenerator;
  * @method ?string getAlbumName()
  * @method ?string getArtistName()
  * @method ?string getGenreName()
+ * @method ?string getComposerName()
  * @method int getFolderId()
  */
 class Track extends Entity {
@@ -81,6 +86,8 @@ class Track extends Entity {
 	public int $playCount = 0;
 	public ?string $lastPlayed = null;
 	public int $dirty = 0;
+	public ?int $bpm = null;
+	public ?int $composerId = null;
 
 	// not from the music_tracks table but still part of the standard content of this entity:
 	public string $filename = '';
@@ -89,6 +96,7 @@ class Track extends Entity {
 	public ?string $albumName = null;
 	public ?string $artistName = null;
 	public ?string $genreName = null;
+	public ?string $composerName = null;
 	public int $folderId = 0;
 
 	// the rest of the variables are injected separately when needed
@@ -110,6 +118,8 @@ class Track extends Entity {
 		$this->addType('playCount', 'int');
 		$this->addType('rating', 'int');
 		$this->addType('dirty', 'int');
+		$this->addType('bpm', 'int');
+		$this->addType('composerId', 'int');
 		$this->addType('size', 'int');
 		$this->addType('fileModTime', 'int');
 		$this->addType('folderId', 'int');
@@ -317,11 +327,25 @@ class Track extends Entity {
 			'userRating' => $this->getRating() ?: null,
 			'averageRating' => $this->getRating() ?: null,
 			'genre' => empty($this->getGenreId()) ? null : $this->getGenreNameString($l10n),
+			'bpm' => $this->getBpm() ?: null,
+			'contributors' => $this->buildContributors($l10n),
+			'displayComposer' => $this->getComposerName() ?: null,
 			'coverArt' => !$hasCoverArt ? null : 'album-' . $albumId,
 			'playCount' => $this->getPlayCount(),
 			'played' => Util::formatZuluDateTime($this->getLastPlayed()) ?? '', // OpenSubsonic
 			'sortName' => StringUtil::splitPrefixAndBasename($this->getTitle(), $ignoredArticles)['basename'], // OpenSubsonic
 		];
+	}
+
+	private function buildContributors(IL10N $l10n) : ?array {
+		$contributors = [];
+		if ($this->getArtistId() !== null) {
+			$contributors[] = ['role' => 'performer', 'artist' => ['id' => 'artist-' . $this->getArtistId(), 'name' => $this->getArtistNameString($l10n)]];
+		}
+		if ($this->getComposerId() !== null) {
+			$contributors[] = ['role' => 'composer', 'artist' => ['id' => 'artist-' . $this->getComposerId(), 'name' => $this->getComposerName()]];
+		}
+		return empty($contributors) ? null : $contributors;
 	}
 
 	public function getAdjustedTrackNumber(bool $enablePlaylistNumbering=true) : ?int {

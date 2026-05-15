@@ -214,6 +214,26 @@ class SubsonicContext implements Context, SnippetAcceptingContext {
 	}
 
 	/**
+	 * @Then the first :entryType XML element should have a :childType child with attribute :attr value :expectedValue
+	 */
+	public function theFirstEntryTypeShouldHaveChildWithAttribute($entryType, $childType, $attr, $expectedValue) {
+		$elements = $this->xpath('/subsonic-response/' .
+			self::resultElementForResource($this->resource) . '/' . $entryType . '/' . $childType);
+
+		if (empty($elements)) {
+			throw new \Exception("No '$childType' child found under '$entryType'" . PHP_EOL . $this->xml->asXML());
+		}
+
+		foreach ($elements as $element) {
+			if ((string)$element[$attr] === $expectedValue) {
+				return;
+			}
+		}
+
+		throw new \Exception("No '$childType' child found with $attr='$expectedValue'" . PHP_EOL . $this->xml->asXML());
+	}
+
+	/**
 	 * @Given I store the attribute :attr from the first :entryType XML element
 	 */
 	public function iStoreTheFirstFromTheXmlResult($attr, $entryType) {
