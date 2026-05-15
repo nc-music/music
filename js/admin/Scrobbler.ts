@@ -96,9 +96,11 @@ function removeErrorState(el: HTMLInputElement): void {
 }
 
 /**
- * Parse error from OCP.AppConfig.setValue.
+ * Parse error from OCP.AppConfig.setValue
  *
- * Older versions of NextCloud use jQuery, which returns an XML document;
+ * Older versions of NextCloud use jQuery, which returns an XML document.
+ * Depending on the nature of the error, the relevant message may not be present
+ * on the data node. In that case, use a generic message.
  * Newer versions use Axios, which returns a plain object
  */
 function parseErr(err: {responseXML: XMLDocument}|{message: string}): string {
