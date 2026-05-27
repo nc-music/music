@@ -8,6 +8,10 @@
  * @copyright Matthew Wells 2026
  */
 
+#admin-music {
+    margin-top: 40px;
+}
+
 #admin-music .scrobblers > div {
     padding: 0 30px 30px;
 }
