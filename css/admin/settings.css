@@ -1,9 +1,12 @@
-#admin-music .settings-section {
-    padding: 30px;
+#admin-music .scrobblers > div {
+    padding: 0 30px 30px;
+}
+
+#admin-music .settings-section:not(:last-child) {
+    border-bottom: solid 1px var(--color-border);
 }
 
 #admin-music form.scrobbler {
-    background-position: calc(100% - 2 * var(--default-grid-baseline)) calc(100% - 2 * var(--default-grid-baseline));
     width: min-content;
 }
 
@@ -24,13 +27,4 @@
     border-color: var(--color-border-error, var(--color-error, red));
 }
 
-#admin-music .scrobbler fieldset {
-    border: 1px solid var(--color-border-dark);
-    border-radius: var(--border-radius-large);
-    padding: calc(var(--default-grid-baseline) * 2);
-}
-
-#admin-music .scrobbler legend {
-    padding: var(--default-grid-baseline);
-}
 

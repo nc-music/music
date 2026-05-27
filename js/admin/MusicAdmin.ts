@@ -8,8 +8,6 @@ export default class MusicAdmin {
 	}
 
 	mount(element: HTMLElement) {
-		element.insertAdjacentHTML('afterbegin', '<div class="settings-section"></div>');
-		const section: HTMLElement = element.querySelector('.settings-section');
-		this.#children.forEach(child => child.mount(section));
+		this.#children.forEach(child => child.mount(element));
 	}
 }

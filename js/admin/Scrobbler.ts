@@ -19,8 +19,11 @@ class ScrobblerAdmin implements MusicAdminSection {
 	}
 
 	mount(element: HTMLElement) {
+		const containerEl = document.createElement('div');
+		containerEl.classList.add('settings-section');
 		const formEl = document.createElement('form');
 		formEl.classList.add('scrobbler', this.#identifier);
+		containerEl.insertAdjacentElement('afterbegin', formEl);
         const keyLabel = escape(t('music', 'API Key'));
         const secretLabel = escape(t('music', 'API Secret'));
 		const serviceLabel = escape(this.#name);
@@ -40,7 +43,7 @@ class ScrobblerAdmin implements MusicAdminSection {
 			</div>
 		</fieldset>
 `);
-		element.appendChild(formEl);
+		element.appendChild(containerEl);
 		this.#attachListener(formEl);
 	}
 
@@ -51,22 +54,17 @@ class ScrobblerAdmin implements MusicAdminSection {
 		formEl.addEventListener('submit', function (e: SubmitEvent) {
 			e.preventDefault();
 
-			setLoadingState(formEl);
+			[...formEl.querySelectorAll('input:invalid')].map(removeErrorState);
 			// Update the api key, then update the api secret if the key update succeeded.
 			OCP.AppConfig.setValue('music', apiKeyEl.id, apiKeyEl.value, {
 				success: () => {
 					OCP.AppConfig.setValue('music', apiSecretEl.id, apiSecretEl.value, {
-						success: () => {
-							removeLoadingState(formEl);
-						},
 						error: (err: any) => {
-							removeLoadingState(formEl);
 							setErrorState(apiSecretEl, parseErr(err));
 						}
 					});
 				},
 				error: (err: any) => {
-					removeLoadingState(formEl);
 					setErrorState(apiKeyEl, parseErr(err));
 				}
 			});
@@ -75,15 +73,6 @@ class ScrobblerAdmin implements MusicAdminSection {
 		// reset validation state upon receiving new input
 		formEl.addEventListener('input', (e: InputEvent) => removeErrorState((<HTMLInputElement> e.target)));
 	}
-}
-
-function setLoadingState(el: HTMLFormElement): void {
-	el.classList.add('icon-change');
-	[...el.querySelectorAll('input:invalid')].map(removeErrorState);
-}
-
-function removeLoadingState(el: HTMLElement): void {
-	el.classList.remove('icon-change');
 }
 
 function setErrorState(el: HTMLInputElement, message: string): void {
@@ -121,9 +110,12 @@ export default class ScrobblersAdmin implements MusicAdminSection {
 
 	mount(element: HTMLElement) {
 		const root = document.createElement('div');
+		root.classList.add('scrobblers');
 		root.insertAdjacentHTML('afterbegin', `
-		<h2>${t('music', 'Scrobbler Configuration')}</h2>
-		<p>${t('music', 'Configure API connection to begin scrobbling. Check the <a target="_blank" href="https://github.com/nc-music/music/wiki/">documentation</a> for more details.')}</p>
+		<div class="scrobbler-intro">
+			<h2>${t('music', 'Scrobbler Configuration')}</h2>
+			<p>${t('music', 'Configure API connection to begin scrobbling. Check the <a target="_blank" href="https://github.com/nc-music/music/wiki/">documentation</a> for more details.')}</p>
+		</div>
 		`);
 		// DOMPurify removes the target attribute
 		// t() doesn't give us access to send args to DOMPurify, so we have to add it later
