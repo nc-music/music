@@ -24,22 +24,24 @@ class ScrobblerAdmin implements MusicAdminSection {
 		const formEl = document.createElement('form');
 		formEl.classList.add('scrobbler', this.#identifier);
 		containerEl.insertAdjacentElement('afterbegin', formEl);
-        const keyLabel = escape(t('music', 'API Key'));
-        const secretLabel = escape(t('music', 'API Secret'));
+
+		const keyLabel = escape(t('music', 'API Key'));
+		const secretLabel = escape(t('music', 'API Secret'));
 		const serviceLabel = escape(this.#name);
+		const identifierEsc = escape(this.#identifier);
 		formEl.insertAdjacentHTML('afterbegin', `
 		<fieldset>
 			<legend><h3>${serviceLabel}</h3></legend>
 			<div class="field">
-				<label for="${escape(this.#identifier)}_api_key">${keyLabel}</label>
-				<input name="api_key" aria-label="${serviceLabel} ${keyLabel}" id="${escape(this.#identifier)}_api_key" type="text" value="${escape(this.#api_key)}" data-original-value="${escape(this.#api_key)}"/>
+				<label for="${identifierEsc}_api_key">${keyLabel}</label>
+				<input name="api_key" aria-label="${serviceLabel} ${keyLabel}" id="${identifierEsc}_api_key" type="text" value="${escape(this.#api_key)}" />
 			</div>
 			<div class="field">
-				<label for="${escape(this.#identifier)}_api_secret">${secretLabel}</label>
-				<input name="api_secret" aria-label="${serviceLabel} ${secretLabel}" id="${escape(this.#identifier)}_api_secret" type="password" value="${escape(this.#api_secret)}" data-original-value="${escape(this.#api_secret)}"/>
+				<label for="${identifierEsc}_api_secret">${secretLabel}</label>
+				<input name="api_secret" aria-label="${serviceLabel} ${secretLabel}" id="${identifierEsc}_api_secret" type="password" value="${escape(this.#api_secret)}" />
 			</div>
 			<div class="field">
-				<button type="submit" title="${escape(t('music', 'Update API credentials for {service}', { service: this.#name }))}">Save</button>
+				<button type="submit" title="${escape(t('music', 'Update API credentials for {service}', { service: this.#name }))}">${escape(t('music', 'Save'))}</button>
 			</div>
 		</fieldset>
 `);
