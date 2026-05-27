@@ -34,7 +34,7 @@
 
 #admin-music .scrobbler .field input {
     /* scrobbler keys and secrets are generally 32 characters, so use a value slightly larger than that */
-    width: 40rch;
+    width: min(40rch, calc(100vw - 60px));
 }
 
 #admin-music .scrobbler .field input:invalid {
