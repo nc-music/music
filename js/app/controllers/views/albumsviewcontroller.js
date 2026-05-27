@@ -273,7 +273,7 @@ angular.module('Music').controller('AlbumsViewController', [
 					}
 				}
 				catch (exception) {
-					OC.Notification.showTemporary(gettextCatalog.getString('Requested entry was not found'));
+					OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Requested entry was not found'));
 					window.location.hash = '#/';
 				}
 			}

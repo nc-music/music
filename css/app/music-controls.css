@@ -10,11 +10,16 @@
  * @copyright Pauli Järvinen 2017 - 2026
  */
 
+#controls-container {
+	position: sticky;
+	top: 0;
+}
+
 #controls {
 	height: 66px;
 	padding: 0 60px;
 	top: 0;
-	position: fixed;
+	position: absolute;
 	overflow: visible;
 	background-color: var(--color-main-background-translucent, rgba(255, 255, 255, .95));
 	z-index: unset;

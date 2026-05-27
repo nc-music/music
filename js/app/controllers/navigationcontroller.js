@@ -160,7 +160,7 @@ angular.module('Music').controller('NavigationController', [
 													'{{ count }} duplicate track was removed',
 													'{{ count }} duplicate tracks were removed',
 													{ count: removedCount });
-			OC.Notification.showTemporary(message);
+			OCA.Music.Dialogs.showNotification(message);
 
 			if (removedCount > 0) {
 				handlePlaylistContentChange(playlist);

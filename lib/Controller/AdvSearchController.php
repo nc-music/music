@@ -12,6 +12,7 @@
 
 namespace OCA\Music\Controller;
 
+use OCA\Music\AppFramework\BusinessLayer\BusinessLayer;
 use OCA\Music\AppFramework\BusinessLayer\BusinessLayerException;
 use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\BusinessLayer\AlbumBusinessLayer;
@@ -27,11 +28,11 @@ use OCA\Music\Db\BaseMapper;
 use OCA\Music\Db\Entity;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Http\ErrorResponse;
+use OCA\Music\Service\AdvSearchRules;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\Random;
 use OCA\Music\Utility\StringUtil;
 
-use OCA\Music\AppFramework\BusinessLayer\BusinessLayer;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -44,6 +45,7 @@ class AdvSearchController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
+		private AdvSearchRules $advSearchRules,
 		private AlbumBusinessLayer $albumBusinessLayer,
 		private ArtistBusinessLayer $artistBusinessLayer,
 		private BookmarkBusinessLayer $bookmarkBusinessLayer,
@@ -58,6 +60,30 @@ class AdvSearchController extends Controller {
 		private Logger $logger
 	) {
 		parent::__construct($appName, $request);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function rules() : JSONResponse {
+		$allRules = $this->advSearchRules->getRules();
+
+		return new JSONResponse(
+			\array_map(
+				fn($rulesForType) =>
+					\array_map(
+						fn($rulesForLabel, $label) => [
+							'label' => $label,
+							'options' => \array_map(fn($ruleTitle, $ruleKey) => [
+								'key' => $ruleKey,
+								'name' => $ruleTitle,
+								'type' => AdvSearchRules::typeForRule($ruleKey)
+							], $rulesForLabel, \array_keys($rulesForLabel))
+						],
+						$rulesForType, \array_keys($rulesForType)
+					),
+				$allRules
+			)
+		);
 	}
 
 	#[NoAdminRequired]

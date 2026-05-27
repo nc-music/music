@@ -5,11 +5,11 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright 2024 Pauli Järvinen
+ * @copyright 2024 - 2026 Pauli Järvinen
  *
  */
 
-import * as ng from "angular";
+import * as ng from 'angular';
 
 ng.module('Music').service('albumartService', [function() {
 
@@ -21,7 +21,7 @@ ng.module('Music').service('albumartService', [function() {
 		element.css('background-image', 'url(' + imageUrl + ')');
 	}
 
-	function setPlaceholder(element : JQuery, text : string, seed : string = null) {
+	function setPlaceholder(element : JQuery, text : string, seed : string|null = null) {
 		if (text) {
 			// remove background image
 			element.css('background-image', '');
@@ -50,6 +50,8 @@ ng.module('Music').service('albumartService', [function() {
 					setPlaceholder(element, art.name, art.artist?.name + art.name);
 				} else if (art.title) {
 					setPlaceholder(element, art.title);
+				} else {
+					setPlaceholder(element, '?');
 				}
 			}
 		}

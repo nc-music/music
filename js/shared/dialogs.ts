@@ -8,6 +8,8 @@
  * @copyright Pauli Järvinen 2023 - 2026
  */
 
+import * as Toastify from 'toastify-js';
+
 OCA.Music = OCA.Music || {};
 
 /** @namespace
@@ -77,5 +79,14 @@ OCA.Music.Dialogs = class {
 			(inputElem : HTMLInputElement) => $(inputElem).val(defaultValue),
 			100
 		);
+	}
+
+	static showNotification(message : string) {
+		Toastify({
+			text: message,
+			duration: 7000,
+			className: 'dialogs',
+			close: true,
+		}).showToast();
 	}
 };

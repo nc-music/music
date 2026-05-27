@@ -19,7 +19,7 @@
 				<input type="text" class="edit-list" maxlength="256"
 					on-enter="$parent.commitEdit(playlist)" ng-model="playlist.name"/>
 			</div>
-			<button class="action icon-checkmark app-navigation-noclose"
+			<button class="action icon-checkmark"
 				ng-class="{ disabled: playlist.name.length == 0 }"
 				ng-click="$parent.commitEdit(playlist); $event.stopPropagation()"></button>
 		</div>
@@ -32,7 +32,7 @@
 					<li ng-click="$parent.showDetails(playlist)">
 						<a><span class="icon-details icon"></span><span translate>Details</span></a>
 					</li>
-					<li ng-click="$parent.startEdit(playlist)" class="app-navigation-noclose">
+					<li ng-click="$parent.startEdit(playlist)">
 						<a><span class="icon-rename icon"></span><span translate>Rename</span></a>
 					</li>
 					<li ng-click="$parent.importFromFile(playlist)">

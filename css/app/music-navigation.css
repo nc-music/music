@@ -111,6 +111,8 @@
 }
 
 .app-music #app-navigation-toggle {
+	display: none; /* overridden by NC server logic when the screen is narrow enough */
+	position: absolute;
 	height: 66px;
 	top: 0;
 }

@@ -175,6 +175,10 @@ class Maintenance {
 		);
 	}
 
+	private function removeObsoleteGenres() : int {
+		return $this->removeUnreferencedDbRows('music_genres', 'music_tracks', 'id', 'genre_id');
+	}
+
 	/**
 	 * Remove bookmarks referring tracks which do not exist
 	 * @return int Number of removed bookmarks
@@ -210,6 +214,7 @@ class Maintenance {
 			$removedTracks = $this->removeObsoleteTracks();
 			$removedAlbums = $this->removeObsoleteAlbums();
 			$removedArtists = $this->removeObsoleteArtists();
+			$removedGenres = $this->removeObsoleteGenres();
 			$removedBookmarks = $this->removeObsoleteBookmarks();
 			$removedEpisodes = $this->removeObsoletePodcastEpisodes();
 	
@@ -224,6 +229,7 @@ class Maintenance {
 			'artists' => $removedArtists ?? 0,
 			'albums' => $removedAlbums ?? 0,
 			'tracks' => $removedTracks ?? 0,
+			'genres' => $removedGenres ?? 0,
 			'bookmarks' => $removedBookmarks ?? 0,
 			'podcast_episodes' => $removedEpisodes ?? 0,
 			'skipped_because_scan_in_progress' => $skipDuringScan

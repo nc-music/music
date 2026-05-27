@@ -105,7 +105,7 @@ function ($scope, $rootScope, playQueueService, Audio, gettextCatalog, Restangul
 	});
 	onPlayerEvent('end', onEnd);
 	onPlayerEvent('error', function(url) {
-		OC.Notification.showTemporary(gettextCatalog.getString('Error playing URL:') + ' ' + url);
+		OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Error playing URL:') + ' ' + url);
 		// Jump automatically to the next track unless we were playing an external stream
 		if (!currentTrackIsStream()) {
 			$scope.next();
@@ -271,7 +271,7 @@ function ($scope, $rootScope, playQueueService, Audio, gettextCatalog, Restangul
 					},
 					function(_error) {
 						// error handling
-						OC.Notification.showTemporary(gettextCatalog.getString('Radio station not found'));
+						OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Radio station not found'));
 					}
 				);
 				getRadioTitle(currentTrack);
@@ -328,7 +328,7 @@ function ($scope, $rootScope, playQueueService, Audio, gettextCatalog, Restangul
 	};
 
 	const notifyPlaybackRateNotAdjustable = _.debounce(
-		() => OC.Notification.showTemporary(gettextCatalog.getString('Playback speed not adjustable for the current song')),
+		() => OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Playback speed not adjustable for the current song')),
 		1000, {leading: true, trailing: false}
 	);
 	$scope.$watch('playbackRate', function(newValue, oldValue) {
@@ -464,7 +464,7 @@ function ($scope, $rootScope, playQueueService, Audio, gettextCatalog, Restangul
 				entry = playQueueService.jumpToNextTrack();
 			}
 			if (tracksSkipped) {
-				OC.Notification.showTemporary(gettextCatalog.getString('Some not playable tracks were skipped.'));
+				OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Some not playable tracks were skipped.'));
 			}
 		}
 

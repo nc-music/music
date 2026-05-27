@@ -8,7 +8,7 @@
  * @copyright Pauli Järvinen 2024, 2025
  */
 
-import { PlayerWrapper } from "./playerwrapper";
+import { PlayerWrapper } from './playerwrapper';
 import * as _ from 'lodash';
 
 const soundOffIconPath = require('../../img/sound-off.svg') as string;

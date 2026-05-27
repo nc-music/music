@@ -53,6 +53,23 @@ sub getPluralInfo {
   return $info;
 }
 
+sub init() {
+  # let's get the version from stdout of xgettext
+  my $out = `xgettext --version`;
+  # we assume the first line looks like this 'xgettext (GNU gettext-tools) 0.19.3'
+  $out = substr $out, 29, index($out, "\n")-29;
+  $out =~ s/^\s+|\s+$//g;
+  $out = "v" . $out;
+  my $actual = version->parse($out);
+  # 0.18.3 introduced JavaScript as a language option
+  my $expected = version->parse('v0.18.3');
+  if ($actual < $expected) {
+    die( "Minimum expected version of xgettext is " . $expected . ". Detected: " . $actual );
+  }
+}
+
+init();
+
 my $app = shift( @ARGV );
 my $task = shift( @ARGV );
 
@@ -91,17 +108,21 @@ if( $task eq 'read' ){
     my @totranslate = crawlFiles('.');
     my %ignore = readIgnorelist();
     my $output = "${whereami}/templates/$app.pot";
-    my $packageName = "ownCloud $app";
     print "  Processing $app\n";
 
     foreach my $file ( @totranslate ){
       next if $ignore{$file};
-      # TODO: add support for twig templates
-      my $keyword = ( $file =~ /\.[jt]s$/ ? 't:2' : 't');
       my $language = ( $file =~ /\.[jt]s$/ ? 'JavaScript' : 'PHP');
+      my $keywords = '';
+      if( $language eq 'JavaScript' ){
+        $keywords = '--keyword=t:2 --keyword=n:2,3';
+      }
+      else{
+        $keywords = '--keyword=t --keyword=n:1,2';
+      }
       my $joinexisting = ( -e $output ? '--join-existing' : '');
       print "    Reading $file\n";
-      `xgettext --output="$output" $joinexisting --keyword=$keyword --language=$language "$file" --from-code=UTF-8 --package-version="5.0.0" --package-name="$packageName" --msgid-bugs-address="translations\@owncloud.org"`;
+      `xgettext --output="$output" $joinexisting $keywords --language=$language "$file" --add-comments=TRANSLATORS --from-code=UTF-8 --package-version="3.0.0" --package-name="nc-music" --msgid-bugs-address="https://github.com/nc-music/music/issues"`;
     }
     chdir( $whereami );
   }

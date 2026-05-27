@@ -70,7 +70,7 @@ angular.module('Music').controller('RadioViewController', [
 				function (error) {
 					station.busy = false;
 					const errMsg = gettextCatalog.getString('Failed to delete the radio station:');
-					OC.Notification.showTemporary(errMsg + ' ' + error.status);
+					OCA.Music.Dialogs.showNotification(errMsg + ' ' + error.status);
 				}
 			);
 		}

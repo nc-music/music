@@ -10,7 +10,7 @@
  * @copyright Pauli Järvinen 2017 - 2024
  */
 
-import * as ng from "angular";
-import { PlayQueue } from "shared/playqueue";
+import * as ng from 'angular';
+import { PlayQueue } from 'shared/playqueue';
 
 ng.module('Music').service('playQueueService', [PlayQueue]);

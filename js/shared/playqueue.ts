@@ -7,10 +7,11 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013
- * @copyright Pauli Järvinen 2017 - 2024
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
-import * as _ from "lodash";
+import * as _ from 'lodash';
+import * as Backbone from 'backbone';
 
 interface PlayQueueEntry {
 };
@@ -24,7 +25,7 @@ export class PlayQueue {
 	#shuffle = false;
 	#repeat = false;
 	#prevShuffleState = false;
-	#eventDispatcher = _.clone(OC.Backbone.Events);
+	#eventDispatcher = _.clone(Backbone.Events);
 
 	/* -------------------------------
 	 * PRIVATE METHODS

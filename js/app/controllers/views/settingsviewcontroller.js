@@ -171,7 +171,7 @@ angular.module('Music').controller('SettingsViewController', [
 									function(error) { // error handling
 										$scope.collectionResetOngoing = false;
 										const errMsg = gettextCatalog.getString('Failed to reset the collection:');
-										OC.Notification.showTemporary(errMsg + ' ' + error.status);
+										OCA.Music.Dialogs.showNotification(errMsg + ' ' + error.status);
 									}
 								);
 						};
@@ -209,7 +209,7 @@ angular.module('Music').controller('SettingsViewController', [
 								function(error) { // error handling
 									$scope.radioResetOngoing = false;
 									const errMsg = gettextCatalog.getString('Failed to reset the radio stations:');
-									OC.Notification.showTemporary(errMsg + ' ' + error.status);
+									OCA.Music.Dialogs.showNotification(errMsg + ' ' + error.status);
 								}
 							);
 					}
@@ -239,7 +239,7 @@ angular.module('Music').controller('SettingsViewController', [
 								function(error) { // error handling
 									$scope.podcastsResetOngoing = false;
 									const errMsg = gettextCatalog.getString('Failed to reset the podcast channels:');
-									OC.Notification.showTemporary(errMsg + ' ' + error.status);
+									OCA.Music.Dialogs.showNotification(errMsg + ' ' + error.status);
 								}
 							);
 					}
@@ -335,7 +335,7 @@ angular.module('Music').controller('SettingsViewController', [
 				scrobbler.clearScrobbleSession = function() {
 					const errHandler = function(error) {
 						const errMsg = gettextCatalog.getString('Failed to clear scrobbling session.');
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							errMsg + ' ' + error.message
 						);
 					};
@@ -360,7 +360,7 @@ angular.module('Music').controller('SettingsViewController', [
 			let success = document.execCommand('copy');
 
 			if (success) {
-				OC.Notification.showTemporary(
+				OCA.Music.Dialogs.showNotification(
 						gettextCatalog.getString('Text copied to clipboard'));
 			}
 		};

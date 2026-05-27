@@ -7,7 +7,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2020 - 2025
+ * @copyright Pauli Järvinen 2020 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -24,39 +24,44 @@ class GenreMapper extends BaseMapper {
 	}
 
 	/**
-	 * Create SQL query which selects genres excluding any empty genres (having no tracks)
+	 * Create SQL query which selects genres
 	 * @see \OCA\Music\Db\BaseMapper::selectEntities
 	 * @return string SQL query
 	 */
 	protected function selectEntities(string $condition, ?string $extension=null) : string {
-		return $this->selectGenres($condition, 'HAVING COUNT(`track`.`id`) > 0 ' . $extension);
+		return "SELECT
+					`*PREFIX*music_genres`.*,
+					{$this->sqlCoalesce('`trackCount`', '0')} AS `trackCount`,
+					{$this->sqlCoalesce('`albumCount`', '0')} AS `albumCount`,
+					{$this->sqlCoalesce('`artistCount`', '0')} AS `artistCount`
+				FROM `*PREFIX*music_genres`
+				LEFT JOIN (
+					SELECT
+						`genre_id`,
+						COUNT(`track`.`id`) AS `trackCount`,
+						COUNT(DISTINCT(`track`.`album_id`)) AS `albumCount`,
+						COUNT(DISTINCT(`track`.`artist_id`)) AS `artistCount`
+					FROM `*PREFIX*music_tracks` `track`
+					GROUP BY `genre_id`
+				) `counts`
+				ON `*PREFIX*music_genres`.`id` = `counts`.`genre_id`
+				WHERE $condition
+				$extension";
 	}
 
 	/**
-	 * Create SQL query to select genres. Unlike the function selectEntities used by the
-	 * base class BaseMapper, this function returns also the genres with no tracks at all.
-	 * @return string SQL query
+	 * Overridden from the base implementation to provide support for table-specific rules
+	 *
+	 * {@inheritdoc}
+	 * @see BaseMapper::advFormatSqlCondition()
 	 */
-	private function selectGenres(string $condition, ?string $extension=null) : string {
-		return "SELECT
-					`*PREFIX*music_genres`.`id`,
-					`*PREFIX*music_genres`.`name`,
-					`*PREFIX*music_genres`.`lower_name`,
-					`*PREFIX*music_genres`.`created`,
-					`*PREFIX*music_genres`.`updated`,
-					COUNT(`track`.`id`) AS `trackCount`,
-					COUNT(DISTINCT(`track`.`album_id`)) AS `albumCount`,
-					COUNT(DISTINCT(`track`.`artist_id`)) AS `artistCount`
-				FROM `*PREFIX*music_genres`
-				LEFT JOIN `*PREFIX*music_tracks` `track`
-				ON `track`.`genre_id` = `*PREFIX*music_genres`.`id`
-				WHERE $condition
-				GROUP BY
-					`*PREFIX*music_genres`.`id`,
-					`*PREFIX*music_genres`.`name`,
-					`*PREFIX*music_genres`.`lower_name`,
-					`*PREFIX*music_genres`.`created`,
-					`*PREFIX*music_genres`.`updated`
-				$extension";
+	protected function advFormatSqlCondition(string $rule, string $sqlOp, string $conv): string
+	{
+		$condForRule = [
+			'album_count'	=> "{$this->sqlCoalesce('`albumCount`', '0')} $sqlOp ?",
+			'song_count'	=> "{$this->sqlCoalesce('`trackCount`', '0')} $sqlOp ?",
+		];
+
+		return $condForRule[$rule] ?? parent::advFormatSqlCondition($rule, $sqlOp, $conv);
 	}
 }

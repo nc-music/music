@@ -8,7 +8,7 @@
  * @copyright Pauli Järvinen 2024, 2025
  */
 
-import { PlayerWrapper } from "./playerwrapper";
+import { PlayerWrapper } from './playerwrapper';
 
 declare function t(module : string, text : string) : string;
 
@@ -16,15 +16,20 @@ export class ProgressInfo {
 
 	#player : PlayerWrapper;
 	#elem : JQuery<HTMLElement>;
-	#songLength_s : number;
-	#playTime_s : number;
-	#playTimePreview_tf : NodeJS.Timeout; // Transient mouse movement filter
-	#playTimePreview_ts : number; // Activation time stamp (epoch time)
-	#playTimePreview_s : number; 
+	#songLength_s : number|null;
+	#playTime_s : number|null;
+	#playTimePreview_tf : NodeJS.Timeout|null; // Transient mouse movement filter
+	#playTimePreview_ts : number|null; // Activation time stamp (epoch time)
+	#playTimePreview_s : number|null;
 
 	constructor(player : PlayerWrapper) {
 		this.#player = player;
 		this.#elem = this.#createHtml();
+		this.#songLength_s = null;
+		this.#playTime_s = null;
+		this.#playTimePreview_tf = null;
+		this.#playTimePreview_ts = null;
+		this.#playTimePreview_s = null;
 		this.#connectPlayerEvents();
 		this.#connectPointerEvents();
 	}
@@ -234,10 +239,10 @@ export class ProgressInfo {
 
 		seekBar.on('touchend', ($event : JQuery.TouchEndEvent) => {
 			if (!this.#player.seekingSupported() || $event?.type !== 'touchend') return;
-			
+
 			// Reverse calculate on seek position
 			this.#player.seek(this.#playTimePreview_s / this.#songLength_s);
-			
+
 			this.#seekSetPreview(null);
 			text_playTime.css('font-style', 'normal');
 		});

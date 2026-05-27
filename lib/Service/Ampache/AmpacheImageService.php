@@ -10,7 +10,7 @@
  * @copyright Pauli Järvinen 2023 - 2026
  */
 
-namespace OCA\Music\Service;
+namespace OCA\Music\Service\Ampache;
 
 use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\Db\AmpacheUserMapper;

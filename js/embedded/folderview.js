@@ -376,7 +376,7 @@ OCA.Music.FolderView = class {
 					this.#currentFile = null;
 					this.#currentNode = null;
 					this.#player.close();
-					OC.Notification.showTemporary(t('music', 'No files from the playlist could be found'));
+					OCA.Music.Dialogs.showNotification(t('music', 'No files from the playlist could be found'));
 				}
 				if (data.invalid_paths.length > 0) {
 					let note = t('music', 'The playlist contained {count} invalid path(s).',
@@ -386,7 +386,7 @@ OCA.Music.FolderView = class {
 						// details pane is not available.
 						note += ' ' +  t('music', 'See the playlist file details.');
 					}
-					OC.Notification.showTemporary(note);
+					OCA.Music.Dialogs.showNotification(note);
 				}
 
 				if (onReadyCallback) {
@@ -401,7 +401,7 @@ OCA.Music.FolderView = class {
 				this.#player.showBusy(false);
 				this.#currentFile = null;
 				this.#currentNode = null;
-				OC.Notification.showTemporary(t('music', 'Error reading playlist file'));
+				OCA.Music.Dialogs.showNotification(t('music', 'Error reading playlist file'));
 			}
 		};
 		OCA.Music.PlaylistFileService.readFile(listFileId, onPlaylistLoaded, onError, this.#shareToken);

@@ -6,9 +6,9 @@
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
  *
- * @author Moahmed-Ismail MEJRI <imejri@hotmail.com>
+ * @author Mohamed-Ismail MEJRI <imejri@hotmail.com>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Moahmed-Ismail MEJRI 2022
+ * @copyright Mohamed-Ismail MEJRI 2022
  * @copyright Pauli Järvinen 2022 - 2026
  */
 
@@ -259,11 +259,18 @@ class RadioService {
 	private static function convertUrlOnPlaylistToAbsolute(string $containedUrl, string $playlistUrl) : string {
 		if (!StringUtil::startsWith($containedUrl, 'http://', true) && !StringUtil::startsWith($containedUrl, 'https://', true)) {
 			$urlParts = \parse_url($playlistUrl);
-			$path = $urlParts['path'];
-			$lastSlash = \strrpos($path, '/');
-			$urlParts['path'] = \substr($path, 0, $lastSlash + 1) . $containedUrl;
+
+			if ($containedUrl[0] == '/') {
+				// the contained URL is absolute to the server root => keep only the scheme and host from the playlist URL
+				$urlParts['path'] = $containedUrl;
+			} else {
+				// the contained URL is relative to the playlist URL => keep the path up to the last '/' and append the contained URL
+				$path = $urlParts['path'] ?? '/';
+				$lastSlash = \strrpos($path, '/');
+				$urlParts['path'] = \substr($path, 0, $lastSlash + 1) . $containedUrl;
+			}
 			unset($urlParts['query'], $urlParts['fragment']);
-			
+
 			$containedUrl = Util::buildUrl($urlParts);
 		}
 		return $containedUrl;
@@ -345,6 +352,14 @@ class RadioService {
 						'music.radioApi.hlsSegment',
 						['url' => \rawurlencode($segUrl), 'token' => \rawurlencode($segToken)]
 					);
+				} elseif (\preg_match('/^#EXT-X-.+:URI="([^"]*)"/', $line, $matches) === 1) {
+					// also rewrite HLS headers containing URLs, such as the decryption key URL in #EXT-X-KEY
+					$segUrl = self::convertUrlOnPlaylistToAbsolute($matches[1], $url);
+					$segToken = $this->tokenService->tokenForUrl($segUrl);
+					$line = \str_replace($matches[1], $this->urlGenerator->linkToRoute(
+						'music.radioApi.hlsSegment',
+						['url' => \rawurlencode($segUrl), 'token' => \rawurlencode($segToken)]
+					), $line);
 				}
 				$content .= $line . "\n";
 			}

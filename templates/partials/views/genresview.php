@@ -21,7 +21,7 @@
 		</track-list>
 	</div>
 
-	<alphabet-navigation ng-if="genres && genres.length" item-count="genres.length"
+	<alphabet-navigation ng-if="genres.length" item-count="genres.length"
 		get-elem-title="getGenreName" get-elem-id="getGenreElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 

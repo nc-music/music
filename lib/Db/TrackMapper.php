@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -597,6 +597,8 @@ class TrackMapper extends BaseMapper {
 			'year'				=> "`year` $sqlOp ?",
 			'albumrating'		=> "`album`.`rating` $sqlOp ?",
 			'artistrating'		=> "`artist`.`rating` $sqlOp ?",
+			'my_flagged_album'	=> "`album`.`starred` $sqlOp",
+			'my_flagged_artist'	=> "`artist`.`starred` $sqlOp",
 			'favorite_album'	=> "$conv(`album`.`name`) $sqlOp $conv(?) AND `album`.`starred` IS NOT NULL",
 			'favorite_artist'	=> "$conv(`artist`.`name`) $sqlOp $conv(?) AND `artist`.`starred` IS NOT NULL",
 			'played_times'		=> "`play_count` $sqlOp ?",

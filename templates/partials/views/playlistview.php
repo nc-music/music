@@ -27,10 +27,10 @@
 				</div>
 			</div>
 			<button class="action icon-details" ng-click="showTrackDetails(song.id)"
-				alt="{{ 'Details' | translate }}" title="{{ 'Details' | translate }}"
+				aria-label="{{ 'Details' | translate }}" title="{{ 'Details' | translate }}"
 				ng-if="song.type != 'error'"></button>
 			<button class="action icon-close" ng-click="removeTrack($index)"
-				alt="{{ 'Remove' | translate }}" title="{{ 'Remove track from playlist' | translate }}"></button>
+				aria-label="{{ 'Remove' | translate }}" title="{{ 'Remove track from playlist' | translate }}"></button>
 		</li>
 	</ul>
 

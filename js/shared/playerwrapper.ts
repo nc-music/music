@@ -7,16 +7,15 @@
  * @author Pellaeon Lin <pellaeon@cnmc.tw>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Pellaeon Lin 2015
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 const Hls = require('node_modules/hls.js/dist/hls.light.js');
 import * as _ from 'lodash';
-
-declare const OC : any;
+import * as Backbone from 'backbone';
 
 export class PlayerWrapper {
-	#eventDispatcher : typeof OC.Backbone.Events;
+	#eventDispatcher : Backbone.Events;
 	#underlyingPlayer : string = ''; // set later as 'aurora' or 'html5'
 	#html5audio : HTMLAudioElement = new Audio();
 	#hls : typeof Hls = null;
@@ -34,16 +33,16 @@ export class PlayerWrapper {
 	#mime : string = '';
 
 	constructor() {
-		this.#eventDispatcher = _.clone(OC.Backbone.Events);
+		this.#eventDispatcher = _.clone(Backbone.Events);
 		this.#initHtml5();
 	}
 
-	on(...args : any[]) : void {
-		this.#eventDispatcher.on(...args);
+	on(eventName: string, callback: Backbone.EventHandler, context?: any) : void {
+		this.#eventDispatcher.on(eventName, callback, context);
 	}
 
-	trigger(...args : any[]) : void {
-		this.#eventDispatcher.trigger(...args);
+	trigger(eventName: string, ...args: any[]) : void {
+		this.#eventDispatcher.trigger(eventName, ...args);
 	}
 
 	#initHtml5() : void {
@@ -105,7 +104,7 @@ export class PlayerWrapper {
 		this.#html5audio.onended = () => {
 			this.#playing = false;
 			this.trigger('end');
-		}
+		};
 
 		this.#html5audio.oncanplay = () => {
 			this.#ready = true;
@@ -183,10 +182,6 @@ export class PlayerWrapper {
 			this.#auroraWorkaroundAudio.volume = 0.000001; // The volume must be > 0 for this to work on Firefox but we don't want the user to actually hear this
 		}
 		this.#auroraWorkaroundAudio.src = OCA.Music.DummyAudio.getData();
-	}
-
-	#isIe() : boolean {
-		return $('html').hasClass('ie'); // are we running on Internet Explorer
 	}
 
 	#onPlayStarted() : void {
@@ -271,12 +266,7 @@ export class PlayerWrapper {
 					this.#hls.stopLoad();
 					this.#hls.detachMedia();
 				}
-				// On IE, setting the src to empty string would blow up the whole audio element and it wouldn't
-				// recover without a page reload. On the other hand, IE doesn't support mediaSession API so this
-				// step isn't crucial.
-				if (!this.#isIe()) {
-					this.#html5audio.src = '';
-				}
+				this.#html5audio.src = '';
 				this.#html5audio.currentTime = 0;
 				break;
 			case 'aurora':
@@ -284,9 +274,7 @@ export class PlayerWrapper {
 					this.#aurora.stop();
 					this.#aurora = null;
 					this.#auroraWorkaroundAudio.pause();
-					if (!this.#isIe()) {
-						this.#auroraWorkaroundAudio.src = '';
-					}
+					this.#auroraWorkaroundAudio.src = '';
 				}
 				break;
 		}

@@ -8,7 +8,7 @@
  * @copyright Pauli Järvinen 2024
  */
 
-import { PlayerWrapper } from "./playerwrapper";
+import { PlayerWrapper } from './playerwrapper';
 
 interface BrowserMediaSessionInfo {
 	title? : string|null;

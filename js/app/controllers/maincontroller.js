@@ -192,7 +192,7 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 				break;
 			}
 			const errMsg = gettextCatalog.getString('Failed to load the collection:');
-			OC.Notification.showTemporary(errMsg + ' ' + reason);
+			OCA.Music.Dialogs.showNotification(errMsg + ' ' + reason);
 		});
 
 	};
@@ -242,7 +242,7 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 		},
 		function(error) {
 			$scope.checkingUnscanned = false;
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 					gettextCatalog.getString('Failed to check for new audio files (error {{ code }}); check the server logs for details', {code: error.status})
 			);
 		});
@@ -287,9 +287,9 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 		$scope.scanningScanned = 0;
 		$scope.scanningTotal = filesToScan.length;
 
-		if (fileIds == $scope.unscannedFiles) {
+		if (fileIds === $scope.unscannedFiles) {
 			$scope.unscannedFiles = null;
-		} else if (fileIds == $scope.dirtyFiles) {
+		} else if (fileIds === $scope.dirtyFiles) {
 			$scope.dirtyFiles = null;
 		}
 		$scope.scanning = true;
@@ -455,12 +455,7 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 			}
 		}
 
-		// Most of our navigation pane items are not <a> or <button> elements, meaning that the core
-		// does not collapse the navigation pane automatically upon navigation. The Settings link is an
-		// exception. Firing the collapsing twice also caused some severe issues.
-		if (destination !== '#/settings') {
-			$scope.collapseNavigationPaneOnMobile();
-		}
+		$scope.collapseNavigationPaneOnMobile();
 	};
 
 	// Compact/normal layout of the Albums view
@@ -495,8 +490,7 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 	$scope.collapseNavigationPaneOnMobile = function() {
 		if ($scope.mobileNavigationPaneExpanded()) {
 			$timeout(() => {
-				// There is a fake button within the navigation pane which can be "clicked" to make the core collapse the pane
-				$('#hidden-close-app-navigation-button').trigger('click');
+				$rootScope.$emit('closeSnapper');
 				// Remove any active input focus to ensure that the focus is not left to an input field within the collapsed pane
 				$(document.activeElement).trigger('blur');
 			});
@@ -564,7 +558,7 @@ function ($rootScope, $scope, $timeout, $window, ArtistFactory,
 		else if (appViewWidth <= 500 && $window.innerWidth < 1024) {
 			setMasterLayout(['mobile']);
 		}
-		else if (appViewWidth < 1025) {
+		else if (appViewWidth < 1024) {
 			setMasterLayout(['tablet']);
 		}
 		else {

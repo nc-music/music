@@ -71,7 +71,7 @@ angular.module('Music').controller('SmartListFiltersController', [
 				// also navigate to the Smart Playlist view if not already open
 				$scope.navigateTo('#smartlist');
 			} else {
-				OC.Notification.showTemporary(gettextCatalog.getString('Check the filter values'));
+				OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Check the filter values'));
 			}
 		};
 

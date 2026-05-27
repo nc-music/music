@@ -12,13 +12,15 @@
 
 namespace OCA\Music\Utility;
 
+use OCP\App\IAppManager;
+
 class AppInfo {
 
 	public const APP_ID = 'music';
 
 	public static function getVersion() : string {
-		$appManager = \OC::$server->getAppManager();
-		return $appManager->getAppVersion(self::APP_ID); // NC14+
+		$appManager = \OC::$server->query(IAppManager::class);
+		return $appManager->getAppVersion(self::APP_ID);
 	}
 
 	public static function getVendor() : string {

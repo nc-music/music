@@ -29,16 +29,16 @@ HtmlUtil::addWebpackStyle('app');
 	<div ng-controller="MainController">
 		<?php HtmlUtil::printPartial('navigation') ?>
 
-		<div id="app-content">
+		<div id="app-content" class="no-snapper"> <!-- disable NC snapper as we ship our own -->
 
 			<div id="app-view" ng-view resize-notifier
 				ng-class="{started: started, 'icon-loading': loadIndicatorVisible()}">
 			</div>
 
-			<?php
-			HtmlUtil::printPartial('controls');
-			HtmlUtil::printPartial('sidebar/sidebar');
-			?>
+			<div id="controls-container">
+				<div id="app-navigation-toggle" ng-controller="SnapController" ng-click="toggle()" class="icon-menu"></div>
+				<?php HtmlUtil::printPartial('controls'); ?>
+			</div>
 
 			<div id="emptycontent" class="emptycontent" ng-show="noMusicAvailable && viewingLibrary()">
 				<div class="icon-audio svg"></div>
@@ -54,7 +54,7 @@ HtmlUtil::addWebpackStyle('app');
 					<h2 translate>New music available</h2>
 					<p translate>Click here to start the scan</p>
 				</div>
-				<a class="close icon-close" alt="Close" ng-click="hideScanBar($event)"></a>
+				<a class="close icon-close" aria-label="{{ Close | translate }}" ng-click="hideScanBar($event)"></a>
 			</div>
 
 			<div id="toRescan" class="emptycontent clickable" ng-show="!scanning && !unscannedFiles.length && dirtyFiles.length && viewingLibrary()" ng-click="startScanning(dirtyFiles)">
@@ -63,7 +63,7 @@ HtmlUtil::addWebpackStyle('app');
 					<h2 translate>Some of the previously scanned files may have changed</h2>
 					<p translate>Click here to rescan these files</p>
 				</div>
-				<a class="close icon-close" alt="Close" ng-click="hideScanBar($event)"></a>
+				<a class="close icon-close" aria-label="{{ Close | translate }}" ng-click="hideScanBar($event)"></a>
 			</div>
 
 			<div id="toRemove" class="emptycontent clickable" ng-show="!scanning && !unscannedFiles.length && !dirtyFiles.length && obsoleteFiles.length && viewingLibrary()" ng-click="removeObsolete()">
@@ -74,7 +74,7 @@ HtmlUtil::addWebpackStyle('app');
 					</h2>
 					<p translate translate-n="obsoleteFiles.length" translate-plural="Click here to remove these files">Click here to remove this file</p>
 				</div>
-				<a class="close icon-close" alt="Close" ng-click="hideScanBar($event)"></a>
+				<a class="close icon-close" aria-label="{{ Close | translate }}" ng-click="hideScanBar($event)"></a>
 			</div>
 
 			<div id="scanning" class="emptycontent" ng-show="scanning && viewingLibrary()">
@@ -110,6 +110,7 @@ HtmlUtil::addWebpackStyle('app');
 
 		</div>
 
+		<?php HtmlUtil::printPartial('sidebar/sidebar'); ?>
 	</div>
 
 </div>

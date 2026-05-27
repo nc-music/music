@@ -10,6 +10,7 @@
 					<option value="album" translate>albums</option>
 					<option value="artist" translate>artists</option>
 					<option value="playlist" translate>playlists</option>
+					<option value="genre" translate>genres</option>
 					<option value="podcast_episode" translate>podcast episodes</option>
 					<option value="podcast_channel" translate>podcast channels</option>
 					<option value="radio_station" translate>radio stations</option>
@@ -52,11 +53,11 @@
 					<option ng-repeat="ruleOp in operatorsForRule(rule.rule)" ng-value="ruleOp.key">{{ ruleOp.name }}</option>
 				</select>
 
-				<input ng-if="ruleType(rule.rule) == 'text'" type="text" ng-model="rule.input"/>
-				<input ng-if="['numeric', 'numeric_limit'].includes(ruleType(rule.rule))" type="number" ng-model="rule.input"/>
+				<input ng-if="ruleType(rule.rule) == 'text'" type="text" ng-model="rule.input" enterkeyhint="search"/>
+				<input ng-if="['numeric', 'numeric_limit', 'days'].includes(ruleType(rule.rule))" type="number" ng-model="rule.input" enterkeyhint="search"/>
 				<input ng-if="ruleType(rule.rule) == 'date'" type="date" ng-model="rule.input"/>
 				<select ng-if="ruleType(rule.rule) == 'numeric_rating'" ng-model="rule.input">
-					<option ng-repeat="val in [0,1,2,3,4,5]" ng-value="val">{{ val }} Stars</option>
+					<option ng-repeat="val in [0,1,2,3,4,5]" ng-value="val">{{ ratingLabel(val) }}</option>
 				</select>
 				<select ng-if="ruleType(rule.rule) == 'playlist'" ng-model="rule.input">
 					<option ng-repeat="pl in playlists" ng-value="pl.id">{{ pl.name }}</option>
@@ -119,6 +120,14 @@
 			get-draggable="getPlaylistDraggable"
 			track-id-prefix="'playlist'"
 			content-type="'playlist'"
+		></track-list>
+		<track-list
+			tracks="results.genres"
+			get-track-data="getGenreData"
+			play-track="onGenreClick"
+			get-draggable="getGenreDraggable"
+			track-id-prefix="'genre'"
+			content-type="'genre'"
 		></track-list>
 		<track-list
 			tracks="results.podcastEpisodes"

@@ -95,7 +95,7 @@ function ($scope, $rootScope, libraryService, $timeout, gettextCatalog) {
 		} else if (view.startsWith('#/playlist/')) {
 			matchingTracks = searchInPlaylistView(view.slice('#/playlist/'.length), query);
 		} else {
-			OC.Notification.showTemporary(gettextCatalog.getString('Search not available in this view'));
+			OCA.Music.Dialogs.showNotification(gettextCatalog.getString('Search not available in this view'));
 			endProgress();
 			return;
 		}

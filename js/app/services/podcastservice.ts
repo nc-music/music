@@ -25,7 +25,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 		Restangular.one('podcasts', channel.id).all('update').post({prevHash: channel.hash}).then(
 			(result) => {
 				if (!result.success) {
-					OC.Notification.showTemporary(
+					OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('Could not update the channel "{{ title }}" from the source', { title: channel.title }));
 				} else if (result.updated) {
 					libraryService.replacePodcastChannel(result.channel);
@@ -34,7 +34,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 				deferred.resolve(result);
 			},
 			(_error) => {
-				OC.Notification.showTemporary(
+				OCA.Music.Dialogs.showNotification(
 						gettextCatalog.getString('Unexpected error when updating the channel "{{ title }}"', { title: channel.title }));
 				deferred.resolve(); // resolve even on failure so that callers need to define only one callback
 			}
@@ -49,15 +49,15 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 		case 409: // conflict
 			return true;
 		case 404: // not found
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Playlist or folder not found'));
 			return false;
 		case 403: // forbidden
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Writing to the file is not allowed'));
 			return false;
 		default: // unexpected
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Unexpected error'));
 			return false;
 		}
@@ -97,7 +97,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 		Restangular.all('podcasts').post({url: url}).then(
 			(result) => {
 				libraryService.addPodcastChannel(result);
-				OC.Notification.showTemporary(
+				OCA.Music.Dialogs.showNotification(
 					gettextCatalog.getString('Podcast channel "{{ title }}" added', { title: result.title }));
 				if ($rootScope.currentView === '#/podcasts') {
 					$timeout(() => $rootScope.$emit('viewContentChanged'));
@@ -113,7 +113,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 				} else {
 					errMsg = gettextCatalog.getString('Failed to add the podcast channel');
 				}
-				OC.Notification.showTemporary(errMsg);
+				OCA.Music.Dialogs.showNotification(errMsg);
 				deferred.reject();
 			}
 		);
@@ -169,7 +169,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 				let args = { path: selPath, name: name, oncollision: onCollision };
 				Restangular.all('podcasts/export').post(args).then(
 					(result) => {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('Podcast channels exported to file {{ path }}', { path: result.wrote_to_file }));
 						deferred.resolve();
 					},
@@ -219,7 +219,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 						processNext();
 					},
 					function(_error) {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 								gettextCatalog.getString('Failed to import podcasts from the file {{ file }}', { file: file }));
 						deferred.reject();
 					}
@@ -233,10 +233,10 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 		reloadPodcastChannel(channel : PodcastChannel) : ng.IPromise<any> {
 			return reloadChannel(channel).then((result) => {
 				if (result?.updated) {
-					OC.Notification.showTemporary(
+					OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('The channel was updated from the source'));
 				} else if (result?.success) {
-					OC.Notification.showTemporary(
+					OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('The channel was already up-to-date'));
 				} else {
 					// nothing to do, error has already been shown by the reloadChannel function
@@ -263,10 +263,10 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 				}
 				else {
 					if (changeCount === 0) {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('All channels were already up-to-date'));
 					} else {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getPlural(changeCount,
 								'Changes were loaded for one channel',
 								'Changes were loaded for {{ count }} channels', { count: changeCount })
@@ -290,7 +290,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 				Restangular.one('podcasts', channel.id).remove().then(
 					(result) => {
 						if (!result.success) {
-							OC.Notification.showTemporary(
+							OCA.Music.Dialogs.showNotification(
 									gettextCatalog.getString('Could not remove the channel "{{ title }}"', { title: channel.title }));
 							deferred.reject();
 						} else {
@@ -300,7 +300,7 @@ function($rootScope : MusicRootScope, $timeout : ng.ITimeoutService, $q : ng.IQS
 						}
 					},
 					(_error) => {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 								gettextCatalog.getString('Could not remove the channel "{{ title }}"', { title: channel.title }));
 						deferred.reject();
 					}

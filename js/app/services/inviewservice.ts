@@ -9,7 +9,7 @@
  *
  */
 
-import * as ng from "angular";
+import * as ng from 'angular';
 
 ng.module('Music').service('inViewService', ['$rootScope', function($rootScope : ng.IRootScopeService) {
 

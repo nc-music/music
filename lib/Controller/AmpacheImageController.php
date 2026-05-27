@@ -21,7 +21,7 @@ use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\Db\Entity;
 use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\FileResponse;
-use OCA\Music\Service\AmpacheImageService;
+use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\LibrarySettings;
 use OCA\Music\Utility\HttpUtil;

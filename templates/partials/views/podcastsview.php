@@ -30,11 +30,11 @@
 		</div>
 	</div>
 
-	<alphabet-navigation ng-if="channels && channels.length" item-count="channels.length"
+	<alphabet-navigation ng-if="channels.length" item-count="channels.length"
 		get-elem-title="getChannelName" get-elem-id="getChannelElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 
-	<div class="emptycontent clickable no-collapse" ng-show="channels.length == 0" ng-click="showAddPodcast()">
+	<div class="emptycontent clickable no-collapse" ng-show="channels.length === 0" ng-click="showAddPodcast()">
 		<div class="icon-podcast svg"></div>
 		<div>
 			<h2 translate>No channels</h2>

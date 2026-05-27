@@ -42,7 +42,7 @@
 		</div>
 	</div>
 
-	<alphabet-navigation ng-if="artists && artists.length" item-count="artists.length"
+	<alphabet-navigation ng-if="artists.length" item-count="artists.length"
 		get-elem-title="getArtistSortName" get-elem-id="getArtistElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 </div>

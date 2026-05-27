@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2017 - 2025
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -30,6 +30,9 @@ use OCP\IURLGenerator;
  * @method void setStarred(?string $timestamp)
  * @method int getRating()
  * @method void setRating(int $rating)
+ * 
+ * @method int getTrackCount()
+ * @method int getOwnAlbumCount()
  */
 class Artist extends Entity {
 	public ?string $name = null;
@@ -38,6 +41,10 @@ class Artist extends Entity {
 	public string $hash = '';
 	public ?string $starred = null;
 	public int $rating = 0;
+
+	// not from the music_artists table but still part of the standard content of this entity:
+	public int $trackCount = 0;
+	public int $ownAlbumCount = 0;
 
 	// not part of the standard content, injected separately when needed
 	private ?string $lastfmUrl = null;
@@ -49,6 +56,8 @@ class Artist extends Entity {
 	public function __construct() {
 		$this->addType('coverFileId', 'int');
 		$this->addType('rating', 'int');
+		$this->addType('trackCount', 'int');
+		$this->addType('ownAlbumCount', 'int');
 	}
 
 	public function getLastfmUrl() : ?string {

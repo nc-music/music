@@ -37,6 +37,7 @@ module.exports = {
       'shared': path.resolve(__dirname, 'js/shared'),
       'vendor': path.resolve(__dirname, 'js/vendor'),
       'angular': path.resolve('node_modules', 'angular'),
+      'backbone': path.resolve('node_modules', 'backbone'),
       'lodash': path.resolve('node_modules', 'lodash'),
       'jquery': path.resolve('node_modules', 'jquery/src/jquery'),
       'blueimp-md5': path.resolve('node_modules', 'blueimp-md5'),

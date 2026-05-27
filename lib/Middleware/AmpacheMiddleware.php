@@ -86,7 +86,7 @@ class AmpacheMiddleware extends Middleware {
 	private function handleHandshake(AmpacheController $controller) : void {
 		$user = $this->request->getParam('user');
 		$timestamp = (int)$this->request->getParam('timestamp');
-		$auth = $this->request->getParam('auth');
+		$auth = $this->request->getParam('auth') ?: $this->getTokenFromHeader();
 		$version = $this->request->getParam('version');
 
 		$expiryDate = \time() + $this->sessionExpiryTime;

@@ -55,16 +55,16 @@ OCA.Music.PlaylistFileService = class {
 				if (result.failed_count > 0) {
 					message += ' ' + t('music', '{count} files were skipped.', { count: result.failed_count });
 				}
-				OC.Notification.showTemporary(message);
+				OCA.Music.Dialogs.showNotification(message);
 				onDone(true);
 			}).fail(function() {
-				OC.Notification.showTemporary(
+				OCA.Music.Dialogs.showNotification(
 						t('music', 'Failed to import the playlist file {file}', { file: file.name }));
 				onDone(false);
 			});
 
 		}).fail(function() {
-			OC.Notification.showTemporary(t('music', 'Failed to create a new playlist'));
+			OCA.Music.Dialogs.showNotification(t('music', 'Failed to create a new playlist'));
 			onDone(false);
 		});
 	}
@@ -79,10 +79,10 @@ OCA.Music.PlaylistFileService = class {
 			if (result.failed_count > 0) {
 				message += ' ' + t('music', '{count} entries were skipped.', { count: result.failed_count });
 			}
-			OC.Notification.showTemporary(message);
+			OCA.Music.Dialogs.showNotification(message);
 			onDone(true);
 		}).fail(function() {
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 					t('music', 'Failed to import the playlist file {file}', { file: file.name }));
 			onDone(false);
 		});

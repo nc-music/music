@@ -25,7 +25,7 @@
 		</track-list>
 	</div>
 
-	<alphabet-navigation ng-if="trackBuckets && trackBuckets.length" item-count="trackBuckets.length"
+	<alphabet-navigation ng-if="trackBuckets.length" item-count="trackBuckets.length"
 		get-elem-title="getBucketName" get-elem-id="getBucketElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 </div>

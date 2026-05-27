@@ -43,7 +43,7 @@ use OCA\Music\Http\XmlResponse;
 
 use OCA\Music\Middleware\SubsonicException;
 
-use OCA\Music\Service\AmpacheImageService;
+use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
@@ -265,8 +265,9 @@ class SubsonicController extends ApiController {
 	}
 
 	#[SubsonicAPI]
-	protected function getArtists() : array {
-		return $this->getIndexesForArtists('artists');
+	protected function getArtists(string $c) : array {
+		// Feishin is expecting to get also non-album artists from this function although that's not what the original Subsonic does
+		return $this->getIndexesForArtists('artists', $c == 'Feishin');
 	}
 
 	#[SubsonicAPI]
@@ -1301,8 +1302,12 @@ class SubsonicController extends ApiController {
 		return $content;
 	}
 
-	private function getIndexesForArtists(string $rootElementName = 'indexes') : array {
-		$artists = $this->artistBusinessLayer->findAllHavingAlbums($this->user(), SortBy::Name);
+	private function getIndexesForArtists(string $rootElementName = 'indexes', bool $includeAllArtists = false) : array {
+		if ($includeAllArtists) {
+			$artists = $this->artistBusinessLayer->findAll($this->user(), SortBy::Name);
+		} else {
+			$artists = $this->artistBusinessLayer->findAllHavingAlbums($this->user(), SortBy::Name);
+		}
 
 		$indexes = [];
 		foreach ($artists as $artist) {
@@ -1382,6 +1387,15 @@ class SubsonicController extends ApiController {
 
 	private function artistToApi(Artist $artist) : array {
 		$id = $artist->getId();
+
+		$roles = [];
+		if ($artist->getTrackCount() > 0) {
+			$roles[] = 'artist';
+		}
+		if ($artist->getOwnAlbumCount() > 0) {
+			$roles[] = 'albumartist';
+		}
+
 		$result = [
 			'name' => $artist->getNameString($this->l10n),
 			'id' => $id ? ('artist-' . $id) : '-1', // getArtistInfo may show artists without ID
@@ -1391,6 +1405,7 @@ class SubsonicController extends ApiController {
 			'averageRating' => $artist->getRating() ?: null,
 			'sortName' => $this->nameWithoutArticle($artist->getName()) ?? '', // OpenSubsonic
 			'mediaType' => 'artist', // OpenSubsonic, only specified for the "old" API but we don't separate the APIs here
+			'roles' => $roles, // OpenSubsonic
 		];
 
 		if (!empty($artist->getCoverFileId())) {
@@ -1632,6 +1647,11 @@ class SubsonicController extends ApiController {
 			}
 		}
 
+		// return empty object instead of empty array if no details were found
+		if (empty($content)) {
+			$content = new \stdClass;
+		}
+
 		// This method is unusual in how it uses non-attribute elements in the response. On the other hand,
 		// all the details of the <similarArtist> elements are rendered as attributes. List those separately.
 		$attributeKeys = ['name', 'id', 'albumCount', 'coverArt', 'artistImageUrl', 'starred'];
@@ -1866,7 +1886,7 @@ class SubsonicController extends ApiController {
 			$response->addHeader('Content-Type', 'text/javascript; charset=UTF-8');
 		} else {
 			if (\is_array($useAttributes)) {
-				$useAttributes = \array_merge($useAttributes, ['status', 'version', 'type', 'serverVersion', 'xmlns']);
+				$useAttributes = \array_merge($useAttributes, ['status', 'version', 'type', 'serverVersion', 'openSubsonic', 'xmlns']);
 			}
 			$responseData['subsonic-response']['xmlns'] = 'http://subsonic.org/restapi';
 			$response = new XmlResponse($responseData, $useAttributes);

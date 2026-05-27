@@ -12,12 +12,12 @@
 		>
 			<div id="stop-button" ng-click="stop()" class="control icon-stop svg"
 				title="{{ 'Stop' | translate }}&#013;[SHIFT+SPACE]"
-				ng-show="shiftHeldDown" alt="{{ 'Stop' | translate }}">
+				ng-show="shiftHeldDown" aria-label="{{ 'Stop' | translate }}">
 			</div>
 			<div id="play-pause-button" ng-click="togglePlayback()" class="control svg"
 				ng-class="playing ? 'icon-pause-big' : 'icon-play-big'"
 				title="{{ (playing ? 'Pause' : 'Play') | translate }} [SPACE]&#013;{{ playPauseContextMenuVisible ? null : ('(press and hold for more)' | translate) }}"
-				ng-show="!shiftHeldDown" alt="{{ (playing ? 'Pause' : 'Play') | translate }}">
+				ng-show="!shiftHeldDown" aria-label="{{ (playing ? 'Pause' : 'Play') | translate }}">
 			</div>
 			<div id="play-pause-menu" class="popovermenu bubble" ng-show="playPauseContextMenuVisible">
 				<ul>

@@ -5,7 +5,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright 2017 - 2024 Pauli Järvinen
+ * @copyright 2017 - 2026 Pauli Järvinen
  *
  */
 
@@ -70,6 +70,7 @@ export interface AdvSearchResult {
 	albums? : Album[];
 	artists? : Artist[];
 	playlists? : Playlist[];
+	genres? : Genre[];
 	podcastEpisodes? : PodcastEpisode[];
 	podcastChannels? : PodcastChannel[];
 	radioStations? : RadioStation[];
@@ -448,6 +449,7 @@ export class LibraryService {
 				albums: _(list.albumIds).map(id => this.getAlbum(id)).value(),
 				artists: _(list.artistIds).map(id => this.getArtist(id)).value(),
 				playlists: _(list.playlistIds).map(id => this.getPlaylist(id)).value(),
+				genres: _(list.genreIds).map(id => this.getGenre(id)).value(),
 				podcastEpisodes: _(list.podcastEpisodeIds).map(id => this.getPodcastEpisode(id)).value(),
 				podcastChannels: _(list.podcastChannelIds).map(id => this.getPodcastChannel(id)).value(),
 				radioStations: _(list.radioStationIds).map(id => this.getRadioStation(id)).value(),

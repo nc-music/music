@@ -133,23 +133,23 @@ h2 span:hover .play {
 	opacity: .6;
 }
 
-#app-content :hover > .play-pause {
+#app :hover > .play-pause {
 	opacity: 1.0;
 }
 
 .current.playing .play-pause,
 div:hover > .play-pause,
-#app-content .current:not(.playing) div:hover .play-pause {
+#app .current:not(.playing) div:hover .play-pause {
 	background-image: url(../../img/play-small.svg);
 }
 
 .current:not(.playing) .play-pause,
-#app-content .current.playing div:hover .play-pause {
+#app .current.playing div:hover .play-pause {
 	background-image: url(../../img/pause-small.svg)
 }
 
-#app-content button.icon-details,
-#app-content button.icon-more {
+#app button.icon-details,
+#app button.icon-more {
 	display: table-cell;
 	vertical-align: middle;
 	margin: 0;
@@ -161,13 +161,13 @@ div:hover > .play-pause,
 	width: auto;
 }
 
-#app-content :hover > button.icon-details,
-#app-content :hover > button.icon-more {
+#app :hover > button.icon-details,
+#app :hover > button.icon-more {
 	visibility: visible;
 }
 
-#app-content button.icon-details:hover,
-#app-content button.icon-more:hover {
+#app button.icon-details:hover,
+#app button.icon-more:hover {
 	opacity: 1;
 }
 

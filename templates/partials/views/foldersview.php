@@ -27,7 +27,7 @@
 		</track-list>
 	</div>
 
-	<alphabet-navigation ng-if="folders && folders.length && foldersFlatLayout" item-count="folders.length"
+	<alphabet-navigation ng-if="folders.length && foldersFlatLayout" item-count="folders.length"
 		get-elem-title="getFolderName" get-elem-id="getFolderElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 

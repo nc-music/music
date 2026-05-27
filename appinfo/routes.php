@@ -52,6 +52,7 @@ return ['routes' => [
 
 	// Search API
 	['name' => 'advSearch#search',		'url' => '/api/advanced_search',			'verb' => 'POST'],
+	['name' => 'advSearch#rules',		'url' => '/api/advanced_search/rules',		'verb' => 'GET'],
 
 	// Cover art API
 	['name' => 'coverApi#externalCover','url' => '/api/cover/external',				'verb' => 'GET'],

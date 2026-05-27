@@ -5,31 +5,30 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2022 - 2025
+ * @copyright Pauli Järvinen 2022 - 2026
  */
 
 import * as _ from 'lodash';
+import * as Backbone from 'backbone';
 import { PlayerWrapper } from './playerwrapper';
 
-declare const OC : any;
-
 class GaplessPlayer {
-	#eventDispatcher : typeof OC.Backbone.Events;
+	#eventDispatcher : Backbone.Events;
 	#currentPlayer = new PlayerWrapper();
 	#nextPlayer = new PlayerWrapper();
 
 	constructor() {
-		this.#eventDispatcher = _.clone(OC.Backbone.Events);
+		this.#eventDispatcher = _.clone(Backbone.Events);
 		this.#setupEventPropagation(this.#currentPlayer);
 		this.#setupEventPropagation(this.#nextPlayer);
 	}
 
-	on(...args : any[]) : void {
-		this.#eventDispatcher.on(...args);
+	on(eventName: string, callback: Backbone.EventHandler, context?: any) : void {
+		this.#eventDispatcher.on(eventName, callback, context);
 	}
 
-	trigger(...args : any[]) : void {
-		this.#eventDispatcher.trigger(...args);
+	trigger(eventName: string, ...args: any[]) : void {
+		this.#eventDispatcher.trigger(eventName, ...args);
 	}
 
 	#setupEventPropagation(player : PlayerWrapper) : void {

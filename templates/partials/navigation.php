@@ -26,16 +26,16 @@ HtmlUtil::printNgTemplate('navigationitem');
 			<div id="new-playlist" class="music-navigation-item-content">
 				<div class="icon-add" ng-click="startCreate()" ng-if="!newPlaylistTrackIds.length"></div>
 				<div class="track-count-badge" ng-if="newPlaylistTrackIds.length">{{ newPlaylistTrackIds.length }}</div>
-				<div class="label app-navigation-noclose" ng-click="startCreate()" ng-hide="showCreateForm" translate>New Playlist</div>
+				<div class="label" ng-click="startCreate()" ng-hide="showCreateForm" translate>New Playlist</div>
 				<div class="input-container with-buttons" ng-show="showCreateForm">
 					<input id="new-list-input" type="text" maxlength="256"
 						placeholder="{{ 'New Playlist' | translate }}" ng-model="newPlaylistName"
 						on-enter="commitCreate()" on-esc="closeCreate()" />
 				</div>
 				<div class="actions" ng-show="showCreateForm">
-					<button class="action icon-checkmark app-navigation-noclose"
+					<button class="action icon-checkmark"
 						ng-class="{ disabled: newPlaylistName.length == 0}" ng-click="commitCreate()"></button>
-					<button class="action icon-close app-navigation-noclose" ng-click="closeCreate()"></button>
+					<button class="action icon-close" ng-click="closeCreate()"></button>
 				</div>
 			</div>
 		</li>
@@ -52,10 +52,11 @@ HtmlUtil::printNgTemplate('navigationitem');
 			title="{{ showSearch ? null : '[CTRL+F]' }}">
 			<div class="music-navigation-item-content">
 				<div class="icon-search" ng-click="startSearch()"></div>
-				<div class="label app-navigation-noclose" ng-click="startSearch()" ng-hide="showSearch" translate>Search</div>
+				<div class="label" ng-click="startSearch()" ng-hide="showSearch" translate>Search</div>
 				<div class="input-container" ng-show="showSearch">
 					<input id="search-input" type="text" placeholder="{{ 'Search' | translate }}"
-						ng-model="searchInput" on-enter="collapseNavigationPaneOnMobile()"
+						ng-model="searchInput" enterkeyhint="search"
+						on-enter="collapseNavigationPaneOnMobile()"
 						on-esc="clearSearch(); collapseNavigationPaneOnMobile()" />
 					<button id="clear-search" class="icon-close" ng-click="clearSearch()"></button>
 				</div>
@@ -79,7 +80,4 @@ HtmlUtil::printNgTemplate('navigationitem');
 			</a>
 		</li>
 	</ul>
-
-	<!-- a hidden button which may be programmatically clicked to collapse the navigation pane on the mobile layout -->
-	<button id="hidden-close-app-navigation-button" style="display: none"></button>
 </div>

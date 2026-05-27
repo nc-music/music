@@ -11,9 +11,9 @@
  *
  */
 
-import * as angular from "angular";
-import { MusicRootScope } from "app/config/musicrootscope";
-import { IService } from "restangular";
+import * as angular from 'angular';
+import { MusicRootScope } from 'app/config/musicrootscope';
+import { IService } from 'restangular';
 
 angular.module('Music').factory('ArtistFactory', ['Restangular', '$rootScope', function (Restangular : IService, $rootScope : MusicRootScope) {
 	return {

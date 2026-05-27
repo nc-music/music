@@ -9,12 +9,13 @@
  */
 
 import musicIconSvgData from '../../img/music-dark.svg?raw';
+import * as Backbone from 'backbone';
 
 OCA.Music = OCA.Music || {};
 
 let sidebarNode = null; // for ncFiles 4
 
-const msgBus = _.extend({}, OC.Backbone.Events);
+const msgBus = _.extend({}, Backbone.Events);
 
 export function getMsgBus() {
 	return msgBus;

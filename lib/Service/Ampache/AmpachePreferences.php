@@ -7,10 +7,10 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2023 - 2025
+ * @copyright Pauli Järvinen 2023 - 2026
  */
 
-namespace OCA\Music\Service;
+namespace OCA\Music\Service\Ampache;
 
 /**
  * Minimal mocked user preferences needed to support the Ample client

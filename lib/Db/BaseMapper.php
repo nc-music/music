@@ -217,7 +217,8 @@ abstract class BaseMapper extends Mapper {
 		$sqlParams = [$userId];
 
 		foreach ($rules as $rule) {
-			list('op' => $sqlOp, 'conv' => $sqlConv, 'param' => $param) = $this->advFormatSqlOperator($rule['operator'], (string)$rule['input'], $userId);
+			$rule['input'] = self::advConvertInput((string)$rule['input'], $rule['rule']);
+			list('op' => $sqlOp, 'conv' => $sqlConv, 'param' => $param) = $this->advFormatSqlOperator($rule['operator'], $rule['input'], $userId);
 			$cond = $this->advFormatSqlCondition($rule['rule'], $sqlOp, $sqlConv);
 			$sqlConditions[] = $cond;
 			// On some conditions, the parameter may need to be repeated several times
@@ -689,6 +690,24 @@ abstract class BaseMapper extends Mapper {
 			$pattern = \implode('%', $parts);
 		}
 		return "%$pattern%";
+	}
+
+	/**
+	 * Some advanced search rule inputs need to be converted before they are used in the DB query.
+	 */
+	private static function advConvertInput(string $input, string $rule) : string {
+		switch ($rule) {
+			case 'last_play':
+				// days diff to ISO date; support also fractional days
+				$secs = (int)((float)$input * 24 * 60 * 60);
+				$date = new \DateTime("$secs seconds ago");
+				return $date->format(self::SQL_DATE_FORMAT);
+			case 'time':
+				// minutes to seconds
+				return (string)(int)((float)$input * 60);
+			default:
+				return $input;
+		}
 	}
 
 	/**

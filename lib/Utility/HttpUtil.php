@@ -143,7 +143,7 @@ class HttpUtil {
 	}
 
 	public static function userAgentHeader() : string {
-		return 'User-Agent: OCMusic/' . AppInfo::getVersion();
+		return 'User-Agent: nc-music/' . AppInfo::getVersion();
 	}
 
 	/**

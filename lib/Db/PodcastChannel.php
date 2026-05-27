@@ -7,7 +7,7 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2021 - 2025
+ * @copyright Pauli Järvinen 2021 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -109,8 +109,8 @@ class PodcastChannel extends Entity {
 			'id' => $this->getId(),
 			'title' => $this->getTitle(),
 			'description' => $this->getDescription(),
-			'image' => $this->createImageUrl($urlGenerator) . '?originalSize=true',
-			'link_url' =>  $this->getLinkUrl(),
+			'image' => $this->createImageUrl($urlGenerator, ['originalSize' => true]),
+			'link_url' => $this->getLinkUrl(),
 			'rss_url' => $this->getRssUrl(),
 			'language' => $this->getLanguage(),
 			'copyright' => $this->getCopyright(),
@@ -171,7 +171,11 @@ class PodcastChannel extends Entity {
 	/**
 	 * Create URL which loads the channel image via the cloud server. The URL handles down-scaling and caching automatically.
 	 */
-	private function createImageUrl(IURLGenerator $urlGenerator) : string {
-		return $urlGenerator->linkToRoute('music.coverApi.podcastCover', ['channelId' => $this->getId()]);
+	private function createImageUrl(IURLGenerator $urlGenerator, array $args = []) : ?string {
+		if (empty($this->getImageUrl())) {
+			return null;
+		} else {
+			return $urlGenerator->linkToRoute('music.coverApi.podcastCover', ['channelId' => $this->getId()] + $args);
+		}
 	}
 }

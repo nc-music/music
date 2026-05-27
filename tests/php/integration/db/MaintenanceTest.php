@@ -15,6 +15,7 @@
 namespace OCA\Music\Db;
 
 use Doctrine\DBAL\Connection;
+use OCP\IDBConnection;
 
 class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 
@@ -25,7 +26,7 @@ class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 
 	protected function setUp() : void {
 		/** @var Connection db */
-		$this->db = \OC::$server->getDatabaseConnection();
+		$this->db = \OC::$server->query(IDBConnection::class);
 		$this->logger = $this->getMockBuilder('\OCA\Music\AppFramework\Core\Logger')
 			->disableOriginalConstructor()
 			->getMock();

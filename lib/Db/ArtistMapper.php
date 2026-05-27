@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 namespace OCA\Music\Db;
@@ -30,31 +30,53 @@ class ArtistMapper extends BaseMapper {
 	}
 
 	/**
-	 * @param string $userId
-	 * @param integer $sortBy sort order of the result set
+	 * Override the base implementation to include data from multiple tables
+	 *
+	 * {@inheritdoc}
+	 * @see BaseMapper::selectEntities()
+	 */
+	protected function selectEntities(string $condition, ?string $extension=null) : string {
+		return "SELECT
+					`*PREFIX*music_artists`.*,
+					{$this->sqlCoalesce('`trackCount`', '0')} AS `trackCount`,
+					{$this->sqlCoalesce('`ownAlbumCount`', '0')} AS `ownAlbumCount`
+				FROM `*PREFIX*music_artists`
+				LEFT JOIN (
+					SELECT `artist_id`, COUNT(`id`) AS `trackCount`
+					FROM `*PREFIX*music_tracks`
+					GROUP BY `artist_id`
+				) `track_counts`
+				ON `*PREFIX*music_artists`.`id` = `track_counts`.`artist_id`
+				LEFT JOIN (
+					SELECT `album_artist_id`, COUNT(`id`) AS `ownAlbumCount`
+					FROM `*PREFIX*music_albums`
+					GROUP BY `album_artist_id`
+				) `album_counts`
+				ON `*PREFIX*music_artists`.`id` = `album_counts`.`album_artist_id`
+				WHERE $condition
+				$extension";
+	}
+
+	/**
 	 * @return Artist[]
 	 */
 	public function findAllHavingAlbums(string $userId, int $sortBy=SortBy::Name,
 			?int $limit=null, ?int $offset=null, ?string $name=null, int $matchMode=MatchMode::Exact,
 			?string $createdMin=null, ?string $createdMax=null, ?string $updatedMin=null, ?string $updatedMax=null) : array {
-		
-		$condition = $this->formatExcludeChildlessCondition();
+
 		return $this->findAllWithCondition(
-			$condition, $userId, $sortBy, $limit, $offset, $name, $matchMode, $createdMin, $createdMax, $updatedMin, $updatedMax);
+			'`ownAlbumCount` > 0', $userId, $sortBy, $limit, $offset, $name, $matchMode, $createdMin, $createdMax, $updatedMin, $updatedMax);
 	}
 
 	/**
-	 * @param string $userId
-	 * @param integer $sortBy sort order of the result set
 	 * @return Artist[]
 	 */
 	public function findAllHavingTracks(string $userId, int $sortBy=SortBy::Name,
 			?int $limit=null, ?int $offset=null, ?string $name=null, int $matchMode=MatchMode::Exact,
 			?string $createdMin=null, ?string $createdMax=null, ?string $updatedMin=null, ?string $updatedMax=null) : array {
-		
-		$condition = 'EXISTS (SELECT 1 FROM `*PREFIX*music_tracks` `track` WHERE `*PREFIX*music_artists`.`id` = `track`.`artist_id`)';
+
 		return $this->findAllWithCondition(
-			$condition, $userId, $sortBy, $limit, $offset, $name, $matchMode, $createdMin, $createdMax, $updatedMin, $updatedMax);
+			'`trackCount` > 0', $userId, $sortBy, $limit, $offset, $name, $matchMode, $createdMin, $createdMax, $updatedMin, $updatedMax);
 	}
 
 	/**
@@ -84,10 +106,6 @@ class ArtistMapper extends BaseMapper {
 	}
 
 	/**
-	 * @param int $genreId
-	 * @param string $userId
-	 * @param int|null $limit
-	 * @param int|null $offset
 	 * @return Artist[]
 	 */
 	public function findAllByGenre(int $genreId, string $userId, ?int $limit=null, ?int $offset=null) : array {
@@ -103,7 +121,7 @@ class ArtistMapper extends BaseMapper {
 	/**
 	 * returns summed track play counts of each artist of the user, omitting artists which have never been played
 	 *
-	 * @return array [int => int], keys are artist IDs and values are play count sums; ordered largest counts first
+	 * @return array<int, int> keys are artist IDs and values are play count sums; ordered largest counts first
 	 */
 	public function getArtistTracksPlayCount(string $userId, ?int $limit=null, ?int $offset=null) : array {
 		$sql = 'SELECT `artist_id`, SUM(`play_count`) AS `sum_count`
@@ -124,7 +142,7 @@ class ArtistMapper extends BaseMapper {
 	/**
 	 * returns the latest play time of each artist of the user, omitting artists which have never been played
 	 *
-	 * @return array [int => string], keys are artist IDs and values are date-times; ordered latest times first
+	 * @return array<int, string> keys are artist IDs and values are date-times; ordered latest times first
 	 */
 	public function getLatestArtistPlayTimes(string $userId, ?int $limit=null, ?int $offset=null) : array {
 		$sql = 'SELECT `artist_id`, MAX(`last_played`) AS `latest_time`
@@ -145,8 +163,8 @@ class ArtistMapper extends BaseMapper {
 	/**
 	 * returns the latest play time of each artist of the user, including artists which have never been played
 	 *
-	 * @return array [int => ?string], keys are artist IDs and values are date-times (or null for never played);
-	 *									ordered furthest times first
+	 * @return array<int, ?string> keys are artist IDs and values are date-times (or null for never played);
+	 *								ordered furthest times first
 	 */
 	public function getFurthestArtistPlayTimes(string $userId, ?int $limit=null, ?int $offset=null) : array {
 		$sql = 'SELECT `artist_id`, MAX(`last_played`) AS `latest_time`
@@ -221,8 +239,8 @@ class ArtistMapper extends BaseMapper {
 			'played_times'	=> "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`play_count`) $sqlOp ?) mysqlhack)",
 			'last_play'		=> "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp ?) mysqlhack)",
 			'myplayed'		=> "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp) mysqlhack)", // operator "IS NULL" or "IS NOT NULL"
-			'album_count'	=> "`*PREFIX*music_artists`.`id` IN (SELECT `id` FROM `*PREFIX*music_artists` JOIN (SELECT `*PREFIX*music_artists`.`id` AS `id2`, " . $this->sqlCoalesce('`count1`', '0') . " `count2` FROM `*PREFIX*music_artists` LEFT JOIN (SELECT `*PREFIX*music_albums`.`album_artist_id` AS `id1`, COUNT(`*PREFIX*music_albums`.`id`) AS `count1` FROM `*PREFIX*music_albums` GROUP BY `*PREFIX*music_albums`.`album_artist_id`) `sub1` ON `*PREFIX*music_artists`.`id` = `id1`) `sub2` ON `*PREFIX*music_artists`.`id` = `id2` WHERE `count2` $sqlOp ?)",
-			'song_count'	=> "`*PREFIX*music_artists`.`id` IN (SELECT `id` FROM `*PREFIX*music_artists` JOIN (SELECT `*PREFIX*music_artists`.`id` AS `id2`, " . $this->sqlCoalesce('`count1`', '0') . " `count2` FROM `*PREFIX*music_artists` LEFT JOIN (SELECT `*PREFIX*music_tracks`.`artist_id` AS `id1`, COUNT(`*PREFIX*music_tracks`.`id`) AS `count1` FROM `*PREFIX*music_tracks` GROUP BY `*PREFIX*music_tracks`.`artist_id`) `sub1` ON `*PREFIX*music_artists`.`id` = `id1`) `sub2` ON `*PREFIX*music_artists`.`id` = `id2` WHERE `count2` $sqlOp ?)",
+			'album_count'	=> "{$this->sqlCoalesce('`ownAlbumCount`', '0')} $sqlOp ?",
+			'song_count'	=> "{$this->sqlCoalesce('`trackCount`', '0')} $sqlOp ?",
 			'time'			=> "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`length`) $sqlOp ?) mysqlhack)",
 			'artist_genre'	=> "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `artist_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
 			'song_genre'	=> "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE $conv(`g`.`name`) $sqlOp $conv(?))",

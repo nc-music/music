@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the ownCloud music package.
+# This file is distributed under the same license as the nc-music package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ownCloud music 5.0.0\n"
-"Report-Msgid-Bugs-To: translations@owncloud.org\n"
-"POT-Creation-Date: 2025-12-22 23:47+0200\n"
+"Project-Id-Version: nc-music 3.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/nc-music/music/issues\n"
+"POT-Creation-Date: 2026-05-05 23:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,7 +28,11 @@ msgstr ""
 msgid "(Last.fm has not been set up)"
 msgstr ""
 
-#: templates/fake-template.php:9 musicwidget.ts:238
+#: js/app/controllers/views/advancedsearchviewcontroller.js:381 Db/Genre.php:85
+msgid "(Unknown genre)"
+msgstr ""
+
+#: templates/fake-template.php:9 musicwidget.ts:240
 msgid "(library root)"
 msgstr ""
 
@@ -40,19 +44,19 @@ msgstr ""
 msgid "(press and hold for more)"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:27
+#: templates/partials/views/advancedsearchview.php:35
 msgid "10 matches"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:29
+#: templates/partials/views/advancedsearchview.php:37
 msgid "100 matches"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:28
+#: templates/partials/views/advancedsearchview.php:36
 msgid "30 matches"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:30
+#: templates/partials/views/advancedsearchview.php:38
 msgid "500 matches"
 msgstr ""
 
@@ -120,7 +124,7 @@ msgstr ""
 msgid "<strong>SPACE</strong> or <strong>K</strong>"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:200
+#: templates/partials/views/settingsview.php:199
 msgid "About"
 msgstr ""
 
@@ -130,16 +134,6 @@ msgstr ""
 
 #: js/app/services/podcastservice.ts:133
 msgid "Add channel"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:121
-#: js/app/controllers/views/advancedsearchviewcontroller.js:179
-#: js/app/controllers/views/advancedsearchviewcontroller.js:232
-#: js/app/controllers/views/advancedsearchviewcontroller.js:269
-#: js/app/controllers/views/advancedsearchviewcontroller.js:290
-#: js/app/controllers/views/advancedsearchviewcontroller.js:317
-#: js/app/controllers/views/advancedsearchviewcontroller.js:337
-msgid "Add date"
 msgstr ""
 
 #: templates/partials/navigationitem.php:97
@@ -154,7 +148,7 @@ msgstr ""
 msgid "Add tracks with drag and drop from Albums or other playlists"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:193
+#: templates/partials/views/settingsview.php:192
 msgid "Admin"
 msgstr ""
 
@@ -175,47 +169,19 @@ msgstr ""
 msgid "Advanced search"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:376
+#: js/app/controllers/views/advancedsearchviewcontroller.js:134
 msgid "After"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:618
+#: js/app/controllers/playercontroller.js:640
 #: templates/partials/sidebar/radiostationdetails.php:68
-#: templates/partials/sidebar/trackdetails.php:57 Search/Provider.php:63
+#: templates/partials/sidebar/trackdetails.php:57
 msgid "Album"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:106
-#: js/app/controllers/views/advancedsearchviewcontroller.js:162
-msgid "Album artist name"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:220
-msgid "Album count"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:112
-#: js/app/controllers/views/advancedsearchviewcontroller.js:169
-msgid "Album genre"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:159
-msgid "Album metadata"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:104
-#: js/app/controllers/views/advancedsearchviewcontroller.js:217
-msgid "Album name"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:134
-#: js/app/controllers/views/advancedsearchviewcontroller.js:244
-msgid "Album rating"
-msgstr ""
-
-#: js/app/controllers/playercontroller.js:611
+#: js/app/controllers/playercontroller.js:633
 #: templates/partials/navigation.php:9
-#: templates/partials/sidebar/artistdetails.php:14 musicwidget.ts:54
+#: templates/partials/sidebar/artistdetails.php:14 musicwidget.ts:56
 msgid "Albums"
 msgstr ""
 
@@ -227,19 +193,15 @@ msgstr ""
 msgid "All channels were already up-to-date"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:614
+#: js/app/controllers/playercontroller.js:636
 #: templates/partials/navigation.php:15
 #: templates/partials/views/alltracksview.php:4
-#: Controller/AmpacheController.php:1886 musicwidget.ts:57
+#: Controller/AmpacheController.php:1567 musicwidget.ts:59
 msgid "All tracks"
 msgstr ""
 
 #: templates/partials/views/settingsview.php:138
 msgid "Ampache and Subsonic"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:97
-msgid "Any searchable text"
 msgstr ""
 
 #: js/app/services/playlistfileservice.ts:210
@@ -277,33 +239,15 @@ msgstr ""
 msgid "Articles to ignore on artist names"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:619
+#: js/app/controllers/playercontroller.js:641
 #: templates/partials/sidebar/radiostationdetails.php:65
-#: templates/partials/sidebar/trackdetails.php:54 Search/Provider.php:62
+#: templates/partials/sidebar/trackdetails.php:54
 msgid "Artist"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:113
-#: js/app/controllers/views/advancedsearchviewcontroller.js:222
-msgid "Artist genre"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:214
-msgid "Artist metadata"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:105
-msgid "Artist name"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:135
-#: js/app/controllers/views/advancedsearchviewcontroller.js:191
-msgid "Artist rating"
 msgstr ""
 
 #: templates/partials/sidebar/albumdetails.php:14
 #: templates/partials/sidebar/smartlistfilters.php:25
-#: Controller/SubsonicController.php:260
+#: Controller/SubsonicController.php:212
 msgid "Artists"
 msgstr ""
 
@@ -311,12 +255,12 @@ msgstr ""
 msgid "Artists featured on {{album}}"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:375
+#: js/app/controllers/views/advancedsearchviewcontroller.js:133
 msgid "Before"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:110
 #: templates/partials/sidebar/radiostationdetails.php:54
+#: Service/AdvSearchRules.php:38
 msgid "Bit rate"
 msgstr ""
 
@@ -338,7 +282,7 @@ msgid_plural "Changes were loaded for {{ count }} channels"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/playercontroller.js:623
+#: js/app/controllers/playercontroller.js:645
 msgid "Channel"
 msgstr ""
 
@@ -346,7 +290,7 @@ msgstr ""
 msgid "Check the filter values"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:186
+#: templates/partials/views/settingsview.php:185
 msgid "Click <strong>Connect</strong> to scrobble your streams to {{service}}."
 msgstr ""
 
@@ -380,7 +324,7 @@ msgstr ""
 msgid "Click to show \"Getting started\""
 msgstr ""
 
-#: templates/partials/sidebar/sidebar.php:2 embeddedplayer.js:259
+#: templates/partials/sidebar/sidebar.php:2 embeddedplayer.js:257
 msgid "Close"
 msgstr ""
 
@@ -396,7 +340,7 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:348
+#: js/app/controllers/views/advancedsearchviewcontroller.js:106
 msgid "Contains"
 msgstr ""
 
@@ -411,11 +355,6 @@ msgstr ""
 #: templates/partials/sidebar/playlistdetails.php:16
 #: templates/partials/sidebar/radiostationdetails.php:36
 msgid "Created"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:289
-#: js/app/controllers/views/advancedsearchviewcontroller.js:316
-msgid "Date published"
 msgstr ""
 
 #: templates/partials/views/settingsview.php:130
@@ -453,51 +392,39 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:168
-msgid "Disk count"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:349
+#: js/app/controllers/views/advancedsearchviewcontroller.js:107
 msgid "Does not contain"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:363
+#: js/app/controllers/views/advancedsearchviewcontroller.js:121
 msgid "Does not equal"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:357
+#: js/app/controllers/views/advancedsearchviewcontroller.js:115
 msgid "Does not match regular expression"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:355
+#: js/app/controllers/views/advancedsearchviewcontroller.js:113
 msgid "Does not sound like"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:109
-#: js/app/controllers/views/advancedsearchviewcontroller.js:166
-#: js/app/controllers/views/advancedsearchviewcontroller.js:219
-#: js/app/controllers/views/advancedsearchviewcontroller.js:283
-#: js/app/controllers/views/advancedsearchviewcontroller.js:310
-msgid "Duration (seconds)"
 msgstr ""
 
 #: templates/partials/views/settingsview.php:52
 msgid "Enable metadata scanning"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:351
+#: js/app/controllers/views/advancedsearchviewcontroller.js:109
 msgid "Ends with"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:624
+#: js/app/controllers/playercontroller.js:646
 msgid "Episode"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:362
+#: js/app/controllers/views/advancedsearchviewcontroller.js:120
 msgid "Equals"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:106
+#: js/app/controllers/playercontroller.js:108
 msgid "Error playing URL:"
 msgstr ""
 
@@ -523,7 +450,7 @@ msgstr ""
 msgid "Failed to add the podcast channel"
 msgstr ""
 
-#: js/app/controllers/maincontroller.js:249
+#: js/app/controllers/maincontroller.js:246
 msgid ""
 "Failed to check for new audio files (error {{ code }}); check the server "
 "logs for details"
@@ -553,7 +480,7 @@ msgstr ""
 msgid "Failed to import radio stations from the file {{ file }}"
 msgstr ""
 
-#: js/app/controllers/maincontroller.js:197
+#: js/app/controllers/maincontroller.js:194
 msgid "Failed to load the collection:"
 msgstr ""
 
@@ -582,23 +509,20 @@ msgstr ""
 msgid "Failed to save the setting"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:130
-#: js/app/controllers/views/advancedsearchviewcontroller.js:188
-#: js/app/controllers/views/advancedsearchviewcontroller.js:241
-#: js/app/controllers/views/advancedsearchviewcontroller.js:273
-#: js/app/controllers/views/advancedsearchviewcontroller.js:299
-#: js/app/controllers/views/advancedsearchviewcontroller.js:326
 #: templates/partials/sidebar/smartlistfilters.php:32
+#: Service/AdvSearchRules.php:52 Service/AdvSearchRules.php:95
+#: Service/AdvSearchRules.php:133 Service/AdvSearchRules.php:156
+#: Service/AdvSearchRules.php:184 Service/AdvSearchRules.php:202
 msgid "Favorite"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:131
 #: templates/partials/sidebar/smartlistfilters.php:36
+#: Service/AdvSearchRules.php:53
 msgid "Favorite album"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:132
 #: templates/partials/sidebar/smartlistfilters.php:37
+#: Service/AdvSearchRules.php:54
 msgid "Favorite artist"
 msgstr ""
 
@@ -610,17 +534,9 @@ msgstr ""
 msgid "Favorite track, album, or artist"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:118
-#: js/app/controllers/views/advancedsearchviewcontroller.js:176
-#: js/app/controllers/views/advancedsearchviewcontroller.js:229
-msgid "File data"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:120
-#: js/app/controllers/views/advancedsearchviewcontroller.js:178
-#: js/app/controllers/views/advancedsearchviewcontroller.js:231
 #: js/app/services/playlistfileservice.ts:66
-#: js/app/services/podcastservice.ts:80
+#: js/app/services/podcastservice.ts:80 Service/AdvSearchRules.php:45
+#: Service/AdvSearchRules.php:88 Service/AdvSearchRules.php:126
 msgid "File name"
 msgstr ""
 
@@ -632,13 +548,13 @@ msgstr ""
 msgid "Flat layout"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:620
+#: js/app/controllers/playercontroller.js:642
 msgid "Folder"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:612
-#: templates/partials/navigation.php:11 Controller/SubsonicController.php:261
-#: musicwidget.ts:55
+#: js/app/controllers/playercontroller.js:634
+#: templates/partials/navigation.php:11 Controller/SubsonicController.php:213
+#: musicwidget.ts:57
 msgid "Folders"
 msgstr ""
 
@@ -662,30 +578,19 @@ msgstr ""
 msgid "Generated {{ datetime }}"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:621
+#: js/app/controllers/playercontroller.js:643
 #: templates/partials/sidebar/radiostationdetails.php:51
 msgid "Genre"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:613
+#: js/app/controllers/playercontroller.js:635
 #: templates/partials/navigation.php:13
-#: templates/partials/sidebar/smartlistfilters.php:18 musicwidget.ts:56
+#: templates/partials/sidebar/smartlistfilters.php:18 musicwidget.ts:58
 msgid "Genres"
 msgstr ""
 
 #: templates/partials/navigationitem.php:76
 msgid "Getting started"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:172
-#: js/app/controllers/views/advancedsearchviewcontroller.js:225
-msgid "Has image"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:114
-#: js/app/controllers/views/advancedsearchviewcontroller.js:171
-#: js/app/controllers/views/advancedsearchviewcontroller.js:224
-msgid "Has no genre"
 msgstr ""
 
 #: templates/partials/views/settingsview.php:153
@@ -702,9 +607,8 @@ msgid ""
 "href=\"{{url}}\">Advanced search</a>"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:287
-#: js/app/controllers/views/advancedsearchviewcontroller.js:314
 #: templates/partials/sidebar/smartlistfilters.php:43
+#: Service/AdvSearchRules.php:176 Service/AdvSearchRules.php:194
 msgid "History"
 msgstr ""
 
@@ -779,14 +683,14 @@ msgstr ""
 msgid "Info"
 msgstr ""
 
-#: js/app/controllers/maincontroller.js:188
+#: js/app/controllers/maincontroller.js:185
 msgid "Internal server error"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:594
 #: js/app/controllers/playercontroller.js:616
+#: js/app/controllers/playercontroller.js:638
 #: js/app/services/playlistfileservice.ts:139
-#: templates/partials/navigation.php:18 musicwidget.ts:59
+#: templates/partials/navigation.php:18 musicwidget.ts:61
 msgid "Internet radio"
 msgstr ""
 
@@ -798,58 +702,43 @@ msgstr ""
 msgid "Invalid RSS feed URL"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:352
+#: js/app/controllers/views/advancedsearchviewcontroller.js:110
 msgid "Is"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:379
+#: js/app/controllers/views/advancedsearchviewcontroller.js:141
 msgid "Is equal to"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:372
+#: js/app/controllers/views/advancedsearchviewcontroller.js:130
 msgid "Is false"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:364
+#: js/app/controllers/views/advancedsearchviewcontroller.js:122
 msgid "Is greater than"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:360
+#: js/app/controllers/views/advancedsearchviewcontroller.js:118
 msgid "Is greater than or equal to"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:365
+#: js/app/controllers/views/advancedsearchviewcontroller.js:123
 msgid "Is less than"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:361
+#: js/app/controllers/views/advancedsearchviewcontroller.js:119
 msgid "Is less than or equal to"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:353
+#: js/app/controllers/views/advancedsearchviewcontroller.js:111
 msgid "Is not"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:380
+#: js/app/controllers/views/advancedsearchviewcontroller.js:142
 msgid "Is not equal to"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:144
-#: js/app/controllers/views/advancedsearchviewcontroller.js:200
-#: js/app/controllers/views/advancedsearchviewcontroller.js:253
-msgid "Is played"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:145
-msgid "Is played album"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:146
-#: js/app/controllers/views/advancedsearchviewcontroller.js:201
-msgid "Is played artist"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:371
+#: js/app/controllers/views/advancedsearchviewcontroller.js:129
 msgid "Is true"
 msgstr ""
 
@@ -865,13 +754,11 @@ msgstr ""
 msgid "Keyboard shortcuts"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:142
-#: js/app/controllers/views/advancedsearchviewcontroller.js:198
-#: js/app/controllers/views/advancedsearchviewcontroller.js:251
-msgid "Last played"
+#: js/app/controllers/views/advancedsearchviewcontroller.js:138
+msgid "Less than (x) days ago"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:368
+#: js/app/controllers/views/advancedsearchviewcontroller.js:126
 msgid "Limit"
 msgstr ""
 
@@ -901,7 +788,7 @@ msgid ""
 "shortcuts."
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:356
+#: js/app/controllers/views/advancedsearchviewcontroller.js:114
 msgid "Matches regular expression"
 msgstr ""
 
@@ -910,8 +797,11 @@ msgstr ""
 msgid "Modified"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:205 Dashboard/MusicWidget.php:42
-#: Search/Provider.php:77
+#: js/app/controllers/views/advancedsearchviewcontroller.js:137
+msgid "More than (x) days ago"
+msgstr ""
+
+#: templates/partials/views/settingsview.php:204 Dashboard/MusicWidget.php:41
 msgid "Music"
 msgstr ""
 
@@ -934,14 +824,11 @@ msgstr ""
 msgid "Mute / Unmute"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:103
-#: js/app/controllers/views/advancedsearchviewcontroller.js:161
-#: js/app/controllers/views/advancedsearchviewcontroller.js:216
-#: js/app/controllers/views/advancedsearchviewcontroller.js:268
-#: js/app/controllers/views/advancedsearchviewcontroller.js:281
-#: js/app/controllers/views/advancedsearchviewcontroller.js:308
-#: js/app/controllers/views/advancedsearchviewcontroller.js:335
 #: templates/partials/sidebar/radiostationdetails.php:18
+#: Service/AdvSearchRules.php:31 Service/AdvSearchRules.php:74
+#: Service/AdvSearchRules.php:114 Service/AdvSearchRules.php:151
+#: Service/AdvSearchRules.php:161 Service/AdvSearchRules.php:172
+#: Service/AdvSearchRules.php:190 Service/AdvSearchRules.php:208
 msgid "Name"
 msgstr ""
 
@@ -962,7 +849,7 @@ msgid "New radio station"
 msgstr ""
 
 #: templates/partials/controls.php:53 templates/partials/controls.php:54
-#: embeddedplayer.js:218
+#: embeddedplayer.js:216
 msgid "Next"
 msgstr ""
 
@@ -1044,8 +931,8 @@ msgstr ""
 msgid "Number of tracks on albums"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:639
-#: js/app/controllers/playercontroller.js:648
+#: js/app/controllers/playercontroller.js:661
+#: js/app/controllers/playercontroller.js:670
 msgid "Off"
 msgstr ""
 
@@ -1081,19 +968,19 @@ msgid ""
 "directory and others relative to the music library base path."
 msgstr ""
 
-#: templates/fake-template.php:13 embeddedplayer.js:199
+#: templates/fake-template.php:13 embeddedplayer.js:197
 msgid "Pause"
 msgstr ""
 
 #: js/app/directives/listheading.js:23 templates/fake-template.php:12
-#: templates/partials/views/advancedsearchview.php:71
+#: templates/partials/views/advancedsearchview.php:80
 #: templates/partials/views/albumsview.php:27
 #: templates/partials/views/alltracksview.php:5
 #: templates/partials/views/playlistview.php:5
 #: templates/partials/views/podcastsview.php:18
 #: templates/partials/views/radioview.php:5
-#: templates/partials/views/smartlistview.php:5 embeddedplayer.js:189
-#: folderview.js:254 folderview.js:322
+#: templates/partials/views/smartlistview.php:5 embeddedplayer.js:187
+#: folderview.js:239 folderview.js:275 folderview.js:338
 msgid "Play"
 msgstr ""
 
@@ -1101,34 +988,18 @@ msgstr ""
 msgid "Play / Pause"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:139
-#: js/app/controllers/views/advancedsearchviewcontroller.js:195
-#: js/app/controllers/views/advancedsearchviewcontroller.js:248
-msgid "Play history"
-msgstr ""
-
 #: templates/partials/controls.php:46
 msgid "Playback rate"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:312
+#: js/app/controllers/playercontroller.js:331
 msgid "Playback speed not adjustable for the current song"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:141
-#: js/app/controllers/views/advancedsearchviewcontroller.js:197
-#: js/app/controllers/views/advancedsearchviewcontroller.js:250
-msgid "Played times"
-msgstr ""
-
-#: js/app/controllers/playercontroller.js:622
-#: js/app/controllers/views/advancedsearchviewcontroller.js:150
-#: js/app/controllers/views/advancedsearchviewcontroller.js:152
-#: js/app/controllers/views/advancedsearchviewcontroller.js:205
-#: js/app/controllers/views/advancedsearchviewcontroller.js:207
-#: js/app/controllers/views/advancedsearchviewcontroller.js:257
-#: js/app/controllers/views/advancedsearchviewcontroller.js:259
-#: playlisttabview.js:17
+#: js/app/controllers/playercontroller.js:644 Service/AdvSearchRules.php:67
+#: Service/AdvSearchRules.php:68 Service/AdvSearchRules.php:107
+#: Service/AdvSearchRules.php:108 Service/AdvSearchRules.php:144
+#: Service/AdvSearchRules.php:145 playlisttabview.js:114 playlisttabview.js:137
 msgid "Playlist"
 msgstr ""
 
@@ -1136,25 +1007,15 @@ msgstr ""
 msgid "Playlist exported to file {{ path }}"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:153
-#: js/app/controllers/views/advancedsearchviewcontroller.js:208
-#: js/app/controllers/views/advancedsearchviewcontroller.js:260
-msgid "Playlist name"
-msgstr ""
-
 #: js/app/services/playlistfileservice.ts:48
 #: js/app/services/podcastservice.ts:53
 msgid "Playlist or folder not found"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:208
+#: templates/partials/views/settingsview.php:207
 msgid ""
 "Please report any bugs and issues to the <a href=\"{{issueTrackerUrl}}\" "
 "target=\"_blank\">issue tracker</a>"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:282
-msgid "Podcast channel"
 msgstr ""
 
 #: js/app/services/podcastservice.ts:101
@@ -1165,23 +1026,14 @@ msgstr ""
 msgid "Podcast channels exported to file {{ path }}"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:309
-msgid "Podcast episode"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:279
-#: js/app/controllers/views/advancedsearchviewcontroller.js:306
-msgid "Podcast metadata"
-msgstr ""
-
-#: js/app/controllers/playercontroller.js:617
+#: js/app/controllers/playercontroller.js:639
 #: js/app/services/podcastservice.ts:163 templates/partials/navigation.php:20
-#: musicwidget.ts:60
+#: musicwidget.ts:62
 msgid "Podcasts"
 msgstr ""
 
 #: templates/partials/controls.php:37 templates/partials/controls.php:5
-#: templates/partials/controls.php:6 embeddedplayer.js:209
+#: templates/partials/controls.php:6 embeddedplayer.js:207
 msgid "Previous"
 msgstr ""
 
@@ -1198,7 +1050,7 @@ msgstr ""
 msgid "Radio station"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:257
+#: js/app/controllers/playercontroller.js:274
 msgid "Radio station not found"
 msgstr ""
 
@@ -1210,45 +1062,18 @@ msgstr ""
 msgid "Rarely played"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:128
-#: js/app/controllers/views/advancedsearchviewcontroller.js:133
-#: js/app/controllers/views/advancedsearchviewcontroller.js:186
-#: js/app/controllers/views/advancedsearchviewcontroller.js:189
-#: js/app/controllers/views/advancedsearchviewcontroller.js:239
-#: js/app/controllers/views/advancedsearchviewcontroller.js:242
-#: js/app/controllers/views/advancedsearchviewcontroller.js:297
-#: js/app/controllers/views/advancedsearchviewcontroller.js:300
-#: js/app/controllers/views/advancedsearchviewcontroller.js:324
-#: js/app/controllers/views/advancedsearchviewcontroller.js:327
-msgid "Rating"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:123
-#: js/app/controllers/views/advancedsearchviewcontroller.js:181
-#: js/app/controllers/views/advancedsearchviewcontroller.js:234
-#: js/app/controllers/views/advancedsearchviewcontroller.js:271
-#: js/app/controllers/views/advancedsearchviewcontroller.js:292
-#: js/app/controllers/views/advancedsearchviewcontroller.js:319
-#: js/app/controllers/views/advancedsearchviewcontroller.js:339
 #: templates/partials/sidebar/smartlistfilters.php:50
+#: Service/AdvSearchRules.php:48 Service/AdvSearchRules.php:91
+#: Service/AdvSearchRules.php:129 Service/AdvSearchRules.php:154
+#: Service/AdvSearchRules.php:166 Service/AdvSearchRules.php:180
+#: Service/AdvSearchRules.php:198 Service/AdvSearchRules.php:212
 msgid "Recently added"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:143
-#: js/app/controllers/views/advancedsearchviewcontroller.js:199
-#: js/app/controllers/views/advancedsearchviewcontroller.js:252
 #: templates/partials/sidebar/smartlistfilters.php:46
+#: Service/AdvSearchRules.php:62 Service/AdvSearchRules.php:103
+#: Service/AdvSearchRules.php:141
 msgid "Recently played"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:124
-#: js/app/controllers/views/advancedsearchviewcontroller.js:182
-#: js/app/controllers/views/advancedsearchviewcontroller.js:235
-#: js/app/controllers/views/advancedsearchviewcontroller.js:272
-#: js/app/controllers/views/advancedsearchviewcontroller.js:293
-#: js/app/controllers/views/advancedsearchviewcontroller.js:320
-#: js/app/controllers/views/advancedsearchviewcontroller.js:340
-msgid "Recently updated"
 msgstr ""
 
 #: templates/partials/views/smartlistview.php:25
@@ -1292,7 +1117,7 @@ msgstr ""
 msgid "Rename"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:644
+#: js/app/controllers/playercontroller.js:666
 #: templates/partials/controls.php:73
 msgid "Repeat"
 msgstr ""
@@ -1325,12 +1150,12 @@ msgstr ""
 msgid "Revoke API password"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:33
+#: templates/partials/views/advancedsearchview.php:42
 msgid "Rules"
 msgstr ""
 
 #: templates/partials/navigationitem.php:151
-#: templates/partials/views/advancedsearchview.php:77
+#: templates/partials/views/advancedsearchview.php:86
 msgid "Save playlist"
 msgstr ""
 
@@ -1344,16 +1169,16 @@ msgid "Scanning music …"
 msgstr ""
 
 #: templates/partials/navigation.php:55 templates/partials/navigation.php:57
-#: templates/partials/views/advancedsearchview.php:63
+#: templates/partials/views/advancedsearchview.php:72
 #: templates/partials/views/settingsview.php:132
 msgid "Search"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:463
+#: js/app/controllers/views/advancedsearchviewcontroller.js:224
 msgid "Search criteria: {{ params }}"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:6
+#: templates/partials/views/advancedsearchview.php:7
 msgid "Search for"
 msgstr ""
 
@@ -1361,7 +1186,7 @@ msgstr ""
 msgid "Search not available in this view"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:461
+#: js/app/controllers/views/advancedsearchviewcontroller.js:222
 msgid "Search {{ datetime }}"
 msgstr ""
 
@@ -1381,7 +1206,7 @@ msgid ""
 "<strong>ALT</strong>."
 msgstr ""
 
-#: templates/partials/views/settingsview.php:39 musicwidget.ts:234
+#: templates/partials/views/settingsview.php:39 musicwidget.ts:236
 msgid "Select folder"
 msgstr ""
 
@@ -1429,7 +1254,7 @@ msgstr ""
 msgid "Show more…"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:638
+#: js/app/controllers/playercontroller.js:660
 #: templates/partials/controls.php:71
 msgid "Shuffle"
 msgstr ""
@@ -1438,7 +1263,7 @@ msgstr ""
 msgid "Similar to"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:615
+#: js/app/controllers/playercontroller.js:637
 #: templates/partials/navigation.php:23
 #: templates/partials/views/smartlistview.php:4
 msgid "Smart playlist"
@@ -1448,7 +1273,7 @@ msgstr ""
 msgid "Smart playlist filters"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:445
+#: js/app/controllers/playercontroller.js:467
 msgid "Some not playable tracks were skipped."
 msgstr ""
 
@@ -1472,7 +1297,7 @@ msgstr ""
 msgid "Sort …"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:354
+#: js/app/controllers/views/advancedsearchviewcontroller.js:112
 msgid "Sounds like"
 msgstr ""
 
@@ -1488,7 +1313,7 @@ msgid ""
 "ordering the artists alphabetically. The articles are case-insensitive."
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:350
+#: js/app/controllers/views/advancedsearchviewcontroller.js:108
 msgid "Starts with"
 msgstr ""
 
@@ -1498,8 +1323,8 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:336
 #: templates/partials/sidebar/radiostationdetails.php:24
+#: Service/AdvSearchRules.php:209
 msgid "Stream URL"
 msgstr ""
 
@@ -1549,11 +1374,7 @@ msgid ""
 "<strong>Admin</strong> section below."
 msgstr ""
 
-#: templates/partials/views/settingsview.php:185
-msgid "The server administrator has configured your server for scrobbling."
-msgstr ""
-
-#: templates/partials/views/settingsview.php:195
+#: templates/partials/views/settingsview.php:194
 msgid ""
 "There is no settings UI for the server-wide settings of the Music app but "
 "some settings are available by adding specific key-value pairs to the file "
@@ -1591,7 +1412,7 @@ msgstr ""
 msgid "This setting specifies the folder which will be scanned for music."
 msgstr ""
 
-#: js/app/controllers/maincontroller.js:191
+#: js/app/controllers/maincontroller.js:188
 msgid "Timeout"
 msgstr ""
 
@@ -1608,43 +1429,10 @@ msgstr ""
 msgid "Total length"
 msgstr ""
 
-#: js/app/controllers/playercontroller.js:651
+#: js/app/controllers/playercontroller.js:673
 #: templates/partials/sidebar/radiostationdetails.php:62
-#: templates/partials/sidebar/trackdetails.php:51 Search/Provider.php:64
+#: templates/partials/sidebar/trackdetails.php:51
 msgid "Track"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:163
-msgid "Track artist name"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:167
-#: js/app/controllers/views/advancedsearchviewcontroller.js:221
-msgid "Track count"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:111
-#: js/app/controllers/views/advancedsearchviewcontroller.js:170
-#: js/app/controllers/views/advancedsearchviewcontroller.js:223
-msgid "Track genre"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:101
-msgid "Track metadata"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:164
-#: js/app/controllers/views/advancedsearchviewcontroller.js:218
-msgid "Track name"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:107
-msgid "Track number"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:190
-#: js/app/controllers/views/advancedsearchviewcontroller.js:243
-msgid "Track rating"
 msgstr ""
 
 #: templates/partials/sidebar/albumdetails.php:11
@@ -1673,7 +1461,7 @@ msgid "URL"
 msgstr ""
 
 #: js/app/services/playlistfileservice.ts:56
-#: js/app/services/podcastservice.ts:61 Controller/ScrobblerController.php:54
+#: js/app/services/podcastservice.ts:61 Controller/ScrobblerController.php:48
 msgid "Unexpected error"
 msgstr ""
 
@@ -1697,16 +1485,6 @@ msgstr ""
 
 #: templates/partials/sidebar/smartlistfilters.php:57
 msgid "Update"
-msgstr ""
-
-#: js/app/controllers/views/advancedsearchviewcontroller.js:122
-#: js/app/controllers/views/advancedsearchviewcontroller.js:180
-#: js/app/controllers/views/advancedsearchviewcontroller.js:233
-#: js/app/controllers/views/advancedsearchviewcontroller.js:270
-#: js/app/controllers/views/advancedsearchviewcontroller.js:291
-#: js/app/controllers/views/advancedsearchviewcontroller.js:318
-#: js/app/controllers/views/advancedsearchviewcontroller.js:338
-msgid "Update date"
 msgstr ""
 
 #: js/app/controllers/sidebar/artistdetailscontroller.js:68
@@ -1757,11 +1535,6 @@ msgstr ""
 msgid "Writing to the file is not allowed"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:108
-#: js/app/controllers/views/advancedsearchviewcontroller.js:165
-msgid "Year"
-msgstr ""
-
 #: templates/partials/sidebar/smartlistfilters.php:11
 msgid "Years"
 msgstr ""
@@ -1782,17 +1555,17 @@ msgid ""
 "importing a playlist file containing one or more stream URLs."
 msgstr ""
 
-#: templates/partials/views/settingsview.php:187
+#: templates/partials/views/settingsview.php:186
 msgid ""
 "Your streams will be scrobbled to {{service}}. Click <strong>Disconnect</"
 "strong> to stop scrobbling."
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:9
+#: templates/partials/views/advancedsearchview.php:10
 msgid "albums"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:10
+#: templates/partials/views/advancedsearchview.php:11
 msgid "artists"
 msgstr ""
 
@@ -1818,7 +1591,7 @@ msgstr ""
 msgid "by artist"
 msgstr ""
 
-#: js/app/controllers/views/advancedsearchviewcontroller.js:74
+#: js/app/controllers/views/advancedsearchviewcontroller.js:79
 msgid "by channel"
 msgstr ""
 
@@ -1827,8 +1600,9 @@ msgstr ""
 #: js/app/controllers/views/advancedsearchviewcontroller.js:62
 #: js/app/controllers/views/advancedsearchviewcontroller.js:68
 #: js/app/controllers/views/advancedsearchviewcontroller.js:73
-#: js/app/controllers/views/advancedsearchviewcontroller.js:80
-#: js/app/controllers/views/advancedsearchviewcontroller.js:86
+#: js/app/controllers/views/advancedsearchviewcontroller.js:78
+#: js/app/controllers/views/advancedsearchviewcontroller.js:85
+#: js/app/controllers/views/advancedsearchviewcontroller.js:91
 msgid "by name"
 msgstr ""
 
@@ -1839,8 +1613,8 @@ msgstr ""
 #: js/app/controllers/views/advancedsearchviewcontroller.js:51
 #: js/app/controllers/views/advancedsearchviewcontroller.js:58
 #: js/app/controllers/views/advancedsearchviewcontroller.js:64
-#: js/app/controllers/views/advancedsearchviewcontroller.js:76
-#: js/app/controllers/views/advancedsearchviewcontroller.js:82
+#: js/app/controllers/views/advancedsearchviewcontroller.js:81
+#: js/app/controllers/views/advancedsearchviewcontroller.js:87
 msgid "by rating"
 msgstr ""
 
@@ -1852,9 +1626,10 @@ msgstr ""
 #: js/app/controllers/views/advancedsearchviewcontroller.js:57
 #: js/app/controllers/views/advancedsearchviewcontroller.js:63
 #: js/app/controllers/views/advancedsearchviewcontroller.js:69
-#: js/app/controllers/views/advancedsearchviewcontroller.js:75
-#: js/app/controllers/views/advancedsearchviewcontroller.js:81
-#: js/app/controllers/views/advancedsearchviewcontroller.js:87
+#: js/app/controllers/views/advancedsearchviewcontroller.js:74
+#: js/app/controllers/views/advancedsearchviewcontroller.js:80
+#: js/app/controllers/views/advancedsearchviewcontroller.js:86
+#: js/app/controllers/views/advancedsearchviewcontroller.js:92
 msgid "by time added"
 msgstr ""
 
@@ -1886,6 +1661,10 @@ msgstr ""
 msgid "episode"
 msgstr ""
 
+#: templates/partials/views/advancedsearchview.php:13
+msgid "genres"
+msgstr ""
+
 #: js/app/controllers/sidebar/podcastdetailscontroller.js:111
 msgid "keywords"
 msgstr ""
@@ -1894,31 +1673,31 @@ msgstr ""
 msgid "language"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:24
+#: templates/partials/views/advancedsearchview.php:32
 msgid "limiting to"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:17
+#: templates/partials/views/advancedsearchview.php:21
 msgid "matching all rules"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:18
+#: templates/partials/views/advancedsearchview.php:22
 msgid "matching any rule"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:20
+#: templates/partials/views/advancedsearchview.php:26
 msgid "ordering results"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:11
+#: templates/partials/views/advancedsearchview.php:12
 msgid "playlists"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:13
+#: templates/partials/views/advancedsearchview.php:15
 msgid "podcast channels"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:12
+#: templates/partials/views/advancedsearchview.php:14
 msgid "podcast episodes"
 msgstr ""
 
@@ -1926,7 +1705,7 @@ msgstr ""
 msgid "published"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:14
+#: templates/partials/views/advancedsearchview.php:16
 msgid "radio stations"
 msgstr ""
 
@@ -1934,9 +1713,10 @@ msgstr ""
 #: js/app/controllers/views/advancedsearchviewcontroller.js:59
 #: js/app/controllers/views/advancedsearchviewcontroller.js:65
 #: js/app/controllers/views/advancedsearchviewcontroller.js:70
-#: js/app/controllers/views/advancedsearchviewcontroller.js:77
-#: js/app/controllers/views/advancedsearchviewcontroller.js:83
+#: js/app/controllers/views/advancedsearchviewcontroller.js:75
+#: js/app/controllers/views/advancedsearchviewcontroller.js:82
 #: js/app/controllers/views/advancedsearchviewcontroller.js:88
+#: js/app/controllers/views/advancedsearchviewcontroller.js:93
 msgid "randomly"
 msgstr ""
 
@@ -1956,11 +1736,11 @@ msgstr ""
 msgid "title"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:8
+#: templates/partials/views/advancedsearchview.php:9
 msgid "tracks"
 msgstr ""
 
-#: templates/partials/views/advancedsearchview.php:26
+#: templates/partials/views/advancedsearchview.php:34
 msgid "unlimited"
 msgstr ""
 
@@ -1968,7 +1748,7 @@ msgstr ""
 msgid "updates checked"
 msgstr ""
 
-#: templates/partials/views/settingsview.php:206
+#: templates/partials/views/settingsview.php:205
 msgid "version history"
 msgstr ""
 
@@ -1982,13 +1762,13 @@ msgid_plural "{{ $count }} previously scanned files are no longer available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/maincontroller.js:69
+#: js/app/controllers/maincontroller.js:66
 msgid "{{ count }} album"
 msgid_plural "{{ count }} albums"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/maincontroller.js:102
+#: js/app/controllers/maincontroller.js:99
 msgid "{{ count }} channel"
 msgid_plural "{{ count }} channels"
 msgstr[0] ""
@@ -2008,32 +1788,32 @@ msgstr ""
 msgid "{{ count }} files were skipped."
 msgstr ""
 
-#: js/app/controllers/maincontroller.js:75
+#: js/app/controllers/maincontroller.js:72
 msgid "{{ count }} folder"
 msgid_plural "{{ count }} folders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/maincontroller.js:84
+#: js/app/controllers/maincontroller.js:81
 msgid "{{ count }} genre"
 msgid_plural "{{ count }} genres"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/maincontroller.js:93
+#: js/app/controllers/maincontroller.js:90
 msgid "{{ count }} station"
 msgid_plural "{{ count }} stations"
 msgstr[0] ""
 msgstr[1] ""
 
-#: js/app/controllers/maincontroller.js:59
-#: js/app/controllers/maincontroller.js:64
+#: js/app/controllers/maincontroller.js:56
+#: js/app/controllers/maincontroller.js:61
 msgid "{{ count }} track"
 msgid_plural "{{ count }} tracks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/partials/views/advancedsearchview.php:69
+#: templates/partials/views/advancedsearchview.php:78
 msgid "{{ resultCount() }} result"
 msgid_plural "{{ resultCount() }} results"
 msgstr[0] ""
@@ -2051,45 +1831,45 @@ msgstr ""
 msgid "{{service}} Integration"
 msgstr ""
 
-#: Controller/ScrobblerController.php:57
+#: Controller/ScrobblerController.php:51
 msgid "Please contact your server administrator for assistance."
 msgstr ""
 
-#: Controller/ScrobblerController.php:62 Controller/ScrobblerController.php:108
+#: Controller/ScrobblerController.php:57 Controller/ScrobblerController.php:98
 msgid "Not logged in"
 msgstr ""
 
-#: Controller/ScrobblerController.php:63
+#: Controller/ScrobblerController.php:58
 msgid "Please log in before attempting to authorize a scrobbler"
 msgstr ""
 
-#: Controller/ScrobblerController.php:71
+#: Controller/ScrobblerController.php:66
 msgid "Unknown Service"
 msgstr ""
 
-#: Controller/ScrobblerController.php:72 Controller/ScrobblerController.php:116
+#: Controller/ScrobblerController.php:67 Controller/ScrobblerController.php:102
 #, php-format
 msgid "Unknown service %s"
 msgstr ""
 
-#: Controller/ScrobblerController.php:80
+#: Controller/ScrobblerController.php:75
 msgid "All Set!"
 msgstr ""
 
-#: Controller/ScrobblerController.php:81
+#: Controller/ScrobblerController.php:76
 #, php-format
 msgid "Your streams will be scrobbled to %s."
 msgstr ""
 
-#: Controller/ScrobblerController.php:84
+#: Controller/ScrobblerController.php:79
 msgid "Authentication failure"
 msgstr ""
 
-#: Controller/ScrobblerController.php:85
+#: Controller/ScrobblerController.php:80
 msgid "Please review the error message prior to trying again."
 msgstr ""
 
-#: Controller/ScrobblerController.php:126
+#: Controller/ScrobblerController.php:107
 msgid "Check the error log for details."
 msgstr ""
 
@@ -2097,7 +1877,7 @@ msgstr ""
 msgid "Unknown album"
 msgstr ""
 
-#: Db/Artist.php:138
+#: Db/Artist.php:147
 msgid "Unknown artist"
 msgstr ""
 
@@ -2105,111 +1885,287 @@ msgstr ""
 msgid "(no comment)"
 msgstr ""
 
-#: Db/Genre.php:85
-msgid "(Unknown genre)"
+#: Service/AdvSearchRules.php:28
+msgid "Any searchable text"
 msgstr ""
 
-#: scrobble-getsession-result.php:23
+#: Service/AdvSearchRules.php:30
+msgid "Track metadata"
+msgstr ""
+
+#: Service/AdvSearchRules.php:32 Service/AdvSearchRules.php:115
+msgid "Album name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:33
+msgid "Artist name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:34 Service/AdvSearchRules.php:75
+msgid "Album artist name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:35
+msgid "Track number"
+msgstr ""
+
+#: Service/AdvSearchRules.php:36 Service/AdvSearchRules.php:78
+msgid "Year"
+msgstr ""
+
+#: Service/AdvSearchRules.php:37 Service/AdvSearchRules.php:79
+#: Service/AdvSearchRules.php:117 Service/AdvSearchRules.php:174
+#: Service/AdvSearchRules.php:192
+msgid "Duration (minutes)"
+msgstr ""
+
+#: Service/AdvSearchRules.php:39 Service/AdvSearchRules.php:83
+#: Service/AdvSearchRules.php:121
+msgid "Track genre"
+msgstr ""
+
+#: Service/AdvSearchRules.php:40 Service/AdvSearchRules.php:82
+msgid "Album genre"
+msgstr ""
+
+#: Service/AdvSearchRules.php:41 Service/AdvSearchRules.php:120
+msgid "Artist genre"
+msgstr ""
+
+#: Service/AdvSearchRules.php:42 Service/AdvSearchRules.php:84
+#: Service/AdvSearchRules.php:122
+msgid "Has no genre"
+msgstr ""
+
+#: Service/AdvSearchRules.php:44 Service/AdvSearchRules.php:87
+#: Service/AdvSearchRules.php:125
+msgid "File data"
+msgstr ""
+
+#: Service/AdvSearchRules.php:46 Service/AdvSearchRules.php:89
+#: Service/AdvSearchRules.php:127 Service/AdvSearchRules.php:152
+#: Service/AdvSearchRules.php:164 Service/AdvSearchRules.php:178
+#: Service/AdvSearchRules.php:196 Service/AdvSearchRules.php:210
+msgid "Add date"
+msgstr ""
+
+#: Service/AdvSearchRules.php:47 Service/AdvSearchRules.php:90
+#: Service/AdvSearchRules.php:128 Service/AdvSearchRules.php:153
+#: Service/AdvSearchRules.php:165 Service/AdvSearchRules.php:179
+#: Service/AdvSearchRules.php:197 Service/AdvSearchRules.php:211
+msgid "Update date"
+msgstr ""
+
+#: Service/AdvSearchRules.php:49 Service/AdvSearchRules.php:92
+#: Service/AdvSearchRules.php:130 Service/AdvSearchRules.php:155
+#: Service/AdvSearchRules.php:167 Service/AdvSearchRules.php:181
+#: Service/AdvSearchRules.php:199 Service/AdvSearchRules.php:213
+msgid "Recently updated"
+msgstr ""
+
+#: Service/AdvSearchRules.php:51 Service/AdvSearchRules.php:55
+#: Service/AdvSearchRules.php:94 Service/AdvSearchRules.php:96
+#: Service/AdvSearchRules.php:132 Service/AdvSearchRules.php:134
+#: Service/AdvSearchRules.php:183 Service/AdvSearchRules.php:185
+#: Service/AdvSearchRules.php:201 Service/AdvSearchRules.php:203
+msgid "Rating"
+msgstr ""
+
+#: Service/AdvSearchRules.php:56 Service/AdvSearchRules.php:136
+msgid "Album rating"
+msgstr ""
+
+#: Service/AdvSearchRules.php:57 Service/AdvSearchRules.php:98
+msgid "Artist rating"
+msgstr ""
+
+#: Service/AdvSearchRules.php:59 Service/AdvSearchRules.php:100
+#: Service/AdvSearchRules.php:138
+msgid "Play history"
+msgstr ""
+
+#: Service/AdvSearchRules.php:60 Service/AdvSearchRules.php:101
+#: Service/AdvSearchRules.php:139
+msgid "Played times"
+msgstr ""
+
+#: Service/AdvSearchRules.php:61 Service/AdvSearchRules.php:102
+#: Service/AdvSearchRules.php:140
+msgid "Last played"
+msgstr ""
+
+#: Service/AdvSearchRules.php:63 Service/AdvSearchRules.php:104
+#: Service/AdvSearchRules.php:142
+msgid "Is played"
+msgstr ""
+
+#: Service/AdvSearchRules.php:64
+msgid "Is played album"
+msgstr ""
+
+#: Service/AdvSearchRules.php:65 Service/AdvSearchRules.php:105
+msgid "Is played artist"
+msgstr ""
+
+#: Service/AdvSearchRules.php:69 Service/AdvSearchRules.php:109
+#: Service/AdvSearchRules.php:146
+msgid "Playlist name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:73
+msgid "Album metadata"
+msgstr ""
+
+#: Service/AdvSearchRules.php:76
+msgid "Track artist name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:77 Service/AdvSearchRules.php:116
+msgid "Track name"
+msgstr ""
+
+#: Service/AdvSearchRules.php:80 Service/AdvSearchRules.php:119
+#: Service/AdvSearchRules.php:163
+msgid "Track count"
+msgstr ""
+
+#: Service/AdvSearchRules.php:81
+msgid "Disk count"
+msgstr ""
+
+#: Service/AdvSearchRules.php:85 Service/AdvSearchRules.php:123
+msgid "Has image"
+msgstr ""
+
+#: Service/AdvSearchRules.php:97 Service/AdvSearchRules.php:135
+msgid "Track rating"
+msgstr ""
+
+#: Service/AdvSearchRules.php:113
+msgid "Artist metadata"
+msgstr ""
+
+#: Service/AdvSearchRules.php:118 Service/AdvSearchRules.php:162
+msgid "Album count"
+msgstr ""
+
+#: Service/AdvSearchRules.php:171 Service/AdvSearchRules.php:189
+msgid "Podcast metadata"
+msgstr ""
+
+#: Service/AdvSearchRules.php:173
+msgid "Podcast channel"
+msgstr ""
+
+#: Service/AdvSearchRules.php:177 Service/AdvSearchRules.php:195
+msgid "Date published"
+msgstr ""
+
+#: Service/AdvSearchRules.php:191
+msgid "Podcast episode"
+msgstr ""
+
+#: Service/Ampache/AmpacheAdvSearch.php:198
+msgid "%n Star"
+msgid_plural "%n Stars"
+msgstr[0] ""
+msgstr[1] ""
+
+#: scrobble-getsession-result.php:21
 msgid "You can now close this window"
 msgstr ""
 
-#: musicwidget.ts:52
+#: musicwidget.ts:54
 msgid "Album artists"
 msgstr ""
 
-#: musicwidget.ts:53
+#: musicwidget.ts:55
 msgid "Track artists"
 msgstr ""
 
-#: musicwidget.ts:58
+#: musicwidget.ts:60
 msgid "Playlists"
 msgstr ""
 
-#: musicwidget.ts:62
+#: musicwidget.ts:64
 msgid "Select mode"
 msgstr ""
 
-#: musicwidget.ts:182 musicwidget.ts:209
+#: musicwidget.ts:184 musicwidget.ts:211
 msgid "Select artist"
 msgstr ""
 
-#: musicwidget.ts:190
+#: musicwidget.ts:192
 msgid "(All albums)"
 msgstr ""
 
-#: musicwidget.ts:192 musicwidget.ts:221
+#: musicwidget.ts:194 musicwidget.ts:223
 msgid "Select album"
 msgstr ""
 
-#: musicwidget.ts:247
+#: musicwidget.ts:249
 msgid "Select genre"
 msgstr ""
 
-#: musicwidget.ts:263
+#: musicwidget.ts:265
 msgid "Select playlist"
 msgstr ""
 
-#: musicwidget.ts:279
+#: musicwidget.ts:281
 msgid "Select channel"
 msgstr ""
 
-#: embeddedplayer.js:136
+#: embeddedplayer.js:135
 msgid "Actions"
 msgstr ""
 
-#: embeddedplayer.js:162
+#: embeddedplayer.js:160
 msgid "Import radio to Music"
 msgstr ""
 
-#: embeddedplayer.js:163
+#: embeddedplayer.js:161
 msgid "Import list to Music"
 msgstr ""
 
-#: embeddedplayer.js:164
+#: embeddedplayer.js:162
 msgid "Show playlist"
 msgstr ""
 
-#: embeddedplayer.js:426
+#: embeddedplayer.js:430
 msgid "Continue playing in Music"
 msgstr ""
 
-#: embeddedplayer.js:429
+#: embeddedplayer.js:433
 msgid "(file is not within your music collection folder)"
 msgstr ""
 
-#: embeddedplayer.js:480 embeddedplayer.js:511 progressinfo.ts:61
+#: embeddedplayer.js:484 embeddedplayer.js:522 progressinfo.ts:66
 msgid "Loading…"
 msgstr ""
 
-#: folderview.js:143
-msgid ""
-"The option is available only while the parent folder of the playlist file is "
-"shown"
-msgstr ""
-
-#: folderview.js:156
+#: folderview.js:142
 msgid "None of the playlist files are within your music library"
 msgstr ""
 
-#: folderview.js:161
+#: folderview.js:147
 msgid ""
 "{inCount} out of {totalCount} files are within your music library and can be "
 "imported"
 msgstr ""
 
-#: folderview.js:362
+#: folderview.js:379
 msgid "No files from the playlist could be found"
 msgstr ""
 
-#: folderview.js:365
+#: folderview.js:382
 msgid "The playlist contained {count} invalid path(s)."
 msgstr ""
 
-#: folderview.js:370
+#: folderview.js:387
 msgid "See the playlist file details."
 msgstr ""
 
-#: folderview.js:386 playlisttabview.js:90
+#: folderview.js:404 playlisttabview.js:91
 msgid "Error reading playlist file"
 msgstr ""
 
@@ -2237,7 +2193,7 @@ msgstr ""
 msgid "{count} entries were skipped."
 msgstr ""
 
-#: playlisttabview.js:76
+#: playlisttabview.js:77
 msgid "Some files on the playlist were not found"
 msgstr ""
 

@@ -7,14 +7,14 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2023 - 2025
+ * @copyright Pauli Järvinen 2023 - 2026
  */
 
 namespace OCA\Music\Migration;
 
 use OCA\Music\BackgroundJob\Cleanup;
 use OCA\Music\BackgroundJob\PodcastUpdateCheck;
-
+use OCP\BackgroundJob\IJobList;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 
@@ -29,7 +29,7 @@ class RegisterBackgroundJobs implements IRepairStep {
 	 * @return void
 	 */
 	public function run(IOutput $output) {
-		$jobList = \OC::$server->getJobList();
+		$jobList = \OC::$server->query(IJobList::class);
 
 		$jobList->add(Cleanup::class);
 		$jobList->add(PodcastUpdateCheck::class);

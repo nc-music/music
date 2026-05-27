@@ -1,14 +1,40 @@
 ## [Unreleased]
 
 ### Added
+- Support for Nextcloud 34 (tested on rc2)
 
 ### Changed
 - Periodically refresh "Now playing" song to Last.fm while playing (Last.fm forgets the song after 4 minutes which was an issue on longer songs or when the song was paused)
 - On narrow screen, use similar "mobile portrait" layout in the Files player as in the Music app proper
+- On narrow screen, keep the player controls visible also when the navigation pane is expanded
+- Don't hide empty genres, but instead, remove them in the background cleanup task
+- Podcasts:
+  * On RSS XML parsing, allow also incorrect URI for the iTunes namespace as long the as the prefix is `itunes`
+    [#132](https://github.com/nc-music/music/issues/132)
+  * Get the cover image from the element `<itunes:image>` if `<image>` not present in the RSS XML
+  * Show the placeholder image on the web UI if no channel cover art available
+- Advanced search:
+  * Enable searching for genres
+- Ampache API:
+  * Allow handshake using the bearer token on Authorization header
+  * Add action `search_rules`
+  * Advanced search supports rules `song_count` and `album_count` also for type `genre`
+  * Support argument `include` in the actions `user_playlists` and `user_smartlists`
+- Subsonic API:
+  * Add OpenSubsonic property `roles` to the artist result type
+  * Client-specific tweak for Feishin: Method `getArtists` returns also the artists having no own albums
 - Updated the getID3 library to the release version 1.9.25-202603060942
 
 ### Fixed
 - Embedded Files player hiding bottom of the file list on NC 31+
+- Navigation pane being collapsed on screen exactly 1024 px wide even though the toggle button is visible only on widths < 1024 px
+- Navigation pane toggle becoming unresponsive if the navigation pane was closed with the toggle on touch screen
+- Some HLS-type radio streams not playing because URLs contained in `#EXT-X-*` headers were handled incorrectly
+  [#133](https://github.com/nc-music/music/issues/133)
+- Subsonic API:
+  * Response of `getArtistInfo` and `getArtistInfo2` being malformed when no details available
+    [#129](https://github.com/nc-music/music/issues/129)
+  * XML responses of `getArtistInfo`, `getArtistInfo2`, `getAlbumInfo`, and `getAlbumInfo2` showing property `openSubsonic` as an element instead of attribute
 
 ## 3.0.0 - 2026-02-23
 

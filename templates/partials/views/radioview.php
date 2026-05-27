@@ -20,18 +20,18 @@
 				</div>
 			</div>
 			<button class="action icon-details" ng-click="showRadioStationDetails(station)"
-				alt="{{ 'Details' | translate }}" title="{{ 'Details' | translate }}"></button>
+				aria-label="{{ 'Details' | translate }}" title="{{ 'Details' | translate }}"></button>
 			<button class="action icon-delete" ng-click="deleteStation(station)" ng-show="!station.busy"
-				alt="{{ 'Delete' | translate }}" title="{{ 'Delete' | translate }}"></button>
+				aria-label="{{ 'Delete' | translate }}" title="{{ 'Delete' | translate }}"></button>
 			<span class="icon-loading-small" ng-show="station.busy"></span>
 		</li>
 	</ul>
 
-	<alphabet-navigation ng-if="stations && stations.length" item-count="stations.length"
+	<alphabet-navigation ng-if="stations.length" item-count="stations.length"
 		get-elem-title="getStationTitle" get-elem-id="getStationElementId" scroll-to-target="scrollToItem">
 	</alphabet-navigation>
 
-	<div id="noStations" class="emptycontent clickable no-collapse" ng-show="stations.length == 0" ng-click="showRadioHint()">
+	<div id="noStations" class="emptycontent clickable no-collapse" ng-show="stations.length === 0" ng-click="showRadioHint()">
 		<div class="icon-radio svg"></div>
 		<div>
 			<h2 translate>No stations</h2>

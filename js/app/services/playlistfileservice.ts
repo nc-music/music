@@ -44,15 +44,15 @@ function($rootScope : MusicRootScope, $q : ng.IQService, libraryService : Librar
 		case 409: // conflict
 			return true;
 		case 404: // not found
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Playlist or folder not found'));
 			return false;
 		case 403: // forbidden
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Writing to the file is not allowed'));
 			return false;
 		default: // unexpected
-			OC.Notification.showTemporary(
+			OCA.Music.Dialogs.showNotification(
 				gettextCatalog.getString('Unexpected error'));
 			return false;
 		}
@@ -105,7 +105,7 @@ function($rootScope : MusicRootScope, $q : ng.IQService, libraryService : Librar
 				let args = { path: selPath, oncollision: onCollision, filename: name };
 				Restangular.one('playlists', playlist.id).all('export').post(args).then(
 					(result) => {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('Playlist exported to file {{ path }}', { path: result.wrote_to_file }));
 						playlist.busy = false;
 					},
@@ -145,7 +145,7 @@ function($rootScope : MusicRootScope, $q : ng.IQService, libraryService : Librar
 				let args = { path: selPath, name: name, oncollision: onCollision };
 				Restangular.all('radio/export').post(args).then(
 					(result) => {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 							gettextCatalog.getString('Radio stations exported to file {{ path }}', { path: result.wrote_to_file }));
 						deferred.resolve();
 					},
@@ -183,12 +183,12 @@ function($rootScope : MusicRootScope, $q : ng.IQService, libraryService : Librar
 							message += ' ' + gettextCatalog.getString('{{ count }} files were skipped.',
 																		{ count: result.failed_count });
 						}
-						OC.Notification.showTemporary(message);
+						OCA.Music.Dialogs.showNotification(message);
 						$rootScope.$emit('playlistUpdated', playlist.id);
 						playlist.busy = false;
 					},
 					(_error) => {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 								gettextCatalog.getString('Failed to import playlist from the file {{ file }}',
 														{ file: file }));
 						playlist.busy = false;
@@ -237,12 +237,12 @@ function($rootScope : MusicRootScope, $q : ng.IQService, libraryService : Librar
 							message += ' ' + gettextCatalog.getString('{{ count }} entries were skipped.',
 																		{ count: result.failed_count });
 						}
-						OC.Notification.showTemporary(message);
+						OCA.Music.Dialogs.showNotification(message);
 						$rootScope.$emit('playlistUpdated', 'radio');
 						deferred.resolve();
 					},
 					function(_error) {
-						OC.Notification.showTemporary(
+						OCA.Music.Dialogs.showNotification(
 								gettextCatalog.getString('Failed to import radio stations from the file {{ file }}',
 														{ file: file }));
 						deferred.reject();
