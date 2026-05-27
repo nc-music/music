@@ -12,7 +12,7 @@
 }
 
 #admin-music .field + .field {
-    margin-top: 8px
+    margin-top: calc(2 * var(--default-grid-baseline));
 }
 
 #admin-music .scrobbler .field input {
@@ -21,7 +21,7 @@
 }
 
 #admin-music .scrobbler .field input:invalid {
-    border-color: var(--color-error, red);
+    border-color: var(--color-border-error, var(--color-error, red));
 }
 
 #admin-music .scrobbler fieldset {
