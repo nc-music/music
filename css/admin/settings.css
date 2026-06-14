@@ -1,0 +1,44 @@
+/**
+ * Nextcloud Music app
+ *
+ * This file is licensed under the Affero General Public License version 3 or
+ * later. See the COPYING file.
+ *
+ * @author Matthew Wells
+ * @copyright Matthew Wells 2026
+ */
+
+#admin-music {
+    margin-top: 40px;
+}
+
+#admin-music .scrobblers > div {
+    padding: 0 30px 30px;
+}
+
+#admin-music .settings-section:not(:last-child) {
+    border-bottom: solid 1px var(--color-border);
+}
+
+#admin-music form.scrobbler {
+    width: min-content;
+}
+
+#admin-music a {
+    text-decoration: underline;
+}
+
+#admin-music .field + .field {
+    margin-top: calc(2 * var(--default-grid-baseline));
+}
+
+#admin-music .scrobbler .field input {
+    /* scrobbler keys and secrets are generally 32 characters, so use a value slightly larger than that */
+    width: min(40rch, calc(100vw - 60px));
+}
+
+#admin-music .scrobbler .field input:invalid {
+    border-color: var(--color-border-error, var(--color-error, red));
+}
+
+

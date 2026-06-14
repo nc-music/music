@@ -93,11 +93,11 @@ class ExternalScrobbler implements IScrobbler {
 	}
 
 	public function getApiKey() : ?string {
-		return $this->config->getSystemValue('music.' . $this->identifier . '_api_key', null);
+		return $this->config->getAppValue('music', "{$this->identifier}_api_key");
 	}
 
 	public function getApiSecret() : ?string {
-		return $this->config->getSystemValue('music.' . $this->identifier . '_api_secret', null);
+		return $this->config->getAppValue('music', "{$this->identifier}_api_secret");
 	}
 
 	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null) : void {
