@@ -19,6 +19,7 @@ use OC\Hooks\PublicEmitter;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
@@ -132,7 +133,7 @@ class Scanner extends PublicEmitter {
 	}
 
 	private static function isPlaylistMime(string $mime) : bool {
-		return $mime == 'audio/mpegurl' || $mime == 'audio/x-scpls';
+		return $mime === 'audio/mpegurl' || $mime === 'audio/x-scpls';
 	}
 
 	private function updateImage(File $file, string $userId) : void {
@@ -191,7 +192,7 @@ class Scanner extends PublicEmitter {
 				$meta['bpm'], $composerId, $meta['comment']);
 
 		// if present, use the embedded album art as cover for the respective album
-		if ($meta['picture'] != null) {
+		if (!empty($meta['picture'])) {
 			// during scanning, don't repeatedly change the file providing the art for the album
 			if ($album->getCoverFileId() === null || !$partOfScan) {
 				$this->albumBusinessLayer->setCover($fileId, $albumId);
@@ -241,7 +242,7 @@ class Scanner extends PublicEmitter {
 
 		if (!StringUtil::isNonEmptyString($meta['artist'])) {
 			// neither artist nor albumArtist set in fileinfo, use the second level parent folder name
-			// unless it is the user's library root folder
+			// unless it is the user's library root folder or its parent folder
 			$dirPath = \dirname(\dirname($filePath));
 			if (StringUtil::startsWith($libraryRoot->getPath(), $dirPath)) {
 				$artistName = null;
@@ -499,7 +500,7 @@ class Scanner extends PublicEmitter {
 
 	/**
 	 * Convert given path to a folder ID, provided that the path is within the music library.
-	 * The result is null if the $path points to th root of the music library. The $path null
+	 * The result is null if the $path points to the root of the music library. The $path null
 	 * is considered to point to the root of the lib (like in getMusicFolder).
 	 */
 	private function pathInLibToFolderId(string $userId, ?string $path = null) : ?int {
@@ -548,7 +549,7 @@ class Scanner extends PublicEmitter {
 		// Search files with mime 'audio/*' but filter out the playlist files and files under excluded folders
 		$files = $folder->searchByMime('audio');
 
-		$files = \array_filter($files, fn($f) =>
+		$files = \array_filter($files, fn(Node $f) =>
 					!self::isPlaylistMime($f->getMimeType())
 					&& $this->librarySettings->pathBelongsToMusicLibrary($f->getPath(), $userId)
 		);
@@ -572,11 +573,11 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array ['count' => int, 'anlz_time' => int, 'db_time' => int], times in milliseconds
+	 * @return array{count: int, anlz_time: int, db_time: int} Actually scanned count and time used in milliseconds
 	 */
 	public function scanFiles(string $userId, array $fileIds, ?OutputInterface $debugOutput = null) : array {
-		$count = \count($fileIds);
-		$this->logger->debug("Scanning $count files of user $userId");
+		$countToScan = \count($fileIds);
+		$this->logger->debug("Scanning $countToScan files of user $userId");
 
 		// back up the execution time limit
 		$executionTime = \intval(\ini_get('max_execution_time'));
@@ -663,7 +664,7 @@ class Scanner extends PublicEmitter {
 		if ($info !== null && $info['cover'] !== null) {
 			$mime = $info['cover']['mimetype'];
 			$content = $info['cover']['content'];
-			$info['cover'] = 'data:' . $mime. ';base64,' . \base64_encode($content);
+			$info['cover'] = 'data:' . $mime . ';base64,' . \base64_encode($content);
 		}
 
 		return $info;
@@ -689,7 +690,7 @@ class Scanner extends PublicEmitter {
 		if ($file instanceof File) {
 			$metadata = $this->extractMetadata($file, $userFolder, $file->getPath(), true);
 			$cover = $metadata['picture'];
-			if ($cover != null) {
+			if (!empty($cover)) {
 				$cover = $this->coverService->scaleDownAndCrop([
 					'mimetype' => $cover['image_mime'],
 					'content' => $cover['data']
