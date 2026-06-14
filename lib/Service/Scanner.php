@@ -241,7 +241,7 @@ class Scanner extends PublicEmitter {
 
 		if (!StringUtil::isNonEmptyString($meta['artist'])) {
 			// neither artist nor albumArtist set in fileinfo, use the second level parent folder name
-			// unless it is the user's library root folder
+			// unless it is the user's library root folder or its parent folder
 			$dirPath = \dirname(\dirname($filePath));
 			if (StringUtil::startsWith($libraryRoot->getPath(), $dirPath)) {
 				$artistName = null;
@@ -499,7 +499,7 @@ class Scanner extends PublicEmitter {
 
 	/**
 	 * Convert given path to a folder ID, provided that the path is within the music library.
-	 * The result is null if the $path points to th root of the music library. The $path null
+	 * The result is null if the $path points to the root of the music library. The $path null
 	 * is considered to point to the root of the lib (like in getMusicFolder).
 	 */
 	private function pathInLibToFolderId(string $userId, ?string $path = null) : ?int {
@@ -572,11 +572,11 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array ['count' => int, 'anlz_time' => int, 'db_time' => int], times in milliseconds
+	 * @return array{count: int, anlz_time: int, db_time: int} Actually scanned count and time used in milliseconds
 	 */
 	public function scanFiles(string $userId, array $fileIds, ?OutputInterface $debugOutput = null) : array {
-		$count = \count($fileIds);
-		$this->logger->debug("Scanning $count files of user $userId");
+		$countToScan = \count($fileIds);
+		$this->logger->debug("Scanning $countToScan files of user $userId");
 
 		// back up the execution time limit
 		$executionTime = \intval(\ini_get('max_execution_time'));
