@@ -65,6 +65,10 @@ angular.module('Music').controller('SettingsViewController', [
 								$scope.errorPath = true;
 							}
 						);
+					} else {
+						// Same path re-selected: check for unscanned/obsolete files without
+						// reloading the full collection.
+						$scope.$parent.updateFilesToScan();
 					}
 				}
 			);

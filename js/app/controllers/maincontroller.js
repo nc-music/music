@@ -306,11 +306,26 @@ function ($rootScope, $scope, $document, $timeout, $window, ArtistFactory,
 	};
 
 	$scope.removeObsolete = function() {
-		Restangular.all('removescanned').post({files: $scope.obsoleteFiles.join(',')}).then(_result => {
-			$scope.obsoleteFiles = null;
-			$scope.update();
-		});
+		const count = $scope.obsoleteFiles.length;
+		OC.dialogs.confirm(
+			gettextCatalog.getPlural(count,
+				'One previously scanned file is no longer available. Remove it from the collection?',
+				'{{ count }} previously scanned files are no longer available. Remove them from the collection?',
+				{ count: count }),
+			gettextCatalog.getString('Remove unavailable files'),
+			function(confirmed) {
+				if (confirmed) {
+					Restangular.all('removescanned').post({files: $scope.obsoleteFiles.join(',')}).then(_result => {
+						$scope.obsoleteFiles = null;
+						$scope.update();
+					});
+				}
+			},
+			true
+		);
 	};
+
+	$scope.updateFilesToScan = updateFilesToScan; // exposed for child controllers
 
 	$scope.resetScanned = function() {
 		$scope.unscannedFiles = null;
