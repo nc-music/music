@@ -123,6 +123,8 @@ function ($rootScope, $scope, $document, $timeout, $window, ArtistFactory,
 		libraryService.setIgnoredArticles(ignoredArticles);
 	});
 
+	let pendingFoldersLoad = null;
+
 	$scope.update = function() {
 		$scope.updateAvailable = false;
 		$rootScope.loadingCollection = true;
@@ -130,6 +132,13 @@ function ($rootScope, $scope, $document, $timeout, $window, ArtistFactory,
 		$scope.artists = null; // the null-value tells the views that data is not yet available
 		libraryService.setFolders(null); // invalidate any out-dated folders
 		$rootScope.$emit('collectionUpdating');
+
+		// Pre-fetch folders in parallel with the main collection so the Folders
+		// view doesn't have to wait for the full 10+ MB collection response.
+		pendingFoldersLoad = Restangular.one('folders').get().then(function(folders) {
+			libraryService.setFolders(folders);
+			pendingFoldersLoad = null;
+		});
 
 		// load the music collection
 		ArtistFactory.getArtists().then(function(artists) {
@@ -327,6 +336,8 @@ function ($rootScope, $scope, $document, $timeout, $window, ArtistFactory,
 	$scope.loadFoldersAndThen = function(callback) {
 		if (libraryService.foldersLoaded()) {
 			$timeout(callback);
+		} else if (pendingFoldersLoad) {
+			pendingFoldersLoad.then(callback);
 		} else {
 			Restangular.one('folders').get().then(function (folders) {
 				libraryService.setFolders(folders);
