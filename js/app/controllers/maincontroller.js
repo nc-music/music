@@ -309,7 +309,7 @@ function ($rootScope, $scope, $document, $timeout, $window, ArtistFactory,
 		const count = $scope.obsoleteFiles.length;
 		OC.dialogs.confirm(
 			gettextCatalog.getPlural(count,
-				'One previously scanned file is no longer available. Remove it from the collection?',
+				'{{ count }} previously scanned file is no longer available. Remove it from the collection?',
 				'{{ count }} previously scanned files are no longer available. Remove them from the collection?',
 				{ count: count }),
 			gettextCatalog.getString('Remove unavailable files'),
