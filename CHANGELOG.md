@@ -45,6 +45,7 @@
   * Enable aborting the ongoing scan operation on the UI
   * Show in the Settings view if some tracks have been scanned on a less capable version of Music and offer to rescan them
     + The same is shown by `occ music:scan`; these files can be scanned with the option `--rescan-old`
+- Ampache API: Actions `player` and `now_playing`, letting a client report its playback state and read it back. Unlike on the original Ampache server, the state is visible only to the user it belongs to
 
 ### Changed
 - Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected

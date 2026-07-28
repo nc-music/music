@@ -34,6 +34,7 @@ use OCA\Music\Db\Album;
 use OCA\Music\Db\AmpacheSession;
 use OCA\Music\Db\Artist;
 use OCA\Music\Db\Bookmark;
+use OCA\Music\Db\Cache;
 use OCA\Music\Db\Entity;
 use OCA\Music\Db\Genre;
 use OCA\Music\Db\MatchMode;
@@ -129,6 +130,7 @@ class AmpacheController extends ApiController {
 		private Random $random,
 		private Logger $logger,
 		private IScrobbler $scrobbler,
+		private Cache $cache,
 	) {
 		parent::__construct($appName, $request, 'POST, GET', 'Authorization, Content-Type, Accept, X-Requested-With');
 
@@ -1326,6 +1328,81 @@ class AmpacheController extends ApiController {
 		$track = $this->trackBusinessLayer->find($id, $this->userId());
 		$this->scrobbler->recordTrackPlayed($track, $timeOfPlay);
 		return ['success' => 'play recorded'];
+	}
+
+	/**
+	 * Cache key holding the now playing state of one user. The state is inherently transient and carries its
+	 * own expiry time, so it is kept in the cache rather than in a table of its own.
+	 */
+	private const NOW_PLAYING_KEY = 'ampache_now_playing';
+
+	#[AmpacheAPI]
+	protected function player(int $filter, string $type = 'song', string $state = 'play', ?int $time = null, ?string $client = null) : array {
+		$type = \mb_strtolower($type);
+		$state = \mb_strtolower($state);
+
+		// The type `video` of the original Ampache server has no counterpart in this app
+		if (!\in_array($type, ['song', 'podcast_episode'])) {
+			throw new AmpacheException("Unsupported type '$type'", 400);
+		}
+		if (!\in_array($state, ['play', 'stop'])) {
+			throw new AmpacheException("Invalid state '$state'", 400);
+		}
+
+		$userId = $this->userId();
+
+		if ($state === 'play') {
+			$position = \max($time ?? 0, 0);
+
+			if ($type === 'song') {
+				$track = $this->trackBusinessLayer->find($filter, $userId);
+				$duration = $track->getLength() ?? 0;
+				// Report to the scrobbling services, which have their own notion of the now playing track
+				$this->scrobbler->setNowPlaying($track);
+			} else {
+				$duration = $this->podcastEpisodeBusinessLayer->find($filter, $userId)->getDuration() ?? 0;
+			}
+
+			$this->cache->set($userId, self::NOW_PLAYING_KEY, (string)\json_encode([
+				'id'     => $filter,
+				'type'   => $type,
+				'client' => $client ?? 'api',
+				// Like on the original Ampache server, the entry expires by itself when the media would have
+				// played to its end, so that a client which stops without telling us leaves nothing behind
+				'expire' => \time() + \max($duration - $position, 0)
+			]));
+		} else {
+			$this->cache->remove($userId, self::NOW_PLAYING_KEY);
+		}
+
+		return $this->now_playing();
+	}
+
+	#[AmpacheAPI]
+	protected function now_playing() : array {
+		\assert($this->session !== null);
+		$userId = $this->userId();
+
+		$json = $this->cache->get($userId, self::NOW_PLAYING_KEY);
+		$entry = ($json !== null) ? \json_decode($json, true) : null;
+
+		if (!\is_array($entry)) {
+			return ['now_playing' => []];
+		} elseif ($entry['expire'] <= \time()) {
+			$this->cache->remove($userId, self::NOW_PLAYING_KEY);
+			return ['now_playing' => []];
+		}
+
+		return ['now_playing' => [[
+			'id'     => (string)$entry['id'],
+			'type'   => $entry['type'],
+			'client' => $entry['client'],
+			'expire' => $entry['expire'],
+			'user'   => [
+				'id'       => (string)$this->session->getAmpacheUserId(),
+				'username' => $userId
+			]
+		]]];
 	}
 
 	#[AmpacheAPI]

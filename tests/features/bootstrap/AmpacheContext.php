@@ -37,6 +37,8 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 
 	/** @var array maps resources to the name of the XML element of the response */
 	private $resourceToXMLElementMapping = [
+		'player'             => 'now_playing',
+		'now_playing'        => 'now_playing',
 		'artists'  => 'artist',
 		'albums'   => 'album',
 		'songs'    => 'song',
