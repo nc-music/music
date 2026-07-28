@@ -36,11 +36,11 @@ class RadioStation extends Entity {
 		];
 	}
 
-	public function toAmpacheApi(callable $createImageUrl) : array {
+	public function toAmpacheApi(callable $createImageUrl, ?callable $createStreamUrl = null) : array {
 		return [
 			'id'       => $this->getId(),
 			'name'     => $this->getName() ?? $this->getStreamUrl(),
-			'url'      => $this->getStreamUrl(),
+			'url'      => $createStreamUrl ? $createStreamUrl($this) : $this->getStreamUrl(),
 			'site_url' => $this->getHomeUrl(),
 			'art'      => $createImageUrl($this),
 			'has_art'  => false, // art is always a placeholder on radio stations
