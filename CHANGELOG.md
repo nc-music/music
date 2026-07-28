@@ -2,6 +2,7 @@
 
 ### Added
 - Support for Nextcloud 35 (tested on rc2)
+  [#144](https://github.com/nc-music/music/issues/144)
 - Admin settings UI to setup Last.fm API key and secret without editing `config.php` manually
   [#131](https://github.com/nc-music/music/pull/131) @mattwellss
 - Possibility to configure the default volume with the config.php key `music.default_volume`
@@ -47,6 +48,8 @@
     + The same is shown by `occ music:scan`; these files can be scanned with the option `--rescan-old`
 - Ampache API: Actions `player` and `now_playing`, letting a client report its playback state and read it back. Unlike on the original Ampache server, the state is visible only to the user it belongs to
   [#155](https://github.com/nc-music/music/pull/155) @lachlan-00
+- Ampache API: Actions `catalogs` and `catalog`, presenting the library as the two synthetic catalogs `music` and `podcasts` which the action `browse` has always used
+  [#144](https://github.com/nc-music/music/issues/144)
 
 ### Changed
 - Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
