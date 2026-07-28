@@ -91,6 +91,13 @@ class AmpacheController extends ApiController {
 	public const API6_VERSION = '6.8.0';
 	public const API_MIN_COMPATIBLE_VERSION = '350001';
 
+	/**
+	 * The pre-rename spelling of the genre actions. The original Ampache server dropped these from its
+	 * method list on API5 and answers them with the error 4706 there, adding also the HTTP status 410 on
+	 * API6. We keep serving them on API4, where they are still a valid part of the protocol.
+	 */
+	private const DEPRECATED_ACTIONS = ['tag', 'tags', 'tag_albums', 'tag_artists', 'tag_songs'];
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -144,7 +151,7 @@ class AmpacheController extends ApiController {
 		}
 	}
 
-	public function ampacheErrorResponse(int $code, string $message) : Response {
+	public function ampacheErrorResponse(int $code, string $message, string $errorType = 'system') : Response {
 		$this->logger->debug($message);
 
 		if ($this->apiMajorVersion() > 4) {
@@ -153,7 +160,7 @@ class AmpacheController extends ApiController {
 				'error' => [
 					'errorCode'    => (string)$code,
 					'errorAction'  => $this->request->getParam('action'),
-					'errorType'    => 'system',
+					'errorType'    => $errorType,
 					'errorMessage' => $message
 				]
 			];
@@ -198,6 +205,10 @@ class AmpacheController extends ApiController {
 	protected function dispatch(string $action) : Response {
 		$this->logger->debug("Ampache action '$action' requested");
 
+		if (\in_array($action, self::DEPRECATED_ACTIONS) && $this->apiMajorVersion() > 4) {
+			return $this->deprecatedActionResponse($action);
+		}
+
 		// Allow calling any functions annotated to be part of the API
 		if (\method_exists($this, $action)) {
 			$reflection = new \ReflectionMethod($this, $action);
@@ -235,6 +246,21 @@ class AmpacheController extends ApiController {
 		// No method was found for this action
 		$this->logger->warning("Unsupported Ampache action '$action' requested");
 		throw new AmpacheException('Action not supported', 405);
+	}
+
+	/**
+	 * Reject one of the actions removed from the protocol after API4, matching how the original Ampache
+	 * server answers them. Only API6 carries the HTTP status; on API5 the error travels in the body of an
+	 * otherwise ordinary 200 response.
+	 */
+	private function deprecatedActionResponse(string $action) : Response {
+		$this->logger->debug("Deprecated Ampache action '$action' requested, use the 'genre' variant instead");
+
+		$response = $this->ampacheErrorResponse(410, 'Deprecated', 'removed');
+		if ($this->apiMajorVersion() > 5) {
+			$response->setStatus(Http::STATUS_GONE);
+		}
+		return $response;
 	}
 
 	/***********************
@@ -2209,6 +2235,7 @@ class AmpacheController extends ApiController {
 			case 403:	return 4703;	// access denied
 			case 404:	return 4704;	// not found
 			case 405:	return 4705;	// missing
+			case 410:	return 4706;	// deprecated
 			case 412:	return 4742;	// failed access check
 			case 501:	return 4700;	// access control not enabled
 			default:	return 5000;	// unexpected (not part of the API spec)

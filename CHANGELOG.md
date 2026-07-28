@@ -24,6 +24,7 @@
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
 
 ### Changed
+- Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
 - Show some error details in the browser console when subscribing a podcast channel fails
   [#132](https://github.com/nc-music/music/issues/132)
 - Avoid PostgreSQL logging tons of unique constraint violations on typical library scan
