@@ -42,6 +42,7 @@
 - Extensive internal refactoring on the web UI
 
 ### Fixed
+- HTTP status 500 on all the Ampache, Subsonic, and web UI endpoints accessing the file system in case the configured music folder no longer exists; the APIs now return a proper protocol error instead
 - HTTP redirection not working (e.g. on radio streams) when the `Location` header contains a relative URL
 - Deprecation warnings printed on PHP 8.3+ while executing the Music background tasks
 - Web UI trying to load an invalid image URL upon page load

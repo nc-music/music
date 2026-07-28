@@ -23,6 +23,7 @@ use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\FileResponse;
 use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\CoverService;
+use OCA\Music\Service\LibraryFolderException;
 use OCA\Music\Service\LibrarySettings;
 use OCA\Music\Utility\HttpUtil;
 use OCA\Music\Utility\PlaceholderImage;
@@ -80,7 +81,15 @@ class AmpacheImageController extends Controller {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, "$object_type $object_id not found");
 		}
 
-		$coverImage = $this->coverService->getCover($entity, $userId, $this->librarySettings->getFolder($userId), $size);
+		try {
+			$musicFolder = $this->librarySettings->getFolder($userId);
+		} catch (LibraryFolderException $e) {
+			// The library is misconfigured or temporarily unavailable. Serve the placeholder rather than an
+			// error, so that clients show a generic cover instead of a broken image, but don't cache it long.
+			return new FileResponse(PlaceholderImage::generateForResponse('?', $object_type, 200));
+		}
+
+		$coverImage = $this->coverService->getCover($entity, $userId, $musicFolder, $size);
 		if ($coverImage === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, "$object_type $object_id has no cover image");
 		}

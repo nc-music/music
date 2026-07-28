@@ -106,11 +106,21 @@ class LibrarySettings {
 		});
 	}
 
+	/**
+	 * @throws LibraryFolderException if the configured music folder cannot be resolved
+	 */
 	public function getFolder(string $userId) : Folder {
-		return $this->cachedGet($userId, 'music_folder', fn () => FilesUtil::getFolderFromRelativePath(
-			$this->rootFolder->getUserFolder($userId),
-			$this->getPath($userId)
-		));
+		return $this->cachedGet($userId, 'music_folder', function () use ($userId) {
+			$path = $this->getPath($userId);
+			try {
+				return FilesUtil::getFolderFromRelativePath($this->rootFolder->getUserFolder($userId), $path);
+			} catch (\OCP\Files\NotFoundException | \OCP\Files\NotPermittedException | \InvalidArgumentException $e) {
+				// Without this, the failure would surface as an HTTP 500 on every endpoint resolving the
+				// filesystem, giving the user no hint that it's their own path setting which is at fault.
+				$this->logger->warning("Music folder '$path' of user $userId could not be resolved: " . $e->getMessage());
+				throw new LibraryFolderException("Configured music folder '$path' is not available", 0, $e);
+			}
+		});
 	}
 
 	public function pathBelongsToMusicLibrary(string $filePath, string $userId) : bool {

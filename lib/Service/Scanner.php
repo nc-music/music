@@ -459,7 +459,7 @@ class Scanner extends PublicEmitter {
 	private function getImageFiles(string $userId) : array {
 		try {
 			$folder = $this->librarySettings->getFolder($userId);
-		} catch (\OCP\Files\NotFoundException $e) {
+		} catch (LibraryFolderException $e) {
 			return [];
 		}
 

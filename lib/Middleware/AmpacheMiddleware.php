@@ -20,6 +20,7 @@ use OCA\Music\Controller\AmpacheController;
 use OCA\Music\Db\AmpacheSession;
 use OCA\Music\Db\AmpacheSessionMapper;
 use OCA\Music\Db\AmpacheUserMapper;
+use OCA\Music\Service\LibraryFolderException;
 use OCA\Music\Utility\Random;
 use OCA\Music\Utility\StringUtil;
 use OCP\AppFramework\Controller;
@@ -269,6 +270,8 @@ class AmpacheMiddleware extends Middleware {
 				return $controller->ampacheErrorResponse($exception->getCode(), $exception->getMessage());
 			} elseif ($exception instanceof BusinessLayerException) {
 				return $controller->ampacheErrorResponse(404, 'Entity not found');
+			} elseif ($exception instanceof LibraryFolderException) {
+				return $controller->ampacheErrorResponse(404, $exception->getMessage());
 			}
 		}
 		throw $exception;
