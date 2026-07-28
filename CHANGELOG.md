@@ -42,6 +42,8 @@
 - Extensive internal refactoring on the web UI
 
 ### Fixed
+- Streaming of files on encrypted or other non-seekable storages: seek failures are no longer silently ignored, files with no known size are streamed without a declared length, and a failure to open the file is reported as HTTP 403 instead of 500
+  [#19](https://github.com/nc-music/music/issues/19)
 - HTTP redirection not working (e.g. on radio streams) when the `Location` header contains a relative URL
 - Deprecation warnings printed on PHP 8.3+ while executing the Music background tasks
 - Web UI trying to load an invalid image URL upon page load

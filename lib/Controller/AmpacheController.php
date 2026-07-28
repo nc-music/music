@@ -1364,7 +1364,7 @@ class AmpacheController extends ApiController {
 					if ($stats) {
 						$this->record_play($id, null);
 					}
-					return new FileStreamResponse($file);
+					return new FileStreamResponse($file, $this->logger);
 				} else {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "File for song $id does not exist");
 				}

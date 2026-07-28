@@ -181,7 +181,7 @@ class MusicApiController extends Controller {
 		$nodes = $this->scanner->resolveUserFolder($this->user())->getById($fileId);
 		$node = $nodes[0] ?? null;
 		if ($node instanceof \OCP\Files\File) {
-			return new FileStreamResponse($node);
+			return new FileStreamResponse($node, $this->logger);
 		}
 
 		return new ErrorResponse(Http::STATUS_NOT_FOUND, 'file not found');
