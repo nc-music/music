@@ -83,7 +83,7 @@ class ShareController extends Controller {
 			$sharedFolder = $this->getSharedFolder($token);
 			$file = $sharedFolder->getById($fileId)[0] ?? null;
 			if ($file instanceof File) {
-				return new FileStreamResponse($file);
+				return new FileStreamResponse($file, $this->logger);
 			} else {
 				return new ErrorResponse(Http::STATUS_NOT_FOUND, 'no such file under the share');
 			}

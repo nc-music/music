@@ -470,7 +470,7 @@ class SubsonicController extends ApiController {
 			$file = $this->getFilesystemNode($track->getFileId());
 
 			if ($file instanceof File) {
-				return new FileStreamResponse($file);
+				return new FileStreamResponse($file, $this->logger);
 			} else {
 				return $this->subsonicErrorResponse(70, 'file not found');
 			}
