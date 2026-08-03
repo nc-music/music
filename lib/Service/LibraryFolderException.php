@@ -6,8 +6,8 @@
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
  *
- * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2026
+ * @author Lachlan de Waard <lachlan.00@gmail.com>
+ * @copyright Lachlan de Waard 2026
  */
 
 namespace OCA\Music\Service;
