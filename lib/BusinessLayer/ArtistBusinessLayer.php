@@ -20,6 +20,7 @@ use OCA\Music\Db\Artist;
 use OCA\Music\Db\ArtistMapper;
 use OCA\Music\Db\MatchMode;
 use OCA\Music\Db\SortBy;
+use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\LocalCacheTrait;
 use OCA\Music\Utility\StringUtil;
 use OCP\Files\File;
@@ -121,17 +122,40 @@ class ArtistBusinessLayer extends BusinessLayer {
 
 	/**
 	 * Adds an artist if it does not exist already or updates an existing artist
-	 * @param string|null $name the name of the artist
+	 * @param ?string $name the name of the artist
+	 * @param ?string $mbid the MusicBrainz Id of the artist (non-null values must be normalized to all lowercase, 1..36 ASCII chars)
 	 * @param string $userId the name of the user
 	 * @return Artist The added/updated artist
 	 */
-	public function addOrUpdateArtist(?string $name, string $userId) : Artist {
-		return $this->cachedGet($userId, $name, function () use ($name, $userId) {
+	public function addOrUpdateArtist(?string $name, ?string $mbid, string $userId) : Artist {
+		$name = StringUtil::truncate($name, 256); // some DB setups can't truncate automatically to column max size
+		$hash = \hash('md5', \mb_strtolower($name ?? ''));
+
+		return $this->cachedGet($userId, $mbid ?? $hash, function () use ($name, $mbid, $hash, $userId) {
 			$artist = new Artist();
-			$artist->setName(StringUtil::truncate($name, 256)); // some DB setups can't truncate automatically to column max size
+			$artist->setName($name);
+			$artist->setMbid($mbid);
 			$artist->setUserId($userId);
-			$artist->setHash(\hash('md5', \mb_strtolower($name ?? '')));
-			return $this->mapper->updateOrInsert($artist);
+			$artist->setHash($hash);
+
+			$existingIdsForName = $this->mapper->findIdsAndMbidsByHash($hash, $userId);
+
+			if ($mbid !== null) {
+				if ($mbidMatch = ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid || $row['mbid'] === null)) {
+					// DB already has artist with this MBID or no MBID, update it
+					$artist->setId($mbidMatch['id']);
+					return $this->mapper->update($artist);
+				}
+			} elseif (!empty($existingIdsForName)) {
+				// the input has no MBID but the DB has at least one artist with matching name (which may or may not have MBID),
+				// merge the input with the first such artist
+				$artist->setId($existingIdsForName[0]['id']);
+				return $this->mapper->update($artist);
+			}
+			// TODO: Should we combine artists who have different name but same MBID (likely an artist whose credited name varies between works)
+
+			// no existing artist with the same MBID or name
+			return $this->mapper->insertOrUpdate($artist);
 		});
 	}
 

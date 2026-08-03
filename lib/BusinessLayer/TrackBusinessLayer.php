@@ -288,23 +288,28 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	/**
 	 * Adds a track if it does not exist already or updates an existing track
 	 * @param string $title the title of the track
-	 * @param int|null $number the number of the track
-	 * @param int|null $discNumber the number of the disc
-	 * @param int|null $year the year of the release
+	 * @param ?int $number the number of the track
+	 * @param ?int $discNumber the number of the disc
+	 * @param ?int $year the year of the release
 	 * @param int $genreId the genre id of the track
 	 * @param int $artistId the artist id of the track
 	 * @param int $albumId the album id of the track
 	 * @param int $fileId the file id of the track
 	 * @param string $mimetype the mimetype of the track
 	 * @param string $userId the name of the user
-	 * @param int $length track length in seconds
-	 * @param int $bitrate track bitrate in bits (not kbits)
+	 * @param ?int $length track length in seconds
+	 * @param ?int $bitrate track bitrate in bits (not kbits)
+	 * @param ?int $bpm beats per minute
+	 * @param ?int $composerId the composer id of the track
+	 * @param ?string $comment the comment of the track
+	 * @param ?string $mbid the MusicBrainz Recording Id of the track
+	 * @param ?string $mbidRelTrack the MusicBrainz Release Track Id of the track
 	 * @return Track The added/updated track
 	 */
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
-			int $fileId, string $mimetype, string $userId, ?int $length = null, ?int $bitrate = null,
-			?int $bpm = null, ?int $composerId = null, ?string $comment = null) : Track {
+			int $fileId, string $mimetype, string $userId, ?int $length = null, ?int $bitrate = null, ?int $bpm = null,
+			?int $composerId = null, ?string $comment = null, ?string $mbid = null, ?string $mbidRelTrack = null) : Track {
 		$track = new Track();
 		$track->setTitle(StringUtil::truncate($title, 256)); // some DB setups can't truncate automatically to column max size
 		$track->setNumber($number);
@@ -322,6 +327,8 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		$track->setComposerId($composerId);
 		$track->setComment($comment);
 		$track->setDirty(0);
+		$track->setMbid(StringUtil::truncate($mbid, 36)); // valid mbid is always 36 characters, prepare for invalid data
+		$track->setMbidRelTrack(StringUtil::truncate($mbidRelTrack, 36));
 		return $this->mapper->updateOrInsert($track);
 	}
 

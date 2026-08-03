@@ -72,6 +72,13 @@ class AdvSearchRules {
 				$l10n->t('Playlist') => [
 					'playlist'      => $l10n->t('Playlist'),
 					'playlist_name' => $l10n->t('Playlist name'),
+				],
+				$l10n->t('MusicBrainz') => [
+					'mbid_song'        => $l10n->t('MusicBrainz recording id'),
+					'mbid_rel_track'   => $l10n->t('MusicBrainz release track id'),
+					'mbid_album'       => $l10n->t('MusicBrainz release id'),
+					'mbid_album_group' => $l10n->t('MusicBrainz release group id'),
+					'mbid_artist'      => $l10n->t('MusicBrainz artist id'),
 				]
 			],
 			'album' => [
@@ -112,6 +119,13 @@ class AdvSearchRules {
 				$l10n->t('Playlist') => [
 					'playlist'      => $l10n->t('Playlist'),
 					'playlist_name' => $l10n->t('Playlist name'),
+				],
+				$l10n->t('MusicBrainz') => [
+					'mbid_song'        => $l10n->t('MusicBrainz recording id'),
+					'mbid_rel_track'   => $l10n->t('MusicBrainz release track id'),
+					'mbid_album'       => $l10n->t('MusicBrainz release id'),
+					'mbid_album_group' => $l10n->t('MusicBrainz release group id'),
+					'mbid_artist'      => $l10n->t('MusicBrainz artist id'),
 				]
 			],
 			'artist' => [
@@ -149,6 +163,13 @@ class AdvSearchRules {
 				$l10n->t('Playlist') => [
 					'playlist'      => $l10n->t('Playlist'),
 					'playlist_name' => $l10n->t('Playlist name'),
+				],
+				$l10n->t('MusicBrainz') => [
+					'mbid_song'        => $l10n->t('MusicBrainz recording id'),
+					'mbid_rel_track'   => $l10n->t('MusicBrainz release track id'),
+					'mbid_album'       => $l10n->t('MusicBrainz release id'),
+					'mbid_album_group' => $l10n->t('MusicBrainz release group id'),
+					'mbid_artist'      => $l10n->t('MusicBrainz artist id'),
 				]
 			],
 			'playlist' => [
@@ -226,13 +247,17 @@ class AdvSearchRules {
 			'text' => [
 				'anywhere', 'title', 'song', 'album', 'artist', 'podcast', 'podcast_episode', 'album_artist', 'song_artist', 'comment',
 				'favorite', 'favorite_album', 'favorite_artist', 'genre', 'song_genre', 'album_genre', 'artist_genre', 'composer',
-				'playlist_name', 'type', 'file', 'mbid', 'mbid_album', 'mbid_artist', 'mbid_song', 'stream_url' /* not in Ampache spec */
+				'playlist_name', 'type', 'file', 'mbid', 'mbid_album', 'mbid_artist', 'mbid_song',
+				// proprietary extensions to the Ampache spec:
+				'stream_url', 'mbid_rel_track', 'mbid_album_group'
 			],
 			// text but not supported: 'summary', 'placeformed', 'release_type', 'release_status', 'barcode',
 			// 'catalog_number', 'label', 'lyrics', 'username', 'category'
 
 			'numeric' => [
-				'track', 'year', 'original_year', 'played_times', 'album_count', 'song_count', 'disk_count', 'time', 'bitrate', 'bpm' /* not in Ampache spec */
+				'track', 'year', 'original_year', 'played_times', 'album_count', 'song_count', 'disk_count', 'time', 'bitrate',
+				// proprietary extensions to the Ampache spec:
+				'bpm'
 			],
 			// numeric but not supported: 'yearformed', 'skipped_times', 'play_skip_ratio', 'image_height', 'image_width'
 

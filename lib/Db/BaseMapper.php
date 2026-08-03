@@ -770,7 +770,7 @@ abstract class BaseMapper extends Mapper {
 			case 'rating':			return "`$table`.`rating` $sqlOp ?";
 			case 'added':			return "`$table`.`created` $sqlOp ?";
 			case 'updated':			return "`$table`.`updated` $sqlOp ?";
-			case 'mbid':			return "`$table`.`mbid` $sqlOp ?";
+			case 'mbid':			return "$conv(`$table`.`mbid`) $sqlOp $conv(?)";
 			case 'recent_added':	return "`$table`.`id` IN (SELECT * FROM (SELECT `id` FROM `$table` WHERE `user_id` = ? ORDER BY `created` DESC LIMIT $sqlOp) mysqlhack)";
 			case 'recent_updated':	return "`$table`.`id` IN (SELECT * FROM (SELECT `id` FROM `$table` WHERE `user_id` = ? ORDER BY `updated` DESC LIMIT $sqlOp) mysqlhack)";
 			default:				throw new \DomainException("Rule '$rule' not supported on this entity type");
@@ -874,15 +874,21 @@ abstract class BaseMapper extends Mapper {
 		$properties = \array_map(fn ($col) => $entity->columnToProperty($col), $this->uniqueColumns);
 		$values = \array_map(fn ($prop) => $entity->$prop, $properties);
 
-		$conds = \array_map(fn ($col) => "`$col` = ?", $this->uniqueColumns);
+		$conds = \array_map(
+			fn ($col, $val) => ($val === null) ? "`$col` IS NULL" : "`$col` = ?",
+			$this->uniqueColumns,
+			$values
+		);
 		$sql = "SELECT `id` FROM {$this->getTableName()} WHERE " . \implode(' AND ', $conds);
+		$params = \array_filter($values, fn ($val) => $val !== null);
 
-		$result = $this->execute($sql, $values);
+		$result = $this->execute($sql, $params);
 		$id = $result->fetchOne();
 		$result->closeCursor();
 
 		if ($id === false) {
-			throw new DoesNotExistException('Conflicting entity not found');
+			throw new DoesNotExistException("Conflicting entity not found in table '{$this->unprefixedTableName()}' for unique columns: "
+				. \json_encode($this->uniqueColumns) . ' with values: ' . \json_encode($values));
 		}
 
 		return (int)$id;
@@ -894,7 +900,7 @@ abstract class BaseMapper extends Mapper {
 		$created = $result->fetchOne();
 		$result->closeCursor();
 		if ($created === false) {
-			throw new DoesNotExistException('ID not found');
+			throw new DoesNotExistException("ID $id not found in table '{$this->unprefixedTableName()}'");
 		}
 		return $created;
 	}

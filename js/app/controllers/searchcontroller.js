@@ -17,11 +17,12 @@ angular.module('Music').controller('SearchController', [
 function ($scope, $rootScope, libraryService, $timeout, gettextCatalog) {
 
 	const MAX_MATCHES = 5000;
-	const MAX_MATCHES_IN_PLAYLIST = 1000;
+	const MAX_MATCHES_IN_RADIO = 1000;
 	const MAX_FOLDER_MATCHES_IN_TREE_LAYOUT = 50;
 
 	let searchbox = $('#search-input');
 	let treeFolderMatches = {};
+	let playlistMatches = {};
 
 	init();
 
@@ -218,7 +219,7 @@ function ($scope, $rootScope, libraryService, $timeout, gettextCatalog) {
 	}
 
 	function searchInRadioView(query) {
-		let matches = libraryService.searchRadioStations(query, MAX_MATCHES_IN_PLAYLIST);
+		let matches = libraryService.searchRadioStations(query, MAX_MATCHES_IN_RADIO);
 		_(matches.result).each(function(station) {
 			$('#radio-station-' + station.id).addClass('matched');
 		});
@@ -257,20 +258,25 @@ function ($scope, $rootScope, libraryService, $timeout, gettextCatalog) {
 	}
 
 	function searchInPlaylistView(playlistId, query) {
-		let matches = libraryService.searchTracksInPlaylist(playlistId, query, MAX_MATCHES_IN_PLAYLIST);
-		_(matches.result).each(function(track) {
-			$('li[data-track-id=' + track.id + ']').addClass('matched');
+		playlistMatches = libraryService.searchPlaylistEntries(playlistId, query, MAX_MATCHES);
+		_(playlistMatches.result).each(function(entry) {
+			entry.searchMatched = true;
 		});
 
-		return matches;
+		return playlistMatches;
 	}
 
 	function cleanUpPrevMatches() {
-		if ($scope.getCurrentViewId() === '#/folders' && !$scope.foldersFlatLayout) {
+		const view = $scope.getCurrentViewId();
+		if (view === '#/folders' && !$scope.foldersFlatLayout) {
 			// folder view with tree layout is a special case
 			_(treeFolderMatches).each(folder => {folder.matched = false;});
 			treeFolderMatches = {};
 			$('.track-list .matched').removeClass('matched');
+		} else if (view.startsWith('#/playlist/')) {
+			// virtualized playlist is another special case
+			_(playlistMatches.result).each((entry) => {entry.searchMatched = false;});
+			playlistMatches = {};
 		} else {
 			// any other view
 			$('.matched').removeClass('matched');

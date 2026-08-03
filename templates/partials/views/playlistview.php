@@ -5,20 +5,20 @@
 			<img class="play svg" alt="{{ 'Play' | translate }}" src="<?php \OCA\Music\Utility\HtmlUtil::printSvgPath('play-small') ?>"/>
 		</span>
 	</h1>
-	<ul class="track-list">
-		<li ng-repeat="entry in tracks | limitTo: incrementalLoadLimit"
+	<ul class="track-list" ng-if="tracks" vs-repeat="{scrollParent: '#app-content', scrollMargin: 3000}" vs-repeat-options="{latch: draggedIndex >= 0}">
+		<li ng-repeat="entry in tracks | filter:entryNotHidden"
 			ng-init="song = entry.track"
-			id="{{ 'playlist-track-' + $index }}"
+			id="{{ 'playlist-track-' + entry.index }}"
 			data-track-id="{{ ::song.id }}"
-			ui-on-drop="reorderDrop($data, $index)"
-			ui-on-drag-enter="updateHoverStyle($index)"
-			drop-validate="allowDrop($data, $index)"
+			ui-on-drop="reorderDrop($data, entry.index)"
+			ui-on-drag-enter="updateHoverStyle(entry.index)"
+			drop-validate="allowDrop($data, entry.index)"
 			drag-hover-class="drag-hover"
 		>
-			<div class="playlist-item-info" ng-click="onTrackClick($index)" ui-draggable="true" drag="getDraggable($index)"
-				ng-class="{current: getCurrentTrackIndex() === $index, playing: playing}"
+			<div class="playlist-item-info" ng-click="onTrackClick(entry)" ui-draggable="true" drag="getDraggable(entry.index)"
+				ng-class="{current: getCurrentTrackIndex() === entry.index, playing: playing}"
 			>
-				<span class="ordinal muted">{{ $index + 1 }}.</span>
+				<span class="ordinal muted">{{ entry.index + 1 }}.</span>
 				<div class="albumart" albumart="::song.album"></div>
 				<div class="play-pause overlay"></div>
 				<div class="title-lines">
@@ -29,7 +29,7 @@
 			<button class="action icon-details" ng-click="showTrackDetails(song.id)"
 				aria-label="{{ 'Details' | translate }}" title="{{ 'Details' | translate }}"
 				ng-if="song.type != 'error'"></button>
-			<button class="action icon-close" ng-click="removeTrack($index)"
+			<button class="action icon-close" ng-click="removeTrack(entry)"
 				aria-label="{{ 'Remove' | translate }}" title="{{ 'Remove track from playlist' | translate }}"></button>
 		</li>
 	</ul>

@@ -19,6 +19,7 @@
 		"angular-route": "^1.8.3",
 		"angular-sanitize": "^1.8.3",
 		"angular-scroll": "^1.0.2",
+		"angular-vs-repeat": "^2.0.14",
 		"backbone": "^1.6.1",
 		"blueimp-md5": "^2.19.0",
 		"buffer": "^6.0.3",

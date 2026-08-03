@@ -316,23 +316,56 @@ class AlbumBusinessLayer extends BusinessLayer {
 
 	/**
 	 * Adds an album if it does not exist already or updates an existing album
-	 * @param string|null $name the name of the album
-	 * @param integer $albumArtistId
+	 * @param ?string $name the name of the album
+	 * @param integer $albumArtistId ID of the album artist or best guess of it on incomplete metadata
+	 * @param bool $albumArtistUncertain True if @a $albumArtistId is not based on actual file metadata
+	 * @param bool $isCompilation value of the `compilation` metadata flag, indicating the album is a compilation of various artists
+	 * @param ?string $mbid the MusicBrainz Release Id of the album (non-null values normalized to all lowercase, 1..36 ASCII chars)
+	 * @param ?string $mbidGroup the MusicBrainz Release Group Id of the album
 	 * @param string $userId
 	 * @return Album The added/updated album
 	 */
-	public function addOrUpdateAlbum(?string $name, int $albumArtistId, string $userId) : Album {
-		// Generate hash from the set of fields forming the album identity to prevent duplicates.
+	public function addOrUpdateAlbum(?string $name, int $albumArtistId, bool $albumArtistUncertain, bool $isCompilation, ?string $mbid, ?string $mbidGroup, string $userId) : Album {
 		// The uniqueness of album name is evaluated in case-insensitive manner.
 		$lowerName = \mb_strtolower($name ?? '');
-		$hash = \hash('md5', "$lowerName|$albumArtistId");
+		$hash = \hash('md5', "$lowerName");
 
-		return $this->cachedGet($userId, $hash, function () use ($name, $albumArtistId, $userId, $hash) {
+		return $this->cachedGet($userId, "$hash|$albumArtistId|$mbid", function () use ($name, $albumArtistId, $albumArtistUncertain, $isCompilation, $mbid, $mbidGroup, $userId, $hash) {
 			$album = new Album();
 			$album->setName(StringUtil::truncate($name, 256)); // some DB setups can't truncate automatically to column max size
 			$album->setUserId($userId);
 			$album->setAlbumArtistId($albumArtistId);
+			$album->setAlbumArtistUncertain($albumArtistUncertain);
+			$album->setCompilation($isCompilation);
+			$album->setMbid($mbid);
+			$album->setMbidGroup($mbidGroup);
 			$album->setHash($hash);
+
+			if ($albumArtistUncertain) {
+				$potentialMatches = $this->mapper->findIdsAndArtistsByHashAndMbid($hash, $mbid, $userId);
+
+				if (\count($potentialMatches) > 0) {
+					$artistMatch = ArrayUtil::find($potentialMatches, fn ($row) => $row['album_artist_id'] === $albumArtistId);
+					if ($artistMatch) {
+						// DB already has an album with the same name, MBID (which might be null), and album artist, update it
+						$album->setId($artistMatch['id']);
+						$album->setAlbumArtistUncertain($artistMatch['album_artist_uncertain']);
+						return $this->mapper->update($album);
+					} else {
+						$varArtistsId = $this->artistMapper->getVariousArtistsId($userId);
+						$varArtistsMatch = ArrayUtil::find($potentialMatches, fn ($row) => $row['album_artist_id'] === $varArtistsId)
+										?? ArrayUtil::find($potentialMatches, fn ($row) => $row['album_artist_uncertain']);
+						if ($varArtistsMatch) {
+							// The DB has an album with the same name and MBID and either artist "Various Artists" or an uncertain artist.
+							// In the latter case, we move the album to artist "Various Artists".
+							$album->setId($varArtistsMatch['id']);
+							$album->setAlbumArtistId($varArtistsId);
+							return $this->mapper->update($album);
+						}
+					}
+				}
+			}
+
 			return $this->mapper->updateOrInsert($album);
 		});
 	}

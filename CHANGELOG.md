@@ -20,10 +20,19 @@
   * Track comment is stored to DB while scanning the library
   * The `comment` property is included in all song responses in the Subsonic and Ampache APIs
   * Advanced search can find tracks by comment
+- MBID support [#94](https://github.com/nc-music/music/issues/94), [#148](https://github.com/nc-music/music/issues/148)
+  * MusicBrainz IDs (Recording Id, Release Track Id, Release Id, Release Group Id, Artist Id, Release Artist Id) from file metadata are stored to DB when scanning the library
+  * Song/album/artist responses in the Subsonic API contain the `musicBrainzId` property and the resonses in Ampache API contain the `mbid` property
+  * Advanced search can find tracks/albums/artists by the MBID values
+  * Distinct artists with identical names can be separated by MBID. Distinct album versions with the same name from the same artist can be seprated by MBID.
+- Compilation field support [#127](https://github.com/nc-music/music/issues/127)
+  * The `compilation` metadata tag is stored to the DB when scanning the library
+  * Subsonic API: Include OpenSubsonic property `isCompilation` in the AlbumID3 responses
 - Context menu with the "Import from file" action on the "New Playlist" navigation item
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
 
 ### Changed
+- Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
 - Show some error details in the browser console when subscribing a podcast channel fails
   [#132](https://github.com/nc-music/music/issues/132)
 - Avoid PostgreSQL logging tons of unique constraint violations on typical library scan
@@ -34,12 +43,18 @@
   * Collapse the more exotic tags by default and show them by clicking "Show more…"
   * Make all MusicBrainz Ids from the tags into links to the MusicBrainz site (like previously done with MbIds from Last.fm)
   * On tag names, abbreviate "musicbrainz" as "mb" to not truncate the more important parts of the name
-  * Show also MusicBrainz Recording Id stored in id3v2.4 tag `UFID` (MusicBrainz Picard uses this on mp3 files)
+  * Show also the MusicBrainz Recording Id stored in id3v2.4 tag `UFID` (MusicBrainz Picard uses this on mp3 files)
   * Show all values of multi-valued metadata tags
 - Attempt to restart the playing radio stream if it abruptly ends
   [nc-music#89](https://github.com/nc-music/music/issues/89)
 - Improved web UI view switching performance for huge libraries
+- Playlist view remains lightning fast even on insanely large playlists
 - Extensive internal refactoring on the web UI
+- In absence of the `album artist` tag, if there are tracks with the same `album` name but differing `artist` name, treat those tracks as one album from "Various Artists"
+  [#45](https://github.com/nc-music/music/issues/45), [#55](https://github.com/nc-music/music/issues/55), [#98](https://github.com/nc-music/music/issues/98)
+  * Library has to be rescanned for this change to take effect
+  * To avoid merging albums with the same name, make sure the tracks have either `album artist` or `Music Brainz Release Id` metadata tag set
+- Drop obsolete column `disk` from the DB table `oc_music_albums` (the disk info was moved to `oc_music_tracks` in Music v0.13.1)
 
 ### Fixed
 - HTTP status 500 on all the Ampache, Subsonic, and web UI endpoints accessing the file system in case the configured music folder no longer exists; the APIs now return a proper protocol error instead
@@ -52,6 +67,7 @@
 - Dashboard widget not stopping the playback when "Next" button pressed on the last track of the queue
 - Web UI failing to load on NC33 if `OCA.Theming` not ready in time (systematically on Safari, randomly on Firefox and Chrome)
   [#146](https://github.com/nc-music/music/issues/146)
+- Alphabet navigation working wrong in the Internet radio view when some station is unnamed (such stations are now listed as last)
 - Subsonic API:
   * Attribute `parent` misplaced in the response of `getMusicDirectory` when browsing by file system folders
   * Endpoints `savePlayQueue` and `savePlayQueueByIndex` not allowing an empty list to clear the queue

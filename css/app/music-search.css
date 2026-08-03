@@ -5,11 +5,14 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2020 - 2023
+ * @copyright Pauli Järvinen 2020 - 2026
  */
 
-/* Only matching items should be shown when the searchmode is active */
-.searchmode .track-list li:not(.matched):not(.placeholder),
+/*
+ * Only matching items should be shown when the searchmode is active.
+ * Virtuallized lists are an exception, those handle this on model-level.
+ */
+.searchmode .track-list:not([vs-repeat]) li:not(.matched):not(.placeholder),
 .searchmode .track-list li.more-less,
 .searchmode .album-area .track-list li:not(.matched):not(.placeholder),
 .searchmode .album-area:not(.matched),

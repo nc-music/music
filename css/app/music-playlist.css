@@ -38,8 +38,8 @@
 }
 
 .playlist-area .track-list > li {
-	padding-bottom: 4px;
-	padding-top: 5px;
+	padding-bottom: 6px;
+	padding-top: 6px;
 	white-space: nowrap;
 }
 
@@ -88,12 +88,20 @@
 	overflow: hidden;
 }
 
-.playlist-area .track-list.insert-above > li.drag-hover {
-	padding-top: 40px;
+/* shift down all list items below the drop point */
+.playlist-area .track-list.insert-above > li.drag-hover,
+.playlist-area .track-list.insert-above > li.drag-hover ~ li,
+.playlist-area .track-list.insert-below > li.drag-hover ~ li {
+	padding-top: 12px;
+	padding-bottom: 0;
 }
 
-.playlist-area .track-list.insert-below > li.drag-hover {
-	padding-bottom: 40px;
+/* shift up all list items above the drop point */
+.playlist-area .track-list.insert-below > li.drag-hover,
+.playlist-area .track-list.insert-below > li:has(~ li.drag-hover),
+.playlist-area .track-list.insert-above > li:has(~ li.drag-hover) {
+	padding-top: 0;
+	padding-bottom: 12px;
 }
 
 .playlist-area .track-list > li > div,

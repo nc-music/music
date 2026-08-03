@@ -21,6 +21,7 @@ require('node_modules/angular-gettext');
 require('node_modules/angular-route');
 require('node_modules/angular-sanitize');
 require('node_modules/angular-scroll');
+require('node_modules/angular-vs-repeat');
 require('node_modules/chosen-js');
 require('node_modules/chosen-js/chosen.css');
 require('node_modules/long-press-event');

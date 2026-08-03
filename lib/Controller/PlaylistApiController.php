@@ -141,7 +141,7 @@ class PlaylistApiController extends Controller {
 		$this->albumBusinessLayer->injectAlbumsToTracks($tracks, $this->userId);
 
 		return \array_map(
-			fn ($track, $index) => \array_merge($track->toShivaApi($this->urlGenerator), ['index' => $index]),
+			fn ($track, $index) => \array_merge($track->toShivaApi($this->urlGenerator, null), ['index' => $index]),
 			$tracks, \array_keys($tracks)
 		);
 	}

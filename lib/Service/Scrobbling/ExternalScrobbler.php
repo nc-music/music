@@ -279,6 +279,10 @@ class ExternalScrobbler implements IScrobbler {
 			$trackData['trackNumber'] = $track->getNumber();
 		}
 
+		if (!empty($track->getMbidRelTrack())) {
+			$trackData['mbid'] = $track->getMbidRelTrack();
+		}
+
 		$albumArtistName = $track->getAlbum()?->getAlbumArtistName();
 		if (!empty($albumArtistName) && $albumArtistName !== $track->getArtistName()) {
 			$trackData['albumArtist'] = $albumArtistName;

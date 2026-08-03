@@ -158,7 +158,7 @@ class ShivaApiController extends Controller {
 		if ($includeTracks) {
 			$albumId = $album->getId();
 			$tracks = $this->trackBusinessLayer->findAllByAlbum($albumId, $this->user());
-			$albumInApi['tracks'] = \array_map(fn ($t) => $t->toShivaApi($this->urlGenerator), $tracks);
+			$albumInApi['tracks'] = \array_map(fn ($t) => $t->toShivaApi($this->urlGenerator, $this->l10n), $tracks);
 		}
 
 		if ($includeArtists) {
@@ -183,25 +183,28 @@ class ShivaApiController extends Controller {
 			$tracks = $this->trackBusinessLayer->findAll($this->user(), SortBy::Name, $limit, $offset);
 		}
 		foreach ($tracks as &$track) {
-			$artistId = $track->getArtistId();
-			$albumId = $track->getAlbumId();
-			$track = $track->toShivaApi($this->urlGenerator);
 			if ($fulltree) {
-				$artist = $this->artistBusinessLayer->find($artistId, $this->user());
-				$track['artist'] = $artist->toShivaApi($this->urlGenerator, $this->l10n);
-				$album = $this->albumBusinessLayer->find($albumId, $this->user());
-				$track['album'] = $album->toShivaApi($this->urlGenerator, $this->l10n);
+				$track->setArtist($this->artistBusinessLayer->find($track->getArtistId(), $this->user()));
+				$track->setAlbum($this->albumBusinessLayer->find($track->getAlbumId(), $this->user()));
 			}
+			$track = $track->toShivaApi($this->urlGenerator, $this->l10n);
 		}
 		return new JSONResponse($tracks);
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function track(int $id) : JSONResponse {
+	public function track(int $id, string|int|bool|null $fulltree = null) : JSONResponse {
+		$fulltree = \filter_var($fulltree, FILTER_VALIDATE_BOOLEAN);
 		try {
 			$track = $this->trackBusinessLayer->find($id, $this->user());
-			return new JSONResponse($track->toShivaApi($this->urlGenerator));
+
+			if ($fulltree) {
+				$track->setArtist($this->artistBusinessLayer->find($track->getArtistId(), $this->user()));
+				$track->setAlbum($this->albumBusinessLayer->find($track->getAlbumId(), $this->user()));
+			}
+
+			return new JSONResponse($track->toShivaApi($this->urlGenerator, $this->l10n));
 		} catch (BusinessLayerException $e) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND);
 		}

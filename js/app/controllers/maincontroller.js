@@ -239,7 +239,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 		$rootScope.$emit('hideDetails');
 	};
 
-	function scrollOffset() {
+	$scope.scrollOffset = function() {
 		let controls = document.getElementById('controls');
 		let offset = controls?.offsetHeight ?? 0;
 		if (OCA.Music.Utils.getScrollContainer()[0] !== document.getElementById('app-content')) {
@@ -247,14 +247,14 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 			offset += header?.offsetHeight;
 		}
 		return offset;
-	}
+	};
 
 	$scope.scrollToItem = function(itemId, animationTime = 500) {
 		if (itemId) {
 			let container = OCA.Music.Utils.getScrollContainer();
 			let element = $('#' + itemId);
 			if (container && element) {
-				container.scrollToElement(element, scrollOffset(), animationTime);
+				container.scrollToElement(element, $scope.scrollOffset(), animationTime);
 			}
 		}
 	};
@@ -347,7 +347,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 
 	// Test if element is at least partially within the view-port
 	function isElementInViewPort(el) {
-		return inViewService.isElementInViewPort(el, -scrollOffset());
+		return inViewService.isElementInViewPort(el, -$scope.scrollOffset());
 	}
 
 	function setMasterLayout(classes) {

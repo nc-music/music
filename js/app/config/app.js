@@ -10,7 +10,7 @@
  * @copyright Pauli Järvinen 2016 - 2024
  */
 
-angular.module('Music', ['restangular', 'duScroll', 'gettext', 'ngRoute', 'ngSanitize', 'ang-drag-drop'])
+angular.module('Music', ['restangular', 'duScroll', 'gettext', 'ngRoute', 'ngSanitize', 'ang-drag-drop', 'vs-repeat'])
 	.config(['RestangularProvider', '$routeProvider', '$locationProvider', '$compileProvider',
 		function (RestangularProvider, $routeProvider, $locationProvider, $compileProvider) {
 

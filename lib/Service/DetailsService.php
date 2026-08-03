@@ -35,8 +35,8 @@ class DetailsService {
 			unset($comments['picture']);
 
 			// cleanup strings from invalid characters
-			\array_walk($audio, [$this, 'sanitizeString']);
-			\array_walk($comments, [$this, 'sanitizeString']);
+			\array_walk_recursive($audio, [$this, 'sanitizeString']);
+			\array_walk_recursive($comments, [$this, 'sanitizeString']);
 
 			$result = [
 				'fileinfo' => $audio,

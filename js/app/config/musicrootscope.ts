@@ -17,4 +17,5 @@ export interface MusicRootScope extends ng.IRootScopeService {
 	playing : boolean;
 	playingView : string;
 	loading : boolean;
+	searchMode : boolean;
 }

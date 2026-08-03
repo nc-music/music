@@ -9,18 +9,18 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2017 - 2025
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 namespace OCA\Music\Db;
 
 class TrackTest extends \PHPUnit\Framework\TestCase {
 	private $urlGenerator;
+	private $l10n;
 
 	protected function setUp() : void {
-		$this->urlGenerator = $this->getMockBuilder('\OCP\IURLGenerator')
-			->disableOriginalConstructor()
-			->getMock();
+		$this->urlGenerator = $this->getMockBuilder(\OCP\IURLGenerator::class)->getMock();
+		$this->l10n = $this->getMockBuilder(\OCP\IL10N::class)->getMock();
 	}
 
 	public function testToShivaApi() {
@@ -50,6 +50,6 @@ class TrackTest extends \PHPUnit\Framework\TestCase {
 			'bitrate' => 123,
 			'slug'    => 'the-title',
 			'uri'     => 'someUrl'
-		], $track->toShivaApi($this->urlGenerator));
+		], $track->toShivaApi($this->urlGenerator, $this->l10n));
 	}
 }

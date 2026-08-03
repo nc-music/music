@@ -170,7 +170,7 @@ class SubsonicController extends ApiController {
 			if (!empty($reflection->getAttributes(SubsonicAPI::class))) {
 				$parameterExtractor = new RequestParameterExtractor($this->request);
 				try {
-					$parameterValues = $parameterExtractor->getParametersForMethod($this, $method);
+					$parameterValues = $parameterExtractor->getParametersForMethod($reflection);
 				} catch (RequestParameterExtractorException $ex) {
 					return $this->subsonicErrorResponse(10, $ex->getMessage());
 				}
@@ -1401,6 +1401,7 @@ class SubsonicController extends ApiController {
 			'sortName'      => $this->nameWithoutArticle($artist->getName()) ?? '', // OpenSubsonic
 			'mediaType'     => 'artist', // OpenSubsonic, only specified for the "old" API but we don't separate the APIs here
 			'roles'         => $artist->getRoles(), // OpenSubsonic
+			'musicBrainzId' => $artist->getMbid(), // OpenSubsonic
 		];
 
 		if (!empty($artist->getCoverFileId())) {
@@ -1435,6 +1436,7 @@ class SubsonicController extends ApiController {
 		$result['name'] = $album->getNameString($this->l10n);
 		$result['songCount'] = $this->trackBusinessLayer->countByAlbum($album->getId());
 		$result['duration'] = $this->trackBusinessLayer->totalDurationOfAlbum($album->getId());
+		$result['isCompilation'] = $album->getCompilation(); // OpenSubsonic
 
 		return $result;
 	}
@@ -1457,6 +1459,7 @@ class SubsonicController extends ApiController {
 			'genre'         => \implode(', ', $genres) ?: null,
 			'genres'        => \array_map(fn ($name) => ['name' => $name], $genres), // OpenSubsonic
 			'sortName'      => $this->nameWithoutArticle($album->getName()) ?? '', // OpenSubsonic
+			'musicBrainzId' => $album->getMbid(), // OpenSubsonic
 		];
 	}
 

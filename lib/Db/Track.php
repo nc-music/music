@@ -42,6 +42,8 @@ use OCP\IURLGenerator;
  * @method void setMimetype(string $mimetype)
  * @method ?string getMbid()
  * @method void setMbid(?string $mbid)
+ * @method ?string getMbidRelTrack()
+ * @method void setMbidRelTrack(?string $mbid)
  * @method ?string getStarred()
  * @method void setStarred(?string $timestamp)
  * @method int getRating()
@@ -81,7 +83,8 @@ class Track extends Entity {
 	public int $fileId = 0;
 	public ?int $bitrate = null;
 	public string $mimetype = '';
-	public ?string $mbid = null;
+	public ?string $mbid = null; // MusicBrainz Recording Id
+	public ?string $mbidRelTrack = null; // MusicBrainz Release Track Id
 	public ?string $starred = null;
 	public int $rating = 0;
 	public ?int $genreId = null;
@@ -104,6 +107,7 @@ class Track extends Entity {
 
 	// the rest of the variables are injected separately when needed
 	private ?Album $album = null;
+	private ?Artist $artist = null;
 	private ?int $numberOnPlaylist = null;
 	private ?string $folderPath = null;
 	private ?string $lyrics = null;
@@ -134,6 +138,14 @@ class Track extends Entity {
 
 	public function setAlbum(?Album $album) : void {
 		$this->album = $album;
+	}
+
+	public function getArtist() : ?Artist {
+		return $this->artist;
+	}
+
+	public function setArtist(?Artist $artist) : void {
+		$this->artist = $artist;
 	}
 
 	public function getNumberOnPlaylist() : ?int {
@@ -208,12 +220,15 @@ class Track extends Entity {
 		];
 	}
 
-	public function toShivaApi(IURLGenerator $urlGenerator) : array {
+	/**
+	 * @param ?IL10N $l10n Passing null will prevent the "full tree" formatting even when $artist and/or $album are present.
+	 */
+	public function toShivaApi(IURLGenerator $urlGenerator, ?IL10N $l10n) : array {
 		return [
 			'title'   => $this->getTitle(),
 			'ordinal' => $this->getAdjustedTrackNumber(),
-			'artist'  => $this->getArtistWithUri($urlGenerator),
-			'album'   => $this->getAlbumWithUri($urlGenerator),
+			'artist'  => ($this->artist && $l10n) ? $this->artist->toShivaApi($urlGenerator, $l10n) : $this->getArtistWithUri($urlGenerator),
+			'album'   => ($this->album && $l10n) ? $this->album->toShivaApi($urlGenerator, $l10n) : $this->getAlbumWithUri($urlGenerator),
 			'length'  => $this->getLength(),
 			'files'   => [$this->getMimetype() => $urlGenerator->linkToRoute(
 				'music.musicApi.download',
@@ -267,6 +282,7 @@ class Track extends Entity {
 			'mode'                  => null, // cbr/vbr
 			'rate'                  => null, // sample rate [Hz]
 			'comment'               => $this->getComment() ?: null,
+			'mbid'                  => $this->getMbid(),
 			'replaygain_album_gain' => null,
 			'replaygain_album_peak' => null,
 			'replaygain_track_gain' => null,
@@ -343,6 +359,7 @@ class Track extends Entity {
 			'playCount'       => $this->getPlayCount(),
 			'played'          => Util::formatZuluDateTime($this->getLastPlayed()) ?? '', // OpenSubsonic
 			'sortName'        => StringUtil::splitPrefixAndBasename($this->getTitle(), $ignoredArticles)['basename'], // OpenSubsonic
+			'musicBrainzId'   => $this->getMbid(), // OpenSubsonic
 		];
 	}
 

@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2017 - 2021
+ * @copyright Pauli Järvinen 2017 - 2026
  */
 
 namespace OCA\Music\BusinessLayer;
@@ -20,6 +20,7 @@ class ArtistBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 	private $mapper;
 	private $logger;
 	private $artistBusinessLayer;
+	private $userId;
 
 	protected function setUp() : void {
 		$this->mapper = $this->getMockBuilder('\OCA\Music\Db\ArtistMapper')
@@ -68,10 +69,10 @@ class ArtistBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$artist->setId(1);
 
 		$this->mapper->expects($this->once())
-			->method('updateOrInsert')
+			->method('insertOrUpdate')
 			->will($this->returnValue($artist));
 
-		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, $this->userId);
+		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, null, $this->userId);
 		$this->assertEquals($artist, $result);
 	}
 }

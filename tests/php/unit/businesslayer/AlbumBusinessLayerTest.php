@@ -9,7 +9,7 @@
  * @author Morris Jobke <hey@morrisjobke.de>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2013, 2014
- * @copyright Pauli Järvinen 2016 - 2025
+ * @copyright Pauli Järvinen 2016 - 2026
  */
 
 namespace OCA\Music\BusinessLayer;
@@ -252,13 +252,12 @@ class AlbumBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 	public function testAddOrUpdateAlbum() {
 		$name = 'test';
 		$artistId = 1;
-		$disc = 1;
 
 		$this->mapper->expects($this->once())
 			->method('updateOrInsert')
 			->will($this->returnValue($this->albums[0]));
 
-		$album = $this->albumBusinessLayer->addOrUpdateAlbum($name, $disc, $artistId, $this->userId);
+		$album = $this->albumBusinessLayer->addOrUpdateAlbum($name, $artistId, false, false, null, null, $this->userId);
 		$this->assertEquals($this->albums[0], $album);
 	}
 

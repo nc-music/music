@@ -25,7 +25,7 @@ use OCP\IDBConnection;
  */
 class ArtistMapper extends BaseMapper {
 	public function __construct(IDBConnection $db, IConfig $config) {
-		parent::__construct($db, $config, 'music_artists', Artist::class, 'name', ['user_id', 'hash']);
+		parent::__construct($db, $config, 'music_artists', Artist::class, 'name', ['user_id', 'hash', 'mbid']);
 	}
 
 	/**
@@ -238,26 +238,28 @@ class ArtistMapper extends BaseMapper {
 		// The extra subquery "mysqlhack" seen around some nested queries is needed in order for these to not be insanely slow on MySQL.
 		// In case of 'recent_played', the MySQL 5.5.62 errored with "1235 This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'" without the extra subquery.
 		$condForRule = [
-			'album'         => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_albums` `a` ON `t`.`album_id` = `a`.`id` WHERE $conv(`a`.`name`) $sqlOp $conv(?))",
-			'song'          => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $conv(`t`.`title`) $sqlOp $conv(?))",
-			'songrating'    => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE `t`.`rating` $sqlOp ?)",
-			'albumrating'   => "`*PREFIX*music_artists`.`id` IN (SELECT `album_artist_id` from `*PREFIX*music_albums` `al` WHERE `al`.`rating` $sqlOp ?)",
-			'played_times'  => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`play_count`) $sqlOp ?) mysqlhack)",
-			'last_play'     => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp ?) mysqlhack)",
-			'myplayed'      => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp) mysqlhack)", // operator "IS NULL" or "IS NOT NULL"
-			'album_count'   => "{$this->sqlCoalesce('`ownAlbumCount`', '0')} $sqlOp ?",
-			'song_count'    => "{$this->sqlCoalesce('`trackCount`', '0')} $sqlOp ?",
-			'time'          => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`length`) $sqlOp ?) mysqlhack)",
-			'artist_genre'  => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `artist_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
-			'song_genre'    => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE $conv(`g`.`name`) $sqlOp $conv(?))",
-			'no_genre'      => '`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE `g`.`name` ' . (($sqlOp == 'IS NOT NULL') ? '=' : '!=') . ' "")',
-			'playlist'      => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $sqlOp EXISTS (SELECT 1 from `*PREFIX*music_playlists` `p` WHERE `p`.`id` = ? AND `p`.`track_ids` LIKE " . $this->sqlConcat("'%|'", '`t`.`id`', "'|%'") . '))',
-			'playlist_name' => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE EXISTS (SELECT 1 from `*PREFIX*music_playlists` `p` WHERE $conv(`p`.`name`) $sqlOp $conv(?) AND `p`.`track_ids` LIKE " . $this->sqlConcat("'%|'", '`t`.`id`', "'|%'") . '))',
-			'file'          => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*filecache` `f` ON `t`.`file_id` = `f`.`fileid` WHERE $conv(`f`.`name`) $sqlOp $conv(?))",
-			'recent_played' => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM (SELECT `artist_id`, MAX(`last_played`) FROM `*PREFIX*music_tracks` WHERE `user_id` = ? GROUP BY `artist_id` ORDER BY MAX(`last_played`) DESC LIMIT $sqlOp) mysqlhack)",
-			'mbid_song'     => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE `t`.`mbid` $sqlOp ?)",
-			'mbid_album'    => "`*PREFIX*music_artists`.`id` IN (SELECT `album_artist_id` from `*PREFIX*music_albums` `al` WHERE `al`.`mbid` $sqlOp ?)",
-			'has_image'     => "`cover_file_id` $sqlOp" // operator "IS NULL" or "IS NOT NULL"
+			'album'            => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_albums` `a` ON `t`.`album_id` = `a`.`id` WHERE $conv(`a`.`name`) $sqlOp $conv(?))",
+			'song'             => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $conv(`t`.`title`) $sqlOp $conv(?))",
+			'songrating'       => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE `t`.`rating` $sqlOp ?)",
+			'albumrating'      => "`*PREFIX*music_artists`.`id` IN (SELECT `album_artist_id` from `*PREFIX*music_albums` `al` WHERE `al`.`rating` $sqlOp ?)",
+			'played_times'     => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`play_count`) $sqlOp ?) mysqlhack)",
+			'last_play'        => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp ?) mysqlhack)",
+			'myplayed'         => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp) mysqlhack)", // operator "IS NULL" or "IS NOT NULL"
+			'album_count'      => "{$this->sqlCoalesce('`ownAlbumCount`', '0')} $sqlOp ?",
+			'song_count'       => "{$this->sqlCoalesce('`trackCount`', '0')} $sqlOp ?",
+			'time'             => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`length`) $sqlOp ?) mysqlhack)",
+			'artist_genre'     => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `artist_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
+			'song_genre'       => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE $conv(`g`.`name`) $sqlOp $conv(?))",
+			'no_genre'         => '`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE `g`.`name` ' . (($sqlOp == 'IS NOT NULL') ? '=' : '!=') . ' "")',
+			'playlist'         => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $sqlOp EXISTS (SELECT 1 from `*PREFIX*music_playlists` `p` WHERE `p`.`id` = ? AND `p`.`track_ids` LIKE " . $this->sqlConcat("'%|'", '`t`.`id`', "'|%'") . '))',
+			'playlist_name'    => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE EXISTS (SELECT 1 from `*PREFIX*music_playlists` `p` WHERE $conv(`p`.`name`) $sqlOp $conv(?) AND `p`.`track_ids` LIKE " . $this->sqlConcat("'%|'", '`t`.`id`', "'|%'") . '))',
+			'file'             => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*filecache` `f` ON `t`.`file_id` = `f`.`fileid` WHERE $conv(`f`.`name`) $sqlOp $conv(?))",
+			'recent_played'    => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM (SELECT `artist_id`, MAX(`last_played`) FROM `*PREFIX*music_tracks` WHERE `user_id` = ? GROUP BY `artist_id` ORDER BY MAX(`last_played`) DESC LIMIT $sqlOp) mysqlhack)",
+			'mbid_song'        => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $conv(`t`.`mbid`) $sqlOp $conv(?))",
+			'mbid_rel_track'   => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` WHERE $conv(`t`.`mbid_rel_track`) $sqlOp $conv(?))",
+			'mbid_album'       => "`*PREFIX*music_artists`.`id` IN (SELECT `album_artist_id` from `*PREFIX*music_albums` `al` WHERE $conv(`al`.`mbid`) $sqlOp (?))",
+			'mbid_album_group' => "`*PREFIX*music_artists`.`id` IN (SELECT `album_artist_id` from `*PREFIX*music_albums` `al` WHERE $conv(`al`.`mbid_group`) $sqlOp (?))",
+			'has_image'        => "`cover_file_id` $sqlOp" // operator "IS NULL" or "IS NOT NULL"
 		];
 
 		// Add alias rules
@@ -267,5 +269,48 @@ class ArtistMapper extends BaseMapper {
 		$condForRule['mbid_artist'] = parent::advFormatSqlCondition('mbid', $sqlOp, $conv);
 
 		return $condForRule[$rule] ?? parent::advFormatSqlCondition($rule, $sqlOp, $conv);
+	}
+
+	/** @return array<array{id: int, mbid: ?int}> */
+	public function findIdsAndMbidsByHash(string $hash, string $userId) : array {
+		$sql = 'SELECT `id`, `mbid` FROM `*PREFIX*music_artists` WHERE `hash` = ? AND `user_id` = ?';
+		$result = $this->execute($sql, [$hash, $userId]);
+		$rows = $result->fetchAll();
+		$result->closeCursor();
+		return $rows;
+	}
+
+	public const VARIOUS_ARTISTS_MBID = '89ad4ac3-39f7-470e-963a-56509c546377';
+
+	/**
+	 * Get ID of the artificial artist "Various Artists". The artist is created if not already present in the DB.
+	 * Note that a few bands actually named "Various Artists" have existed. The returned artist is not one of those
+	 * if this can be detected from the MBID.
+	 */
+	public function getVariousArtistsId(string $userId) : int {
+		$name = 'Various Artists';
+		$hash = \hash('md5', \mb_strtolower($name));
+
+		$nameMatches = $this->findIdsAndMbidsByHash($hash, $userId);
+		if ($mbidMatch = ArrayUtil::find($nameMatches, fn ($row) => $row['mbid'] === self::VARIOUS_ARTISTS_MBID)) {
+			// found the correct artist
+			return $mbidMatch['id'];
+		} else {
+			$artist = new Artist();
+			$artist->setName($name);
+			$artist->setUserId($userId);
+			$artist->setMbid(self::VARIOUS_ARTISTS_MBID);
+			$artist->setHash($hash);
+
+			if ($nullMbidMatch = ArrayUtil::find($nameMatches, fn ($row) => $row['mbid'] === null)) {
+				// found an artist with the same name but no MBID; update it to have the correct MBID
+				$artist->setId($nullMbidMatch['id']);
+				$artist = $this->update($artist);
+			} else {
+				// no artist with the same name; insert a new one
+				$artist = $this->insertOrUpdate($artist);
+			}
+			return $artist->getId();
+		}
 	}
 }
