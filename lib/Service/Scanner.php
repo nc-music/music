@@ -135,18 +135,40 @@ class Scanner extends PublicEmitter {
 	}
 
 	private function updateImage(File $file, string $userId) : void {
-		$coverFileId = $file->getId();
-		$parentFolderId = $file->getParent()->getId();
-		if ($this->albumBusinessLayer->updateFolderCover($coverFileId, $parentFolderId)) {
-			$this->logger->debug('updateImage - the image was set as cover for some album(s)');
-			$this->cache->remove($userId, 'collection');
-		}
-
+		// Resolve the artist covers first, as whether this image depicts an artist decides if it may also
+		// be used as the album cover of the containing folder.
 		$artistIds = $this->artistBusinessLayer->updateCover($file, $userId, $this->userL10N($userId));
 		foreach ($artistIds as $artistId) {
 			$this->logger->debug("updateImage - the image was set as cover for the artist $artistId");
 			$this->coverService->removeArtistCoverFromCache($artistId, $userId);
 		}
+
+		// An image named after an artist is a photo of that artist, and letting it double as the album cover
+		// is what makes an uploaded artist photo look like it replaced the cover. Use it for the album only
+		// when the folder provides no other image, as having no album cover at all is the worse outcome.
+		if (empty($artistIds) || !self::folderHasOtherImage($file)) {
+			$coverFileId = $file->getId();
+			$parentFolderId = $file->getParent()->getId();
+			if ($this->albumBusinessLayer->updateFolderCover($coverFileId, $parentFolderId)) {
+				$this->logger->debug('updateImage - the image was set as cover for some album(s)');
+				$this->cache->remove($userId, 'collection');
+			}
+		} else {
+			$this->logger->debug('updateImage - artist image not used as album cover, the folder has other images');
+		}
+	}
+
+	/**
+	 * Check whether the parent folder of the given image contains at least one other image file
+	 */
+	private static function folderHasOtherImage(File $file) : bool {
+		foreach ($file->getParent()->getDirectoryListing() as $node) {
+			if ($node instanceof File && $node->getId() !== $file->getId()
+					&& StringUtil::startsWith($node->getMimeType(), 'image')) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
