@@ -18,5 +18,9 @@ use OCA\Music\Db\Track;
 
 interface IScrobbler {
 	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null) : void;
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null) : void;
+	/**
+	 * @param ?string $client Name of the application reporting the play, when it is known. The external
+	 *                        services have no use for it, but it is part of what the Ampache API reports back.
+	 */
+	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void;
 }

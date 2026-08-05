@@ -34,7 +34,6 @@ use OCA\Music\Db\Album;
 use OCA\Music\Db\AmpacheSession;
 use OCA\Music\Db\Artist;
 use OCA\Music\Db\Bookmark;
-use OCA\Music\Db\Cache;
 use OCA\Music\Db\Entity;
 use OCA\Music\Db\Genre;
 use OCA\Music\Db\MatchMode;
@@ -130,7 +129,6 @@ class AmpacheController extends ApiController {
 		private Random $random,
 		private Logger $logger,
 		private IScrobbler $scrobbler,
-		private Cache $cache,
 	) {
 		parent::__construct($appName, $request, 'POST, GET', 'Authorization, Content-Type, Accept, X-Requested-With');
 
@@ -1331,73 +1329,84 @@ class AmpacheController extends ApiController {
 	}
 
 	/**
-	 * Cache key holding the now playing state of one user. The state is inherently transient and carries its
-	 * own expiry time, so it is kept in the cache rather than in a table of its own.
+	 * How long a track of unknown length is reported as playing by the action `now_playing`. Only the media
+	 * scanned without a duration and the live streams end up needing this.
 	 */
-	private const NOW_PLAYING_KEY = 'ampache_now_playing';
+	private const NOW_PLAYING_FALLBACK_DURATION = 300;
 
+	/**
+	 * Report the playback state of the client. The state is stored in the same place where the web UI and the
+	 * Subsonic API keep theirs, so that whatever the user plays is visible through all of them.
+	 *
+	 * Only the type `song` is supported: the shared "now playing" state of this app is track-based, and the
+	 * podcast episodes of this app are not tracks. The type `video` has no counterpart here at all.
+	 */
 	#[AmpacheAPI]
 	protected function player(int $filter, string $type = 'song', string $state = 'play', ?int $time = null, ?string $client = null) : array {
 		$type = \mb_strtolower($type);
 		$state = \mb_strtolower($state);
 
-		// The type `video` of the original Ampache server has no counterpart in this app
-		if (!\in_array($type, ['song', 'podcast_episode'])) {
+		if ($type !== 'song') {
 			throw new AmpacheException("Unsupported type '$type'", 400);
 		}
 		if (!\in_array($state, ['play', 'stop'])) {
 			throw new AmpacheException("Invalid state '$state'", 400);
 		}
 
-		$userId = $this->userId();
-
 		if ($state === 'play') {
+			$track = $this->trackBusinessLayer->find($filter, $this->userId());
+			// The argument `time` is the elapsed play time, and the play has hence started that many seconds
+			// ago. Anchoring the timestamp on the start keeps the expiry time below correct.
 			$position = \max($time ?? 0, 0);
+			$timeOfPlay = new \DateTime('@' . (\time() - $position));
 
-			if ($type === 'song') {
-				$track = $this->trackBusinessLayer->find($filter, $userId);
-				$duration = $track->getLength() ?? 0;
-				// Report to the scrobbling services, which have their own notion of the now playing track
-				$this->scrobbler->setNowPlaying($track);
-			} else {
-				$duration = $this->podcastEpisodeBusinessLayer->find($filter, $userId)->getDuration() ?? 0;
-			}
-
-			$this->cache->set($userId, self::NOW_PLAYING_KEY, (string)\json_encode([
-				'id'     => $filter,
-				'type'   => $type,
-				'client' => $client ?? 'api',
-				// Like on the original Ampache server, the entry expires by itself when the media would have
-				// played to its end, so that a client which stops without telling us leaves nothing behind
-				'expire' => \time() + \max($duration - $position, 0)
-			]));
+			// This reaches the external scrobbling services and the shared "now playing" state alike, as the
+			// TrackBusinessLayer is registered as one of the scrobblers.
+			$this->scrobbler->setNowPlaying($track, $timeOfPlay, $client);
 		} else {
-			$this->cache->remove($userId, self::NOW_PLAYING_KEY);
+			$this->trackBusinessLayer->clearNowPlaying($this->userId());
 		}
 
 		return $this->now_playing();
 	}
 
+	/**
+	 * Note: The original Ampache server reports what every user of the instance is playing, but we return only
+	 * the data of the requesting user. Publishing one user's activity to the others would need an opt-in setting
+	 * of its own, and the same call of the Subsonic API is limited in the same way for the same reason.
+	 */
 	#[AmpacheAPI]
 	protected function now_playing() : array {
 		\assert($this->session !== null);
 		$userId = $this->userId();
 
-		$json = $this->cache->get($userId, self::NOW_PLAYING_KEY);
-		$entry = ($json !== null) ? \json_decode($json, true) : null;
+		try {
+			$nowPlaying = $this->trackBusinessLayer->getNowPlaying($userId);
+		} catch (BusinessLayerException $e) {
+			// malformed data or a track which no longer exists; nothing is playing as far as we are concerned
+			$this->logger->warning($e->getMessage());
+			$nowPlaying = null;
+		}
 
-		if (!\is_array($entry)) {
+		if ($nowPlaying === null) {
 			return ['now_playing' => []];
-		} elseif ($entry['expire'] <= \time()) {
-			$this->cache->remove($userId, self::NOW_PLAYING_KEY);
+		}
+
+		$track = $nowPlaying['track'];
+		// Like on the original Ampache server, the entry expires by itself when the track would have played to
+		// its end, so that a client which stops without telling us leaves nothing behind. The state itself is
+		// left in place, as it is shared with the Subsonic API which reports it regardless of its age.
+		// A track of unknown length would expire immediately, and gets the fallback window instead.
+		$expire = $nowPlaying['timeOfPlay'] + ($track->getLength() ?: self::NOW_PLAYING_FALLBACK_DURATION);
+		if ($expire <= \time()) {
 			return ['now_playing' => []];
 		}
 
 		return ['now_playing' => [[
-			'id'     => (string)$entry['id'],
-			'type'   => $entry['type'],
-			'client' => $entry['client'],
-			'expire' => $entry['expire'],
+			'id'     => (string)$track->getId(),
+			'type'   => 'song',
+			'client' => $nowPlaying['client'] ?? 'api',
+			'expire' => $expire,
 			'user'   => [
 				'id'       => (string)$this->session->getAmpacheUserId(),
 				'username' => $userId

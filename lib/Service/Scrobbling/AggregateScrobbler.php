@@ -32,9 +32,9 @@ class AggregateScrobbler implements IScrobbler {
 		}
 	}
 
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null): void {
+	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null): void {
 		foreach ($this->scrobblers as $scrobbler) {
-			$scrobbler->setNowPlaying($track, $timeOfPlay);
+			$scrobbler->setNowPlaying($track, $timeOfPlay, $client);
 		}
 	}
 }
