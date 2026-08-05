@@ -3,6 +3,8 @@
 ### Added
 - Support for Nextcloud 35 (tested on rc2)
   [#144](https://github.com/nc-music/music/issues/144)
+  * The action `browse` now identifies the catalogs by these IDs instead of by their names, and accepts the argument `catalog` to narrow the listed children. The names are still accepted wherever an ID is
+  * The action `browse` renders its IDs as strings on the JSON API, matching the original Ampache server, and accepts the type `album_artist` as an alias of `artist`
 - Admin settings UI to setup Last.fm API key and secret without editing `config.php` manually
   [#131](https://github.com/nc-music/music/pull/131) @mattwellss
 - Possibility to configure the default volume with the config.php key `music.default_volume`

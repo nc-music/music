@@ -442,8 +442,19 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function browse(string $type, ?string $filter, ?string $add, ?string $update, int $limit, int $offset = 0) : array {
-		// note: the argument 'catalog' is disregarded in our implementation
+	protected function browse(
+			string $type, ?string $filter, ?string $add, ?string $update, int $limit, int $offset = 0, ?string $catalog = null) : array {
+		// The argument `catalog` narrows the children instead of addressing the parent. Both of our catalogs are
+		// synthetic and each entity type belongs to exactly one of them, so this filter either lets everything
+		// through or excludes everything.
+		$filterCatalogId = null;
+		if (!empty($catalog)) {
+			$filterCatalogId = self::resolveCatalogId($catalog);
+			if ($filterCatalogId === null) {
+				throw new AmpacheException("Catalog '$catalog' not found", 404);
+			}
+		}
+
 		if ($type == 'root') {
 			$catalogId = null;
 			$childType = 'catalog';
@@ -453,7 +464,8 @@ class AmpacheController extends ApiController {
 			);
 		} else {
 			if ($type == 'catalog') {
-				$catalogId = self::resolveCatalogId($filter);
+				// the catalog may be addressed with the argument `catalog` when there is no `filter`
+				$catalogId = self::resolveCatalogId(empty($filter) ? $catalog : $filter);
 				$parentId = null;
 
 				switch ($catalogId) {
@@ -474,7 +486,11 @@ class AmpacheController extends ApiController {
 					case 'podcast':
 						$childType = 'podcast_episode';
 						break;
+					// The original Ampache browses a music catalog with the type `album_artist` while still
+					// reporting the child type as `artist`. We list the artists having albums in any case,
+					// so the two types are equivalent for us.
 					case 'artist':
+					case 'album_artist':
 						$childType = 'album';
 						break;
 					case 'album':
@@ -485,18 +501,29 @@ class AmpacheController extends ApiController {
 				}
 			}
 
-			$businessLayer = $this->getBusinessLayer($childType);
-			[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
-			$children = $businessLayer->findAllIdsAndNames(
-				$this->userId(), $this->l10n, $parentId, $limit, $offset, $addMin, $addMax, $updateMin, $updateMax, true);
+			// Each of our entity types belongs to exactly one of the synthetic catalogs, so a request for the
+			// other catalog has nothing to return.
+			if ($filterCatalogId !== null && $type != 'catalog' && $filterCatalogId !== $catalogId) {
+				$children = [];
+			} else {
+				$businessLayer = $this->getBusinessLayer($childType);
+				[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
+				$children = $businessLayer->findAllIdsAndNames(
+					$this->userId(), $this->l10n, $parentId, $limit, $offset, $addMin, $addMax, $updateMin, $updateMax, true);
+			}
 		}
 
+		// The original Ampache renders all these IDs as strings, which is visible on the JSON API. A null is
+		// rendered as an empty string, matching its `(string)` casts.
 		return [
-			'catalog_id'  => $catalogId,
-			'parent_id'   => $filter,
+			'catalog_id'  => (string)$catalogId,
+			'parent_id'   => (string)$filter,
 			'parent_type' => $type,
 			'child_type'  => $childType,
-			'browse'      => \array_map(fn ($idAndName) => $idAndName + $this->prefixAndBaseName($idAndName['name']), $children)
+			'browse'      => \array_map(
+				fn ($idAndName) => ['id' => (string)$idAndName['id'], 'name' => $idAndName['name']]
+							+ $this->prefixAndBaseName($idAndName['name']),
+				$children)
 		];
 	}
 
