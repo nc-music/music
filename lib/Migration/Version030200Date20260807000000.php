@@ -12,7 +12,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * Migrate the DB schema to Music v3.2.0 level from the v2.1.0 level
  */
-class Version030200Date20260804194500 extends SimpleMigrationStep {
+class Version030200Date20260807000000 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -38,6 +38,7 @@ class Version030200Date20260804194500 extends SimpleMigrationStep {
 		self::addColumnIfMissing($tracks, 'composer_id', 'integer', ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'comment', 'text', ['notnull' => false]);
 		self::addColumnIfMissing($tracks, 'mbid_rel_track', 'string', ['notnull' => false, 'length' => 36]);
+		self::addColumnIfMissing($tracks, 'scan_version', 'integer', ['notnull' => false, 'unsigned' => true]);
 
 		self::addIndexIfMissing($tracks, 'music_tracks_composer_id_idx', ['composer_id']);
 	}

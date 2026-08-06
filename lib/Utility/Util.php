@@ -161,4 +161,75 @@ class Util {
 			return \max($min, \min($input, $max));
 		}
 	}
+
+	/**
+	 * Encode an application version string into a single integer for easier comparison and storage.
+	 * The encoding is done as follows:
+	 * - major version is multiplied by 1,000,000
+	 * - minor version is multiplied by 10,000
+	 * - patch version is multiplied by 100
+	 * - pre-release versions (alpha, beta, rc) are encoded as negative offsets:
+	 *   - alpha: -90 + pre-release version number
+	 *   - beta: -60 + pre-release version number
+	 *   - rc: -30 + pre-release version number
+	 *   - no pre-release: 0
+	 * The final encoded version is the sum of these components.
+	 * There is room for 100 major versions, 100 minor versions, 100 patch versions, and 30+30+30 pre-release versions (alpha + beta + rc).
+	 *
+	 * Examples of the encoded version format:
+	 * 0.0.1-alpha0 => 00000010
+	 * 0.0.1-beta5 => 00000045
+	 * 0.0.1-rc2 => 00000072
+	 * 0.0.1 => 00000100
+	 * 0.1.0 => 00010000
+	 * 1.0.0 => 01000000
+	 * 1.2.3 => 01020300
+	 * 1.2.3-rc1 => 01020271
+	 */
+	public static function encodeVersionString(string $versionString) : int {
+		$versionParts = \explode('.', $versionString);
+		$major = (int)($versionParts[0] ?? 0);
+		$minor = (int)($versionParts[1] ?? 0);
+		$patch = (int)($versionParts[2] ?? 0);
+
+		if (\str_contains($versionString, 'alpha')) {
+			$preReleaseOffset = -90;
+		} elseif (\str_contains($versionString, 'beta')) {
+			$preReleaseOffset = -60;
+		} elseif (\str_contains($versionString, 'rc')) {
+			$preReleaseOffset = -30;
+		} else {
+			$preReleaseOffset = 0;
+		}
+		$preReleaseVersion = \preg_match('/(alpha|beta|rc)[.-]?(\d+)$/', $versionString, $matches) ? (int)$matches[2] : 0;
+		return ($major * 1000000) + ($minor * 10000) + ($patch * 100) + $preReleaseOffset + $preReleaseVersion;
+	}
+
+	/**
+	 * Decode an encoded application version integer back into a version string.
+	 * @see self::encodeVersionString for the encoding scheme
+	 */
+	public static function decodeVersionInt(int $versionInt) : string {
+		$major = (int)($versionInt / 1000000);
+		$minor = (int)(($versionInt % 1000000) / 10000);
+		$patch = (int)(($versionInt % 10000) / 100);
+
+		$preReleaseVer = $versionInt % 100;
+		if ($preReleaseVer === 0) {
+			return "$major.$minor.$patch";
+		} else {
+			$patch += 1;
+			if ($preReleaseVer < 40) {
+				$preReleaseType = 'alpha';
+				$preReleaseVer -= 10;
+			} elseif ($preReleaseVer < 70) {
+				$preReleaseType = 'beta';
+				$preReleaseVer -= 40;
+			} else {
+				$preReleaseType = 'rc';
+				$preReleaseVer -= 70;
+			}
+			return "$major.$minor.$patch-$preReleaseType$preReleaseVer";
+		}
+	}
 }

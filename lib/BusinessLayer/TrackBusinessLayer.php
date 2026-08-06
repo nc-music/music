@@ -24,8 +24,10 @@ use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
 use OCA\Music\Service\FileSystemService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
+use OCA\Music\Utility\AppInfo;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\StringUtil;
+use OCA\Music\Utility\Util;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
@@ -181,6 +183,17 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	}
 
 	/**
+	 * Returns file IDs of all indexed tracks of the user which have been scanned before the latest DB schema change.
+	 * These need to be rescanned to take full advantage of the latest features.
+	 * Optionally, limit the search to files residing (directly or indirectly) in the given folder.
+	 * @return int[]
+	 */
+	public function findFileIdsWithOldScanVersion(string $userId, ?int $folderId = null) : array {
+		$parentIds = ($folderId !== null) ? $this->fileSystemService->findAllDescendantFolders($folderId) : null;
+		return $this->mapper->findFileIdsScannedBeforeVersion($userId, Util::encodeVersionString(Library::DB_SCHEMA_VERSION), $parentIds);
+	}
+
+	/**
 	 * Returns all genre IDs associated with the given artist
 	 * @return int[]
 	 */
@@ -329,6 +342,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		$track->setDirty(0);
 		$track->setMbid(StringUtil::truncate($mbid, 36)); // valid mbid is always 36 characters, prepare for invalid data
 		$track->setMbidRelTrack(StringUtil::truncate($mbidRelTrack, 36));
+		$track->setScanVersion(AppInfo::getEncodedVersion());
 		return $this->mapper->updateOrInsert($track);
 	}
 
@@ -421,4 +435,5 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			$this->mapper->markTracksDirty($idChunk, $userIds);
 		}
 	}
+
 }

@@ -528,13 +528,27 @@ class Scanner extends PublicEmitter {
 	 *
 	 * @return int[]
 	 */
-	public function getDirtyMusicFileIds(string $userId, ?string $path = null) : array {
+	private function getDirtyMusicFileIds(string $userId, ?string $path = null) : array {
 		try {
 			$folderId = $this->pathInLibToFolderId($userId, $path);
 		} catch (\OCP\Files\NotFoundException $e) {
 			return [];
 		}
 		return $this->trackBusinessLayer->findDirtyFileIds($userId, $folderId);
+	}
+
+	/**
+	 * Find already scanned music files which were scanned on an older version of the software and may need to be rescanned for new metadata fields
+	 *
+	 * @return int[]
+	 */
+	private function getFileIdsScannedOnOldSoftware(string $userId, ?string $path = null) : array {
+		try {
+			$folderId = $this->pathInLibToFolderId($userId, $path);
+		} catch (\OCP\Files\NotFoundException $e) {
+			return [];
+		}
+		return $this->trackBusinessLayer->findFileIdsWithOldScanVersion($userId, $folderId);
 	}
 
 	/**
@@ -597,17 +611,18 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array{unscannedFiles: int[], obsoleteFiles: int[], dirtyFiles: int[], scannedCount: int}
+	 * @return array{unscannedFiles: int[], obsoleteFiles: int[], dirtyFiles: int[], filesScannedOnOldSw: int[], scannedCount: int}
 	 */
 	public function getStatusOfLibraryFiles(string $userId, ?string $path = null) : array {
 		$scannedIds = $this->getScannedFileIds($userId, $path);
 		$availableIds = $this->getAllMusicFileIds($userId, $path);
 
 		return [
-			'unscannedFiles' => ArrayUtil::diff($availableIds, $scannedIds),
-			'obsoleteFiles'  => ArrayUtil::diff($scannedIds, $availableIds),
-			'dirtyFiles'     => $this->getDirtyMusicFileIds($userId, $path),
-			'scannedCount'   => \count($scannedIds)
+			'unscannedFiles'      => ArrayUtil::diff($availableIds, $scannedIds),
+			'obsoleteFiles'       => ArrayUtil::diff($scannedIds, $availableIds),
+			'dirtyFiles'          => $this->getDirtyMusicFileIds($userId, $path),
+			'filesScannedOnOldSw' => $this->getFileIdsScannedOnOldSoftware($userId, $path),
+			'scannedCount'        => \count($scannedIds)
 		];
 	}
 

@@ -181,6 +181,30 @@ class TrackMapper extends BaseMapper {
 	}
 
 	/**
+	 * Find file IDs of files scanned before the given version. Optionally, limit to files which are direct children of the given folders.
+	 * @param ?int[] $parentIds
+	 * @return int[]
+	 */
+	public function findFileIdsScannedBeforeVersion(string $userId, int $version, ?array $parentIds = null) : array {
+		$sql = "SELECT `file_id`
+				FROM `*PREFIX*music_tracks`
+				WHERE `user_id` = ?
+				AND (`scan_version` IS NULL OR `scan_version` < ?)";
+		$params = [$userId, $version];
+
+		if (!empty($parentIds)) {
+			$sql .= ' AND `file_id` IN (SELECT `fileid` FROM `*PREFIX*filecache` WHERE `parent` IN ' . $this->questionMarks(\count($parentIds)) . ')';
+			$params = \array_merge($params, $parentIds);
+		}
+
+		$result = $this->execute($sql, $params);
+		$rows = $result->fetchAll(\PDO::FETCH_COLUMN);
+		$result->closeCursor();
+
+		return $rows;
+	}
+
+	/**
 	 * Find a track of user matching a file ID
 	 * @throws \OCP\AppFramework\Db\DoesNotExistException if not found
 	 */

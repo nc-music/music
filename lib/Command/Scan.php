@@ -19,6 +19,7 @@
 namespace OCA\Music\Command;
 
 use OCA\Music\Service\Scanner;
+use OCA\Music\Utility\ArrayUtil;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Symfony\Component\Console\Input\InputInterface;
@@ -58,6 +59,12 @@ class Scan extends BaseCommand {
 					'rescan also any previously scanned tracks'
 			)
 			->addOption(
+					'rescan-old',
+					null,
+					InputOption::VALUE_NONE,
+					'rescan also previously scanned tracks which have not been scanned with the current Music app DB schema'
+			)
+			->addOption(
 					'skip-dirty',
 					null,
 					InputOption::VALUE_NONE,
@@ -84,8 +91,8 @@ class Scan extends BaseCommand {
 			$this->scanner->listen(Scanner::class, 'exclude', fn ($path) => $output->writeln("!! Removing <info>$path</info>"));
 		}
 
-		if ($input->getOption('rescan') && $input->getOption('skip-dirty')) {
-			throw new \InvalidArgumentException('The options <error>rescan</error> and <error>skip-dirty</error> are mutually exclusive');
+		if ($input->getOption('rescan') && ($input->getOption('rescan-old') || $input->getOption('skip-dirty'))) {
+			throw new \InvalidArgumentException('The options <error>rescan</error> is mutually exclusive with <error>rescan-old</error> and <error>skip-dirty</error>');
 		}
 
 		if ($input->getOption('all')) {
@@ -98,6 +105,7 @@ class Scan extends BaseCommand {
 					$user,
 					$output,
 					$input->getOption('rescan'),
+					$input->getOption('rescan-old'),
 					$input->getOption('skip-dirty'),
 					$input->getOption('skip-art'),
 					$input->getOption('clean-obsolete'),
@@ -107,23 +115,26 @@ class Scan extends BaseCommand {
 		}
 	}
 
-	protected function scanUser(
-			string $user, OutputInterface $output, bool $rescan, bool $skipDirty, bool $skipArt,
+	private function scanUser(
+			string $user, OutputInterface $output, bool $rescan, bool $rescanOld, bool $skipDirty, bool $skipArt,
 			bool $cleanObsolete, ?string $folder, bool $debug) : void {
 
 		$output->writeln("Check library scan status for <info>$user</info>" . ($folder ? " in path '$folder'..." : '...'));
 		$startTime = \hrtime(true);
-		\extract($this->scanner->getStatusOfLibraryFiles($user, $folder)); // populate $unscannedFiles, $obsoleteFiles, $dirtyFiles, $scannedCount
+		\extract($this->scanner->getStatusOfLibraryFiles($user, $folder)); // populate $unscannedFiles, $obsoleteFiles, $dirtyFiles, $filesScannedOnOldSw, $scannedCount
 		$statusTime = (int)((\hrtime(true) - $startTime) / 1000000);
 		$unscannedCount = \count($unscannedFiles);
 		$dirtyCount = \count($dirtyFiles);
 		$obsoleteCount = \count($obsoleteFiles);
+		$oldSoftwareCount = \count($filesScannedOnOldSw);
 
 		$output->writeln("  Status got in $statusTime ms");
-		$output->writeln("  Scanned files: $scannedCount");
 		$output->writeln("  Unscanned files: $unscannedCount");
-		$output->writeln("  Dirty files: $dirtyCount" . (($dirtyCount && $skipDirty) ? ' (skipped)' : ''));
-		$output->writeln("  Obsolete files: $obsoleteCount" . (($obsoleteCount && !$cleanObsolete) ? ' (use --clean-obsolete to remove)' : ''));
+		$output->writeln("  Scanned files:");
+		$output->writeln("  - total: $scannedCount");
+		$output->writeln("  - dirty: $dirtyCount" . (($dirtyCount && $skipDirty) ? ' (skipped)' : ''));
+		$output->writeln("  - obsolete: $obsoleteCount" . (($obsoleteCount && !$cleanObsolete) ? ' (use --clean-obsolete to remove)' : ''));
+		$output->writeln("  - scanned on older DB schema: $oldSoftwareCount" . (($oldSoftwareCount && !$rescanOld) ? ' (use --rescan-old to rescan)' : ''));
 		$output->writeln('');
 
 		if ($cleanObsolete && !empty($obsoleteFiles)) {
@@ -137,10 +148,11 @@ class Scan extends BaseCommand {
 		if ($rescan) {
 			$filesToScan = $this->scanner->getAllMusicFileIds($user, $folder);
 		} else {
-			$filesToScan = $unscannedFiles;
-			if (!$skipDirty) {
-				$filesToScan = \array_merge($filesToScan, $dirtyFiles);
-			}
+			$filesToScan = ArrayUtil::unique(\array_merge(
+				$unscannedFiles,
+				$skipDirty ? [] : $dirtyFiles,
+				$rescanOld ? $filesScannedOnOldSw : []
+			));
 		}
 		$output->writeln('Total ' . \count($filesToScan) . ' files to scan' . ($folder ? " in '$folder'" : ''));
 
