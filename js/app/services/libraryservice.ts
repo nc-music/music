@@ -49,6 +49,7 @@ export interface Track extends BaseTrack {
 	folder : Folder;
 	genre : Genre;
 	favorite : boolean;
+	files : Record<string, number>;
 	get formattedNumber() : string|null;
 }
 
@@ -271,6 +272,7 @@ export class LibraryService {
 			number : null,
 			disk : null,
 			favorite : false,
+			files : {},
 			formattedNumber : null
 		};
 	}
@@ -719,6 +721,9 @@ export class LibraryService {
 	}
 	getTracksInGenreOrder() : PlaylistEntry<Track>[] {
 		return this.#tracksInGenreOrder;
+	}
+	getAllTracks() : Track[] {
+		return Object.values(this.#tracksIndex);
 	}
 	getTrackCount() : number {
 		return this.#tracksInAlphaOrder?.length ?? 0;

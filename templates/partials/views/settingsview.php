@@ -30,7 +30,6 @@
 					<li translate><strong>**</strong> matches zero or more arbitrary characters including path segment separators '/'</li>
 				</ul>
 				<p translate>Paths with a leading '/' character are resolved relative to the user home directory and others relative to the music library base path.</p>
-				<p translate>Changes to the excluded paths will only take effect upon rescan.</p>
 			</div>
 		</em>
 		<table id="excluded-paths" class="grid">
@@ -56,6 +55,42 @@
 		<span style="color:red" ng-show="errorScanMetadata" translate>Failed to save the setting</span>
 		<p><em translate>Many features of the Music app are based on the metadata stored in the audio files. However, scanning this data may consume a lot of time on some systems using external storage. When disabled, the library structure is built based on the file and folder names only.</em></p>
 		<p><em translate>Changes on this setting take effect only upon rescan of the library.</em></p>
+	</div>
+
+	<h2 translate>Scan</h2>
+	<div ng-if="scanning">
+		<span class="icon-loading-small"></span>
+		<span translate>Scanning music…</span>
+		<span translate>{{ scanningScanned }} of {{ scanningTotal }}</span>
+	</div>
+	<div ng-if="!scanning">
+		<div ng-if="noMusicAvailable">
+			<span translate>The configured library path contains no audio files</span>
+		</div>
+		<div ng-if="unscannedFiles.length">
+			<span translate translate-n="{{ unscannedFiles.length }}" translate-plural="The configured library path contains {{ $count }} unscanned audio files.">
+				The configured library path contains {{ $count }} unscanned audio file.
+			</span>
+			<button ng-click="startScanning(unscannedFiles)" translate>Scan</button>
+		</div>
+		<div ng-if="dirtyFiles.length">
+			<span translate translate-n="{{ dirtyFiles.length }}" translate-plural="There are {{ $count }} previously scanned files which may have changed.">
+				There is {{ $count }} previously scanned file which may have changed.
+			</span>
+			<button ng-click="startScanning(dirtyFiles)" translate>Rescan</button>
+		</div>
+		<div ng-if="obsoleteFiles.length">
+			<span translate translate-n="obsoleteFiles.length" translate-plural="The library contains {{ $count }} previously scanned files which are no longer accessible Remove them permanently from the library and any playlists?">
+				The library contains {{ $count }} previously scanned file which is no longer accessible. Remove it permanently from the library and any playlists?
+			</span>
+			<button ng-click="removeObsolete()" translate>Remove</button>
+		</div>
+		<div ng-if="scannedFileIds.length">
+			<span translate translate-n="scannedFileIds.length" translate-plural="The library contains {{ $count }} scanned tracks. Press the button to rescan these files.">
+				The library contains {{ $count }} scanned track. Press the button to rescan this file.
+			</span>
+			<button ng-click="startScanning(scannedFileIds)" translate>Rescan</button>
+		</div>
 	</div>
 
 	<h2 translate>Reset</h2>

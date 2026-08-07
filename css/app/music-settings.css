@@ -29,6 +29,10 @@
 	margin-top: 40px;
 }
 
+#music-user .icon-loading-small {
+	display: inline-block;
+}
+
 #music-user a:not(.icon),
 #music-user .warning a {
 	font-weight: normal !important; /* use !important to override the core style within .warning */
