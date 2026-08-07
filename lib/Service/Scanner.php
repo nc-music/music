@@ -673,8 +673,7 @@ class Scanner extends PublicEmitter {
 				$totalAnalyzeTime += $analyzeTime;
 				$totalDbTime += $dbTime;
 			} else {
-				$this->logger->info("File with id $fileId not found for user $userId, removing it from the library if present");
-				$this->deleteAudio([$fileId], [$userId]);
+				$this->logger->info("File with id $fileId is not available within the library path of the user $userId");
 			}
 		}
 

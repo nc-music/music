@@ -88,7 +88,7 @@ class Scan extends BaseCommand {
 	protected function doExecute(InputInterface $input, OutputInterface $output, array $users) : void {
 		if (!$input->getOption('debug')) {
 			$this->scanner->listen(Scanner::class, 'update', fn ($path) => $output->writeln("Scanning <info>$path</info>"));
-			$this->scanner->listen(Scanner::class, 'exclude', fn ($path) => $output->writeln("!! Removing <info>$path</info>"));
+			$this->scanner->listen(Scanner::class, 'exclude', fn ($path) => $output->writeln("Skipping <info>$path</info>"));
 		}
 
 		if ($input->getOption('rescan') && ($input->getOption('rescan-old') || $input->getOption('skip-dirty'))) {

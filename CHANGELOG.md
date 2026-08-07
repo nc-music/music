@@ -39,6 +39,7 @@
   [owncloud/music#1135](https://github.com/nc-music/oc-music/issues/1135)
 - Show a confirmation dialog before removing the unavailable files from the library
   [#140](https://github.com/nc-music/music/pull/140) @sturlan
+- Do not automatically remove the unavailable files during the "rescan all"
 - Track details pane:
   * Collapse the more exotic tags by default and show them by clicking "Show more…"
   * Make all MusicBrainz Ids from the tags into links to the MusicBrainz site (like previously done with MbIds from Last.fm)
