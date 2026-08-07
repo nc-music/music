@@ -7,7 +7,7 @@
  * @author Moritz Meißelbach <moritz@meisselba.ch>
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright 2017 Moritz Meißelbach
- * @copyright 2018 - 2025 Pauli Järvinen
+ * @copyright 2018 - 2026 Pauli Järvinen
  *
  */
 
@@ -340,7 +340,7 @@ function ($rootScope, $interpolate, gettextCatalog, albumartService) {
 		}
 
 		const hasArt = (rowCount > 0 && data.getTrackData(data.tracks[0], 0, data.scope).art !== undefined);
-		const rowHeight = hasArt ? 49 : 31;
+		const rowHeight = hasArt ? 52 : 31;
 
 		return rowHeight * rowCount;
 	}
