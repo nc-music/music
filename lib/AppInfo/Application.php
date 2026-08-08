@@ -64,18 +64,23 @@ class Application extends App implements IBootstrap {
 	public function boot(IBootContext $context) : void {
 		$this->init();
 		$this->registerEmbeddedPlayer();
+		$this->provideInitialState();
+	}
 
+	private function provideInitialState() : void {
 		$initialState = $this->get(IInitialState::class);
-		$initialState->provideInitialState('default_volume', $this->get(IConfig::class)->getSystemValue('music.default_volume', 50));
-
 		$userId = $this->get('userId');
+
+		// Use the lazy variant of the state providing to not provide the state for webdav requests, for example.
+		$initialState->provideLazyInitialState('default_volume', fn () => $this->get(IConfig::class)->getSystemValue('music.default_volume', 50));
+
 		if ($userId !== null) {
 			$libSettings = $this->get(LibrarySettings::class);
 			$coverService = $this->get(CoverService::class);
 			$session = $this->get(ISession::class);
 
-			$initialState->provideInitialState('ignored_articles', $libSettings->getIgnoredArticles($userId));
-			$initialState->provideInitialState('cover_access_token', $coverService->getAccessToken($userId, $session));
+			$initialState->provideLazyInitialState('ignored_articles', fn () => $libSettings->getIgnoredArticles($userId));
+			$initialState->provideLazyInitialState('cover_access_token', fn () => $coverService->getAccessToken($userId, $session));
 		}
 	}
 
