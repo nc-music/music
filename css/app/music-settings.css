@@ -63,6 +63,14 @@
 	width: 52px;
 }
 
+#music-user .scan-controls button {
+	margin-inline-start: 10px;
+}
+
+#music-user .scan-controls .icon-loading-small {
+	margin-inline-end: 5px;
+}
+
 #music-user .reset-button {
 	border: 0;
 	background-color: transparent;

@@ -57,17 +57,17 @@
 		<p><em translate>Changes on this setting take effect only upon rescan of the library.</em></p>
 	</div>
 
-	<h2 translate>Scan</h2>
+	<h2 translate>Scanning</h2>
 	<div ng-if="checkingScanStatus">
 		<span class="icon-loading-small"></span>
 	</div>
-	<div ng-if="scanning">
+	<div ng-if="scanning" class="scan-controls">
 		<span class="icon-loading-small"></span>
 		<span translate>Scanning music…</span>
 		<span translate>{{ scanningScanned }} of {{ scanningTotal }}</span>
 		<button ng-click="stopScanning(); updateFilesToScan()" translate>Abort</button>
 	</div>
-	<div ng-if="!scanning && !checkingScanStatus">
+	<div ng-if="!scanning && !checkingScanStatus" class="scan-controls">
 		<div ng-if="noMusicAvailable">
 			<span translate>The configured library path contains no audio files</span>
 		</div>
@@ -84,20 +84,20 @@
 			<button ng-click="startScanning(dirtyFiles)" translate>Rescan</button>
 		</div>
 		<div ng-if="obsoleteFiles.length">
-			<span translate translate-n="obsoleteFiles.length" translate-plural="The library contains {{ $count }} previously scanned files which are no longer accessible Remove them permanently from the library and any playlists?">
+			<span translate translate-n="obsoleteFiles.length" translate-plural="The library contains {{ $count }} previously scanned files which are no longer accessible. Remove them permanently from the library and any playlists?">
 				The library contains {{ $count }} previously scanned file which is no longer accessible. Remove it permanently from the library and any playlists?
 			</span>
 			<button ng-click="removeObsolete()" translate>Remove</button>
 		</div>
 		<div ng-if="filesScannedOnOldSw.length">
-			<span translate translate-n="filesScannedOnOldSw.length" translate-plural="The library contains {{ $count }} files scanned on an older Music version without support for all the current features. Rescan them to take full advantage of the latest features.">
-				The library contains {{ $count }} file scanned on an older Music version without support for all the current features. Rescan it to take full advantage of the latest features.
+			<span translate translate-n="filesScannedOnOldSw.length" translate-plural="The library contains {{ $count }} files scanned on an older version of Music without support for all the current features. Rescan them to take full advantage of the latest features.">
+				The library contains {{ $count }} file scanned on an older version of Music without support for all the current features. Rescan it to take full advantage of the latest features.
 			</span>
 			<button ng-click="startScanning(filesScannedOnOldSw)" translate>Rescan</button>
 		</div>
 		<div ng-if="scannedFileIds.length">
-			<span translate translate-n="scannedFileIds.length" translate-plural="The library contains {{ $count }} scanned tracks. Press the button to rescan these files.">
-				The library contains {{ $count }} scanned track. Press the button to rescan this file.
+			<span translate translate-n="scannedFileIds.length" translate-plural="The library contains {{ $count }} scanned tracks. These may be rescanned without affecting any user-created playlists.">
+				The library contains {{ $count }} scanned track. This may be rescanned without affecting any user-created playlists.
 			</span>
 			<button ng-click="startScanning(scannedFileIds)" translate>Rescan</button>
 		</div>
@@ -112,7 +112,6 @@
 		<input type="button" ng-class="{ 'invisible': collectionResetOngoing }"
 			class="icon-delete reset-button" id="reset-collection" ng-click="resetCollection()"/>
 		<p><em translate>This action resets all the scanned tracks and all the user-created playlists. After this, the collection can be scanned again from scratch.</em></p>
-		<p><em translate>This may be desirable after changing the excluded paths, or if the database would somehow get corrupted. If the latter happens, please report a bug to the <a href="{{issueTrackerUrl}}" target="_blank">issue tracker</a>.</em></p>
 	</div>
 	<div>
 		<div class="label-container">
