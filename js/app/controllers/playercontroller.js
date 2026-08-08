@@ -688,7 +688,15 @@ function ($scope, $rootScope, playQueueService, Audio, gettextCatalog, Restangul
 	* server, this looks like there's no logged in user. The token is used as an alternative means of
 	* authentication, which will provide access only to the cover art images.
 	*/
-	let coverArtToken = OCP.InitialState.loadState('music', 'cover_access_token');
+	const coverArtToken = OCP.InitialState.loadState('music', 'cover_access_token', null);
+	if (!coverArtToken) {
+		// When the browser is set to remember open tabs and the previous user session is restored after restarting the computer,
+		// it often happens that the back-end doesn't have the userId available yet at the time when the initial state is provided.
+		// This prevents providing the cover_access_token. The root cause for this is unknown but reloading the page seems to be the
+		// simplest work-around.
+		console.warn('No initial state for cover_access_token, reload to recover');
+		window.location.reload();
+	}
 
 	/**
 	 * Media session API
