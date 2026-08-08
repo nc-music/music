@@ -22,14 +22,19 @@
   * Advanced search can find tracks by comment
 - MBID support [#94](https://github.com/nc-music/music/issues/94), [#148](https://github.com/nc-music/music/issues/148)
   * MusicBrainz IDs (Recording Id, Release Track Id, Release Id, Release Group Id, Artist Id, Release Artist Id) from file metadata are stored to DB when scanning the library
-  * Song/album/artist responses in the Subsonic API contain the `musicBrainzId` property and the resonses in Ampache API contain the `mbid` property
+  * Song/album/artist responses in the Subsonic API contain the `musicBrainzId` property and the responses in Ampache API contain the `mbid` property
   * Advanced search can find tracks/albums/artists by the MBID values
-  * Distinct artists with identical names can be separated by MBID. Distinct album versions with the same name from the same artist can be seprated by MBID.
+  * Distinct artists with identical names can be separated by MBID. Distinct album versions with the same name from the same artist can be separated by MBID.
 - Compilation field support [#127](https://github.com/nc-music/music/issues/127)
   * The `compilation` metadata tag is stored to the DB when scanning the library
   * Subsonic API: Include OpenSubsonic property `isCompilation` in the AlbumID3 responses
 - Context menu with the "Import from file" action on the "New Playlist" navigation item
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
+- Scan improvements:
+  * Provide controls for scanning and rescanning in the Settings view
+  * Enable aborting the ongoing scan operation on the UI
+  * Show in the Settings view if some tracks have been scanned on a less capable version of Music and offer to rescan them
+    + The same is shown by `occ music:scan`; these files can be scanned with the option `--rescan-old`
 
 ### Changed
 - Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
@@ -39,6 +44,7 @@
   [owncloud/music#1135](https://github.com/nc-music/oc-music/issues/1135)
 - Show a confirmation dialog before removing the unavailable files from the library
   [#140](https://github.com/nc-music/music/pull/140) @sturlan
+- Do not automatically remove the unavailable files during the "rescan all"
 - Track details pane:
   * Collapse the more exotic tags by default and show them by clicking "Show more…"
   * Make all MusicBrainz Ids from the tags into links to the MusicBrainz site (like previously done with MbIds from Last.fm)

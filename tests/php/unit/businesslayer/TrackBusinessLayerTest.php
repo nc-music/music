@@ -19,8 +19,9 @@ use OCA\Music\Db\Cache;
 use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
 use OCA\Music\Service\FileSystemService;
+use PHPUnit\Framework\TestCase;
 
-class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
+class TrackBusinessLayerTest extends TestCase {
 	private $mapper;
 	private $fileSystemService;
 	private $logger;
@@ -49,6 +50,19 @@ class TrackBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$this->artistId = 3;
 		$this->albumId = 3;
 		$this->fileId = 2;
+
+		\OC::$server = new class($this) {
+			private TestCase $testCase;
+			public function __construct(TestCase $testCase) {
+				$this->testCase = $testCase;
+			}
+
+			public function query(string $class) {
+				return $this->testCase->getMockBuilder($class)
+					->disableOriginalConstructor()
+					->getMock();
+			}
+		};
 	}
 
 	public function testFindAllByArtist() {

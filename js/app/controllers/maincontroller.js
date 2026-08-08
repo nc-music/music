@@ -71,7 +71,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 	};
 
 	$scope.loadIndicatorVisible = function() {
-		let contentNotReady = ($rootScope.searchInProgress || $scope.checkingUnscanned);
+		let contentNotReady = ($rootScope.searchInProgress || $scope.checkingScanStatus);
 		return $rootScope.loading
 			|| (contentNotReady && $scope.viewingLibrary());
 	};
@@ -103,28 +103,32 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 
 	$scope.hideScanBar = function(event) {
 		event.stopPropagation();
-		// Acknowledge the scanning needs without taking any action. The page needs to be reloaded
-		// to check them again.
-		$scope.unscannedFiles = null;
-		$scope.dirtyFiles = null;
-		$scope.obsoleteFiles = null;
+		// Acknowledge the scanning needs without taking any action. The files can still be (re)scanned in the Settings view.
+		$scope.filesToScanBannerHidden = true;
+	};
+
+	$scope.filesToScanBannerAllowed = function() {
+		return !$scope.filesToScanBannerHidden && !$scope.scanning && $scope.viewingLibrary();
 	};
 
 	$scope.updateFilesToScan = function() {
 		$scope.unscannedFiles = null;
 		$scope.dirtyFiles = null;
 		$scope.obsoleteFiles = null;
-		$scope.checkingUnscanned = true;
+		$scope.filesScannedOnOldSw = null;
+		$scope.filesToScanBannerHidden = false;
+		$scope.checkingScanStatus = true;
 
 		Restangular.one('scanstate').get().then(function(state) {
-			$scope.checkingUnscanned = false;
+			$scope.checkingScanStatus = false;
 			$scope.unscannedFiles = state.unscannedFiles;
 			$scope.dirtyFiles = state.dirtyFiles;
 			$scope.obsoleteFiles = state.obsoleteFiles;
+			$scope.filesScannedOnOldSw = state.filesScannedOnOldSw;
 			$scope.noMusicAvailable = (state.scannedCount + state.unscannedFiles.length === 0);
 		},
 		function(error) {
-			$scope.checkingUnscanned = false;
+			$scope.checkingScanStatus = false;
 			OCA.Music.Dialogs.showNotification(
 					gettextCatalog.getString('Failed to check for new audio files (error {{ code }}); check the server logs for details', {code: error.status})
 			);
@@ -137,6 +141,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 				// Update the collection automatically. During the scanning, the user can also click the "update" button to update the collection.
 				$scope.scanning = false;
 				libraryFactory.reloadCollection();
+				$scope.updateFilesToScan();
 			},
 			(error) => {
 				$scope.scanning = false;

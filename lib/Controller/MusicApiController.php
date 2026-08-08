@@ -130,13 +130,14 @@ class MusicApiController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[UseSession] // keep the session reserved to serialize with the other scan-related endpoints
 	public function getScanState() : JSONResponse {
 		return new JSONResponse($this->scanner->getStatusOfLibraryFiles($this->user()));
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[UseSession] // to keep the session reserved while execution in progress
+	#[UseSession] // keep the session reserved to serialize with the other scan-related endpoints
 	public function scan(string $files, string|int|bool|null $finalize) : JSONResponse {
 		// extract the parameters
 		$fileIds = \array_map('intval', \explode(',', $files));
@@ -160,7 +161,7 @@ class MusicApiController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[UseSession] // to keep the session reserved while execution in progress
+	#[UseSession] // keep the session reserved to serialize with the other scan-related endpoints
 	public function removeScanned(string $files) : JSONResponse {
 		$fileIds = \array_map('intval', \explode(',', $files));
 		$anythingRemoved = $this->scanner->deleteAudio($fileIds, [$this->user()]);
@@ -169,7 +170,7 @@ class MusicApiController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[UseSession] // to keep the session reserved while execution in progress
+	#[UseSession] // keep the session reserved to serialize with the other scan-related endpoints
 	public function resetScanned() : JSONResponse {
 		$this->maintenance->resetLibrary($this->user());
 		return new JSONResponse(['success' => true]);

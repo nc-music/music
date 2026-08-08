@@ -110,6 +110,16 @@
 	inset-inline-end: 0;
 }
 
+/* scan bar button has to be stacked vertically */
+#app-content.mobile .emptycontent.collapsed button {
+	transform: unset;
+	margin-inline-start: 0;
+	margin-top: 5px;
+	display: block;
+	position: relative;
+	inset-inline-start: 50%;
+}
+
 /* in portrait, there's even less space */
 .mobile.portrait #controls #skip-prev-button {
 	display: none;

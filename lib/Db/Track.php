@@ -62,6 +62,8 @@ use OCP\IURLGenerator;
  * @method void setComposerId(?int $composerId)
  * @method ?string getComment()
  * @method void setComment(?string $comment)
+ * @method ?int getScanVersion()
+ * @method void setScanVersion(?int $version)
  *
  * @method string getFilename()
  * @method int getSize()
@@ -94,6 +96,7 @@ class Track extends Entity {
 	public ?int $bpm = null;
 	public ?int $composerId = null;
 	public ?string $comment = null;
+	public ?int $scanVersion = null; // version of the Music app used to scan this track
 
 	// not from the music_tracks table but still part of the standard content of this entity:
 	public string $filename = '';
@@ -127,6 +130,7 @@ class Track extends Entity {
 		$this->addType('dirty', 'int');
 		$this->addType('bpm', 'int');
 		$this->addType('composerId', 'int');
+		$this->addType('scanVersion', 'int');
 		$this->addType('size', 'int');
 		$this->addType('fileModTime', 'int');
 		$this->addType('folderId', 'int');

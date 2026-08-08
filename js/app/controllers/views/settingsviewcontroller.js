@@ -23,6 +23,15 @@ angular.module('Music').controller('SettingsViewController', [
 
 		$scope.desktopNotificationsSupported = (typeof Notification !== 'undefined');
 
+		function initScanned() {
+			libraryFactory.getCollection().then(() => {
+				$scope.scannedFileIds = libraryService.getAllTracks().map((track) => Object.values(track.files)).flat();
+			});
+		}
+
+		initScanned();
+		libraryFactory.subscribe('collectionUpdating', $scope, initScanned);
+
 		let savedExcludedPaths = [];
 
 		$scope.selectPath = function() {
@@ -104,6 +113,7 @@ angular.module('Music').controller('SettingsViewController', [
 						$scope.savingExcludedPaths = false;
 						$scope.errorIgnoredPaths = false;
 						savedExcludedPaths = paths;
+						$scope.updateFilesToScan();
 					},
 					function(_error) {
 						// error handling

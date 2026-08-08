@@ -173,7 +173,7 @@ div:hover > .play-pause,
 
 #app-view h2 .icon-loading-small {
 	top: 11px;
-	inset-inline-start: 3px;
+	inset-inline-start: 8px;
 	overflow: visible;
 }
 
@@ -230,6 +230,15 @@ div:hover > .play-pause,
 	margin: 0;
 }
 
+#app-content .emptycontent.collapsed button {
+	margin-inline-start: 20px;
+	transform: translateY(-15px);
+}
+
+#app-content .emptycontent:not(.collapsed) button {
+	margin-top: 20px;
+}
+
 #app-content .emptycontent.clickable * {
 	opacity: 0.85;
 }
@@ -260,7 +269,7 @@ div:hover > .play-pause,
 	margin-inline-start: -14px; /* to cancel out the #app-view padding */
 }
 
-#app-content .emptycontent.emptycontent:not(.collapsed) .close {
+#app-content .emptycontent:not(.collapsed) .close {
 	display: none;
 }
 
@@ -297,4 +306,15 @@ div:hover > .play-pause,
 .svg,
 :not(.svg) > .play-pause {
 	filter: var(--background-invert-if-dark);
+}
+
+/* The margins provided by the Nextcloud server for the loading icons are not properly bidirectional */
+#app-content .icon-loading-small::after {
+	margin-inline-start: -8px;
+	margin-inline-end: 0;
+}
+#app-content .loading::after,
+#app-content .icon-loading::after {
+	margin-inline-start: -16px;
+	margin-inline-end: 0px;
 }

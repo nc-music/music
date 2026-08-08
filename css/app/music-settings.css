@@ -29,6 +29,10 @@
 	margin-top: 40px;
 }
 
+#music-user .icon-loading-small {
+	display: inline-block;
+}
+
 #music-user a:not(.icon),
 #music-user .warning a {
 	font-weight: normal !important; /* use !important to override the core style within .warning */
@@ -57,6 +61,14 @@
 
 #music-user #excluded-paths .key-action {
 	width: 52px;
+}
+
+#music-user .scan-controls button {
+	margin-inline-start: 10px;
+}
+
+#music-user .scan-controls .icon-loading-small {
+	margin-inline-end: 5px;
 }
 
 #music-user .reset-button {
