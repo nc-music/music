@@ -85,6 +85,12 @@
 			</span>
 			<button ng-click="removeObsolete()" translate>Remove</button>
 		</div>
+		<div ng-if="filesScannedOnOldSw.length">
+			<span translate translate-n="filesScannedOnOldSw.length" translate-plural="The library contains {{ $count }} files scanned on an older Music version without support for all the current features. Rescan them to take full advantage of the latest features.">
+				The library contains {{ $count }} file scanned on an older Music version without support for all the current features. Rescan it to take full advantage of the latest features.
+			</span>
+			<button ng-click="startScanning(filesScannedOnOldSw)" translate>Rescan</button>
+		</div>
 		<div ng-if="scannedFileIds.length">
 			<span translate translate-n="scannedFileIds.length" translate-plural="The library contains {{ $count }} scanned tracks. Press the button to rescan these files.">
 				The library contains {{ $count }} scanned track. Press the button to rescan this file.

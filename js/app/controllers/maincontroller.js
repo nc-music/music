@@ -114,6 +114,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 		$scope.unscannedFiles = null;
 		$scope.dirtyFiles = null;
 		$scope.obsoleteFiles = null;
+		$scope.filesScannedOnOldSw = null;
 		$scope.checkingUnscanned = true;
 
 		Restangular.one('scanstate').get().then(function(state) {
@@ -121,6 +122,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 			$scope.unscannedFiles = state.unscannedFiles;
 			$scope.dirtyFiles = state.dirtyFiles;
 			$scope.obsoleteFiles = state.obsoleteFiles;
+			$scope.filesScannedOnOldSw = state.filesScannedOnOldSw;
 			$scope.noMusicAvailable = (state.scannedCount + state.unscannedFiles.length === 0);
 		},
 		function(error) {
@@ -137,6 +139,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 				// Update the collection automatically. During the scanning, the user can also click the "update" button to update the collection.
 				$scope.scanning = false;
 				libraryFactory.reloadCollection();
+				$scope.updateFilesToScan();
 			},
 			(error) => {
 				$scope.scanning = false;
