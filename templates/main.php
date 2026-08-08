@@ -48,7 +48,7 @@ HtmlUtil::addWebpackStyle('app');
 				</div>
 			</div>
 
-			<div id="toScan" class="emptycontent clickable" ng-show="!scanning && unscannedFiles.length && viewingLibrary()" ng-click="startScanning(unscannedFiles)">
+			<div id="toScan" class="emptycontent clickable" ng-show="filesToScanBannerAllowed() && unscannedFiles.length" ng-click="startScanning(unscannedFiles)">
 				<div class="icon-audio svg"></div>
 				<div>
 					<h2 translate>New music available</h2>
@@ -57,7 +57,7 @@ HtmlUtil::addWebpackStyle('app');
 				<a class="close icon-close" aria-label="{{ Close | translate }}" ng-click="hideScanBar($event)"></a>
 			</div>
 
-			<div id="toRescan" class="emptycontent clickable" ng-show="!scanning && !unscannedFiles.length && dirtyFiles.length && viewingLibrary()" ng-click="startScanning(dirtyFiles)">
+			<div id="toRescan" class="emptycontent clickable" ng-show="filesToScanBannerAllowed() && !unscannedFiles.length && dirtyFiles.length" ng-click="startScanning(dirtyFiles)">
 				<div class="icon-audio svg"></div>
 				<div>
 					<h2 translate>Some of the previously scanned files may have changed</h2>
@@ -66,7 +66,7 @@ HtmlUtil::addWebpackStyle('app');
 				<a class="close icon-close" aria-label="{{ Close | translate }}" ng-click="hideScanBar($event)"></a>
 			</div>
 
-			<div id="toRemove" class="emptycontent clickable" ng-show="!scanning && !unscannedFiles.length && !dirtyFiles.length && obsoleteFiles.length && viewingLibrary()" ng-click="removeObsolete()">
+			<div id="toRemove" class="emptycontent clickable" ng-show="filesToScanBannerAllowed() && !unscannedFiles.length && !dirtyFiles.length && obsoleteFiles.length" ng-click="removeObsolete()">
 				<div class="icon-delete"></div>
 				<div>
 					<h2 translate translate-n="obsoleteFiles.length" translate-plural="{{ $count }} previously scanned files are no longer available">

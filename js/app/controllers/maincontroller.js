@@ -103,11 +103,12 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 
 	$scope.hideScanBar = function(event) {
 		event.stopPropagation();
-		// Acknowledge the scanning needs without taking any action. The page needs to be reloaded
-		// to check them again.
-		$scope.unscannedFiles = null;
-		$scope.dirtyFiles = null;
-		$scope.obsoleteFiles = null;
+		// Acknowledge the scanning needs without taking any action. The files can still be (re)scanned in the Settings view.
+		$scope.filesToScanBannerHidden = true;
+	};
+
+	$scope.filesToScanBannerAllowed = function() {
+		return !$scope.filesToScanBannerHidden && !$scope.scanning && $scope.viewingLibrary();
 	};
 
 	$scope.updateFilesToScan = function() {
@@ -115,6 +116,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 		$scope.dirtyFiles = null;
 		$scope.obsoleteFiles = null;
 		$scope.filesScannedOnOldSw = null;
+		$scope.filesToScanBannerHidden = false;
 		$scope.checkingScanStatus = true;
 
 		Restangular.one('scanstate').get().then(function(state) {
