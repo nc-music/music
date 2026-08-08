@@ -83,6 +83,7 @@ HtmlUtil::addWebpackStyle('app');
 					<h2 translate>Scanning music…</h2>
 					<p translate>{{ scanningScanned }} of {{ scanningTotal }}</p>
 				</div>
+				<button ng-click="stopScanning(); updateFilesToScan()" translate>Abort</button>
 			</div>
 
 			<div id="searchContainer" ng-controller="SearchController">

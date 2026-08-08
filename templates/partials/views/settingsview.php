@@ -65,6 +65,7 @@
 		<span class="icon-loading-small"></span>
 		<span translate>Scanning music…</span>
 		<span translate>{{ scanningScanned }} of {{ scanningTotal }}</span>
+		<button ng-click="stopScanning(); updateFilesToScan()" translate>Abort</button>
 	</div>
 	<div ng-if="!scanning && !checkingScanStatus">
 		<div ng-if="noMusicAvailable">
