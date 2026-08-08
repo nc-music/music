@@ -71,7 +71,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 	};
 
 	$scope.loadIndicatorVisible = function() {
-		let contentNotReady = ($rootScope.searchInProgress || $scope.checkingUnscanned);
+		let contentNotReady = ($rootScope.searchInProgress || $scope.checkingScanStatus);
 		return $rootScope.loading
 			|| (contentNotReady && $scope.viewingLibrary());
 	};
@@ -115,10 +115,10 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 		$scope.dirtyFiles = null;
 		$scope.obsoleteFiles = null;
 		$scope.filesScannedOnOldSw = null;
-		$scope.checkingUnscanned = true;
+		$scope.checkingScanStatus = true;
 
 		Restangular.one('scanstate').get().then(function(state) {
-			$scope.checkingUnscanned = false;
+			$scope.checkingScanStatus = false;
 			$scope.unscannedFiles = state.unscannedFiles;
 			$scope.dirtyFiles = state.dirtyFiles;
 			$scope.obsoleteFiles = state.obsoleteFiles;
@@ -126,7 +126,7 @@ function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Rest
 			$scope.noMusicAvailable = (state.scannedCount + state.unscannedFiles.length === 0);
 		},
 		function(error) {
-			$scope.checkingUnscanned = false;
+			$scope.checkingScanStatus = false;
 			OCA.Music.Dialogs.showNotification(
 					gettextCatalog.getString('Failed to check for new audio files (error {{ code }}); check the server logs for details', {code: error.status})
 			);

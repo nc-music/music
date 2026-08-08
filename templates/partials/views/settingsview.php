@@ -58,12 +58,15 @@
 	</div>
 
 	<h2 translate>Scan</h2>
+	<div ng-if="checkingScanStatus">
+		<span class="icon-loading-small"></span>
+	</div>
 	<div ng-if="scanning">
 		<span class="icon-loading-small"></span>
 		<span translate>Scanning music…</span>
 		<span translate>{{ scanningScanned }} of {{ scanningTotal }}</span>
 	</div>
-	<div ng-if="!scanning">
+	<div ng-if="!scanning && !checkingScanStatus">
 		<div ng-if="noMusicAvailable">
 			<span translate>The configured library path contains no audio files</span>
 		</div>
