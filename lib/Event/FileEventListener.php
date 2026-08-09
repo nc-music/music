@@ -64,11 +64,11 @@ class FileEventListener implements IEventListener {
 		// before anything is actually written and while the file is *exclusively locked
 		// because of the write mode*. See #638.
 		try {
-			self::handleUpdated($node);
+			$this->handleUpdated($node);
 		} catch (\OCP\Files\NotFoundException $e) {
-			$this->logger->warning('FileHooks::updated triggered for a non-existing file');
+			$this->logger->warning('FileEventListener::updated triggered for a non-existing file');
 		} catch (\OCP\Lock\LockedException $e) {
-			$this->logger->warning('FileHooks::updated triggered for a locked file ' . $node->getName());
+			$this->logger->warning('FileEventListener::updated triggered for a locked file ' . $node->getName());
 		}
 	}
 
@@ -80,7 +80,7 @@ class FileEventListener implements IEventListener {
 			// Ignore event if we got no user or folder or the user has not yet scanned the music
 			// collection. The last condition is especially to prevent problems when creating new user
 			// and the default file set contains one or more audio files (see the discussion in #638).
-			if (!empty($userId) && self::userHasMusicLib($userId)) {
+			if (!empty($userId) && $this->userHasMusicLib($userId)) {
 				$this->scanner->update($node, $userId, $node->getPath());
 			}
 		}
@@ -88,18 +88,18 @@ class FileEventListener implements IEventListener {
 
 	private function moved(Node $node) : void {
 		try {
-			self::handleMoved($node);
+			$this->handleMoved($node);
 		} catch (\OCP\Files\NotFoundException $e) {
-			$this->logger->warning('FileHooks::moved triggered for a non-existing file');
+			$this->logger->warning('FileEventListener::moved triggered for a non-existing file');
 		} catch (\OCP\Lock\LockedException $e) {
-			$this->logger->warning('FileHooks::moved triggered for a locked file ' . $node->getName());
+			$this->logger->warning('FileEventListener::moved triggered for a locked file ' . $node->getName());
 		}
 	}
 
 	private function handleMoved(Node $node) : void {
 		$userId = $this->getUser($node);
 
-		if (!empty($userId) && self::userHasMusicLib($userId)) {
+		if (!empty($userId) && $this->userHasMusicLib($userId)) {
 			if ($node instanceof File) {
 				$this->scanner->fileMoved($node, $userId);
 			} elseif ($node instanceof Folder) {

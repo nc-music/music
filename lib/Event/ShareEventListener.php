@@ -69,7 +69,7 @@ class ShareEventListener implements IEventListener {
 	public function itemUnsharedFromSelf(IShare $share) : void {
 		// The share recipient may be an individual user or a group, but the item is always removed from
 		// the current user alone.
-		self::removeSharedItem($share->getNode(), [$this->userId]);
+		$this->removeSharedItem($share->getNode(), [$this->userId]);
 	}
 
 	/**
