@@ -12,7 +12,7 @@
  * @copyright Pauli Järvinen 2017 - 2026
  */
 
-namespace OCA\Music\Hooks;
+namespace OCA\Music\Event;
 
 use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
@@ -25,11 +25,10 @@ use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\Events\Node\NodeWrittenEvent;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\FileInfo;
 use OCP\Files\Node;
 
 /** @template-implements IEventListener<NodeWrittenEvent|NodeRenamedEvent|BeforeNodeDeletedEvent> */
-class FileHooks implements IEventListener {
+class FileEventListener implements IEventListener {
 
 	public function __construct(
 		private Scanner $scanner,

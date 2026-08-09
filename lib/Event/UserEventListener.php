@@ -10,7 +10,7 @@
  * @copyright Pauli Järvinen 2018 - 2026
  */
 
-namespace OCA\Music\Hooks;
+namespace OCA\Music\Event;
 
 use OCA\Music\Db\Maintenance;
 use OCP\EventDispatcher\Event;
@@ -19,7 +19,7 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserDeletedEvent;
 
 /** @template-implements IEventListener<UserDeletedEvent> */
-class UserHooks implements IEventListener {
+class UserEventListener implements IEventListener {
 
 	public function __construct(
 		private Maintenance $maintenance,

@@ -12,7 +12,7 @@
  * @copyright Pauli Järvinen 2017 - 2026
  */
 
-namespace OCA\Music\Hooks;
+namespace OCA\Music\Event;
 
 use OCA\Music\Service\Scanner;
 use OCP\EventDispatcher\Event;
@@ -27,7 +27,7 @@ use OCP\Share\Events\ShareDeletedFromSelfEvent;
 use OCP\Share\IShare;
 
 /** @template-implements IEventListener<ShareCreatedEvent|ShareDeletedEvent|ShareDeletedFromSelfEvent> */
-class ShareHooks implements IEventListener {
+class ShareEventListener implements IEventListener {
 
 	public function __construct(
 		private Scanner $scanner,

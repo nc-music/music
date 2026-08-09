@@ -20,9 +20,9 @@ use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\BusinessLayer\AlbumBusinessLayer;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
 use OCA\Music\Dashboard\MusicWidget;
-use OCA\Music\Hooks\FileHooks;
-use OCA\Music\Hooks\ShareHooks;
-use OCA\Music\Hooks\UserHooks;
+use OCA\Music\Event\FileEventListener;
+use OCA\Music\Event\ShareEventListener;
+use OCA\Music\Event\UserEventListener;
 use OCA\Music\Middleware\AmpacheMiddleware;
 use OCA\Music\Middleware\SubsonicMiddleware;
 use OCA\Music\Service\CoverService;
@@ -85,7 +85,7 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function init() : void {
-		$this->registerHooks();
+		$this->registerEventListeners();
 
 		// Adjust the CSP if loading the Music app proper or the NC dashboard
 		$url = $this->getRequestUrl();
@@ -120,12 +120,12 @@ class Application extends App implements IBootstrap {
 		return $url;
 	}
 
-	private function registerHooks() : void {
+	private function registerEventListeners() : void {
 		$dispatcher = $this->get(IEventDispatcher::class);
 
-		FileHooks::register($dispatcher);
-		ShareHooks::register($dispatcher);
-		UserHooks::register($dispatcher);
+		FileEventListener::register($dispatcher);
+		ShareEventListener::register($dispatcher);
+		UserEventListener::register($dispatcher);
 	}
 
 	private function registerEmbeddedPlayer() : void {
