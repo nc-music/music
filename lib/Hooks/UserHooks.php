@@ -7,30 +7,32 @@
  * later. See the COPYING file.
  *
  * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
- * @copyright Pauli Järvinen 2018 - 2024
+ * @copyright Pauli Järvinen 2018 - 2026
  */
 
 namespace OCA\Music\Hooks;
 
-use OC\Hooks\Emitter;
 use OCA\Music\Db\Maintenance;
-use OCP\IUserManager;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\EventDispatcher\IEventListener;
+use OCP\User\Events\UserDeletedEvent;
 
-class UserHooks {
-	private Emitter $userManager;
-	private Maintenance $maintenance;
+/** @template-implements IEventListener<UserDeletedEvent> */
+class UserHooks implements IEventListener {
 
-	public function __construct(IUserManager $userManager, Maintenance $maintenance) {
-		\assert($userManager instanceof Emitter);
-		$this->userManager = $userManager;
-		$this->maintenance = $maintenance;
+	public function __construct(
+		private Maintenance $maintenance,
+	) {
 	}
 
-	public function register() : void {
-		$maintenance = $this->maintenance;
-		$callback = function ($user) use ($maintenance) {
-			$maintenance->resetAllData($user->getUID());
-		};
-		$this->userManager->listen('\OC\User', 'postDelete', $callback);
+	public function handle(Event $event): void {
+		if ($event instanceof UserDeletedEvent) {
+			$this->maintenance->resetAllData($event->getUser()->getUID());
+		}
+	}
+
+	public static function register(IEventDispatcher $dispatcher) : void {
+		$dispatcher->addServiceListener(UserDeletedEvent::class, self::class);
 	}
 }

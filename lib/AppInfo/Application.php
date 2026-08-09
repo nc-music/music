@@ -121,11 +121,11 @@ class Application extends App implements IBootstrap {
 	}
 
 	private function registerHooks() : void {
-		$this->get(ShareHooks::class)->register();
-		$this->get(UserHooks::class)->register();
-
 		$dispatcher = $this->get(IEventDispatcher::class);
+
 		FileHooks::register($dispatcher);
+		ShareHooks::register($dispatcher);
+		UserHooks::register($dispatcher);
 	}
 
 	private function registerEmbeddedPlayer() : void {
