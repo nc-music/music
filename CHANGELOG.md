@@ -74,6 +74,7 @@
 - Web UI failing to load on NC33 if `OCA.Theming` not ready in time (systematically on Safari, randomly on Firefox and Chrome)
   [#146](https://github.com/nc-music/music/issues/146)
 - Alphabet navigation working wrong in the Internet radio view when some station is unnamed (such stations are now listed as last)
+- The embedded music player within Files being slightly misplaced on NC 34+
 - Subsonic API:
   * Attribute `parent` misplaced in the response of `getMusicDirectory` when browsing by file system folders
   * Endpoints `savePlayQueue` and `savePlayQueueByIndex` not allowing an empty list to clear the queue

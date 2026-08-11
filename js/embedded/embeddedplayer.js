@@ -338,6 +338,12 @@ OCA.Music.EmbeddedPlayer = function() {
 			musicControls.css('z-index', 'unset');
 		}
 
+		// On NC 34+, the #content-vue element has the `backdrop-filter` property, which also makes it a containing element for any fixed-positioned descendants.
+		// In this case, the #music-controls element must not apply another margin on top of the one coming from the containing element.
+		if (musicControls[0].offsetParent !== null) {
+			musicControls.css('margin-bottom', 'unset');
+		}
+
 		// bind the player events to change the states of the UI controls
 		player.on('play', () => {
 			playButton.css('display', 'none');
