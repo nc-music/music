@@ -27,10 +27,7 @@ abstract class BaseCommand extends Command {
 		parent::__construct();
 	}
 
-	/**
-	 * @return void
-	 */
-	protected function configure() {
+	protected function configure() : void {
 		$this
 			->addArgument(
 				'user_id',
@@ -53,10 +50,7 @@ abstract class BaseCommand extends Command {
 		$this->doConfigure();
 	}
 
-	/**
-	 * @return int
-	 */
-	protected function execute(InputInterface $input, OutputInterface $output) {
+	protected function execute(InputInterface $input, OutputInterface $output) : int {
 		try {
 			self::ensureUsersGiven($input);
 			$argUsers = $this->getArgumentUsers($input);
