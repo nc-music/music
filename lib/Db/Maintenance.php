@@ -196,43 +196,45 @@ class Maintenance {
 	}
 
 	/**
-	 * Removes orphaned data from the database
-	 * @return array describing the number of removed entries per type
+	 * @param callable():int $func Function returning a count
+	 * @return array{count: int, time_ms: int}
 	 */
-	public function cleanUp() : array {
-		$removedScanFlags = $this->removeStrayScanningStatus();
+	private static function timedExecute(callable $func) : array {
+		$startTime = \hrtime(true);
+		$result = $func();
+		$elapsedTime = (int)((\hrtime(true) - $startTime) / 1000000);
+		return ['count' => $result, 'time_ms' => $elapsedTime];
+	}
+
+	/**
+	 * Removes orphaned data from the database
+	 * @return ?array<string, array{count: int, time_ms: int}> For each handled entity type (keys), the value contains the number of elements
+	 *         removed and the time taken on the operation in milliseconds; null if the cleanup was skipped because of an ongoing scan job
+	 */
+	public function cleanUp() : ?array {
+		$scanFlagResult = ['scan_flags' => self::timedExecute(fn () => $this->removeStrayScanningStatus())];
 
 		// Don't clean during an ongoing scan. This may cause the scanning to fail with a deadlock error on MariaDB,
 		// see https://github.com/nc-music/oc-music/issues/918. It could also remove a just scanned album row before the
 		// contained track rows have been added to the DB, which would have happened a few milliseconds later.
-		$skipDuringScan = $this->scanningInProgress();
-		if (!$skipDuringScan) {
-			$removedCovers = $this->removeObsoleteAlbumCoverImages();
-			$removedCovers += $this->removeObsoleteArtistCoverImages();
-
-			$removedTracks = $this->removeObsoleteTracks();
-			$removedAlbums = $this->removeObsoleteAlbums();
-			$removedArtists = $this->removeObsoleteArtists();
-			$removedGenres = $this->removeObsoleteGenres();
-			$removedBookmarks = $this->removeObsoleteBookmarks();
-			$removedEpisodes = $this->removeObsoletePodcastEpisodes();
-
-			$removedAlbums += $this->removeAlbumsWithNoArtist();
-			$removedTracks += $this->removeTracksWithNoAlbum();
-			$removedTracks += $this->removeTracksWithNoArtist();
+		if ($this->scanningInProgress()) {
+			return null;
 		}
 
-		return [
-			'scanFlags'                        => $removedScanFlags,
-			'covers'                           => $removedCovers ?? 0,
-			'artists'                          => $removedArtists ?? 0,
-			'albums'                           => $removedAlbums ?? 0,
-			'tracks'                           => $removedTracks ?? 0,
-			'genres'                           => $removedGenres ?? 0,
-			'bookmarks'                        => $removedBookmarks ?? 0,
-			'podcast_episodes'                 => $removedEpisodes ?? 0,
-			'skipped_because_scan_in_progress' => $skipDuringScan
+		$handlers = [
+			['covers',           fn () => $this->removeObsoleteAlbumCoverImages() + $this->removeObsoleteArtistCoverImages()],
+			['artists',          fn () => $this->removeObsoleteArtists()],
+			['albums',           fn () => $this->removeObsoleteAlbums() + $this->removeAlbumsWithNoArtist()],
+			['tracks',           fn () => $this->removeObsoleteTracks() + $this->removeTracksWithNoAlbum() + $this->removeTracksWithNoArtist()],
+			['genres',           fn () => $this->removeObsoleteGenres()],
+			['bookmarks',        fn () => $this->removeObsoleteBookmarks()],
+			['podcast_episodes', fn () => $this->removeObsoletePodcastEpisodes()],
 		];
+
+		return $scanFlagResult + \array_combine(
+			\array_column($handlers, 0),
+			\array_map(fn($cleanFunc) => self::timedExecute($cleanFunc), \array_column($handlers, 1))
+		);
 	}
 
 	/**

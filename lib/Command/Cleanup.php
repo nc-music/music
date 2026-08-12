@@ -34,8 +34,15 @@ class Cleanup extends Command {
 
 	protected function execute(InputInterface $input, OutputInterface $output) : int {
 		$output->writeln('Running cleanup task...');
-		$removedEntries = $this->maintenance->cleanUp();
-		$output->writeln('Removed entries: ' . \json_encode($removedEntries));
+		$result = $this->maintenance->cleanUp();
+
+		if ($result === null) {
+			$output->writeln('Cleanup was skipped because of an ongoing scan job');
+		} else {
+			foreach ($result as $entityType => $entityStats) {
+				$output->writeln("Cleaned {$entityStats['count']} $entityType in {$entityStats['time_ms']} ms");
+			}
+		}
 		return 0;
 	}
 }
