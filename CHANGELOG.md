@@ -75,6 +75,8 @@
   [#146](https://github.com/nc-music/music/issues/146)
 - Alphabet navigation working wrong in the Internet radio view when some station is unnamed (such stations are now listed as last)
 - The embedded music player within Files being slightly misplaced on NC 34+
+- Performance problem on background cleanup task with huge libraries
+  [#157](https://github.com/nc-music/music/issues/157)
 - Subsonic API:
   * Attribute `parent` misplaced in the response of `getMusicDirectory` when browsing by file system folders
   * Endpoints `savePlayQueue` and `savePlayQueueByIndex` not allowing an empty list to clear the queue
