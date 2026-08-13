@@ -49,30 +49,32 @@ class ShareController extends Controller {
 	#[PublicPage]
 	#[NoCSRFRequired]
 	public function fileInfo(string $token, int $fileId) : JSONResponse {
-		$share = $this->shareManager->getShareByToken($token);
-		$fileOwner = $share->getShareOwner();
-		$fileOwnerHome = $this->scanner->resolveUserFolder($fileOwner);
+		try {
+			$share = $this->shareManager->getShareByToken($token);
+			$shareOwner = $share->getShareOwner();
 
-		// If non-zero fileId is given, the $share identified by the token should
-		// be the file's parent directory. Otherwise the share is the target file.
-		if ($fileId == 0) {
-			$fileId = $share->getNodeId();
-		} else {
-			$folderId = $share->getNodeId();
-			$matchingFolders = $fileOwnerHome->getById($folderId);
-			$folder = $matchingFolders[0] ?? null;
-			if (!($folder instanceof Folder) || empty($folder->getById($fileId))) {
-				// no such shared folder or the folder does not contain the given file
-				$fileId = -1;
+			// If non-zero fileId is given, the $share identified by the token should
+			// be the file's parent directory. Otherwise the share is the target file.
+			if ($fileId == 0) {
+				$folder = $this->scanner->resolveUserFolder($shareOwner);
+				$fileId = $share->getNodeId();
+			} else {
+				$folder = $this->getSharedFolder($token);
 			}
-		}
 
-		$info = $this->scanner->getFileInfo($fileId, $fileOwner, $fileOwnerHome);
+			$info = $this->scanner->getFileInfo($fileId, $shareOwner, $folder);
 
-		if ($info) {
-			return new JSONResponse($info);
-		} else {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND);
+			if ($info) {
+				return new JSONResponse($info);
+			} else {
+				return new ErrorResponse(Http::STATUS_NOT_FOUND);
+			}
+		} catch (ShareNotFound $ex) {
+			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'invalid share token');
+		} catch (\OCP\Files\NotFoundException $ex) {
+			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
+		} catch (\OCP\Files\NotPermittedException $ex) {
+			return new ErrorResponse(Http::STATUS_FORBIDDEN, $ex->getMessage());
 		}
 	}
 
@@ -90,7 +92,9 @@ class ShareController extends Controller {
 		} catch (ShareNotFound $ex) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'invalid share token');
 		} catch (\OCP\Files\NotFoundException $ex) {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'the share is not a valid folder');
+			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
+		} catch (\OCP\Files\NotPermittedException $ex) {
+			return new ErrorResponse(Http::STATUS_FORBIDDEN, $ex->getMessage());
 		}
 	}
 
@@ -126,7 +130,9 @@ class ShareController extends Controller {
 		} catch (ShareNotFound $ex) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'invalid share token');
 		} catch (\OCP\Files\NotFoundException $ex) {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'playlist file not found');
+			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
+		} catch (\OCP\Files\NotPermittedException $ex) {
+			return new ErrorResponse(Http::STATUS_FORBIDDEN, $ex->getMessage());
 		} catch (\UnexpectedValueException $ex) {
 			return new ErrorResponse(Http::STATUS_UNSUPPORTED_MEDIA_TYPE, $ex->getMessage());
 		}
@@ -134,13 +140,19 @@ class ShareController extends Controller {
 
 	private function getSharedFolder(string $token) : Folder {
 		$share = $this->shareManager->getShareByToken($token);
+
+		if (($share->getPermissions() & \OCP\Constants::PERMISSION_READ) === 0) {
+			// disallow upload-only shares
+			throw new \OCP\Files\NotPermittedException('the share is not readable');
+		}
+
 		$fileOwner = $share->getShareOwner();
 		$fileOwnerHome = $this->scanner->resolveUserFolder($fileOwner);
 
 		$matchingFolders = $fileOwnerHome->getById($share->getNodeId());
 		$folder = $matchingFolders[0] ?? null;
 		if (!($folder instanceof Folder)) {
-			throw new \OCP\Files\NotFoundException();
+			throw new \OCP\Files\NotFoundException('the share is not a valid folder');
 		}
 
 		return $folder;

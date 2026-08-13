@@ -84,6 +84,7 @@
 - Drop obsolete column `disk` from the DB table `oc_music_albums` (the disk info was moved to `oc_music_tracks` in Music v0.13.1)
 
 ### Fixed
+- Vulnerability [GHSA-7xgc-f6j5-h394](https://github.com/nc-music/oc-music/security/advisories/GHSA-7xgc-f6j5-h394)
 - HTTP status 500 on all the Ampache, Subsonic, and web UI endpoints accessing the file system in case the configured music folder no longer exists; the APIs now return a proper protocol error instead
   [#149](https://github.com/nc-music/music/pull/149) @lachlan-00
 - HTTP redirection not working (e.g. on radio streams) when the `Location` header contains a relative URL

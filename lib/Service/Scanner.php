@@ -737,9 +737,9 @@ class Scanner extends PublicEmitter {
 	/**
 	 * Parse and get basic info about a file. The file does not have to be indexed in the database.
 	 */
-	public function getFileInfo(int $fileId, string $userId, Folder $userFolder) : ?array {
-		$info = $this->getIndexedFileInfo($fileId, $userId, $userFolder)
-			?: $this->getUnindexedFileInfo($fileId, $userId, $userFolder);
+	public function getFileInfo(int $fileId, string $userId, Folder $containingFolder) : ?array {
+		$info = $this->getIndexedFileInfo($fileId, $userId, $containingFolder)
+			?: $this->getUnindexedFileInfo($fileId, $userId, $containingFolder);
 
 		// base64-encode and wrap the cover image if available
 		if ($info !== null && $info['cover'] !== null) {
@@ -751,7 +751,7 @@ class Scanner extends PublicEmitter {
 		return $info;
 	}
 
-	private function getIndexedFileInfo(int $fileId, string $userId, Folder $userFolder) : ?array {
+	private function getIndexedFileInfo(int $fileId, string $userId, Folder $containingFolder) : ?array {
 		$track = $this->trackBusinessLayer->findByFileId($fileId, $userId);
 		if ($track !== null) {
 			$artist = $this->artistBusinessLayer->find($track->getArtistId(), $userId);
@@ -759,17 +759,17 @@ class Scanner extends PublicEmitter {
 			return [
 				'title'      => $track->getTitle(),
 				'artist'     => $artist->getName(),
-				'cover'      => $this->coverService->getCover($album, $userId, $userFolder),
+				'cover'      => $this->coverService->getCover($album, $userId, $containingFolder),
 				'in_library' => true
 			];
 		}
 		return null;
 	}
 
-	private function getUnindexedFileInfo(int $fileId, string $userId, Folder $userFolder) : ?array {
-		$file = $userFolder->getById($fileId)[0] ?? null;
+	private function getUnindexedFileInfo(int $fileId, string $userId, Folder $containingFolder) : ?array {
+		$file = $containingFolder->getById($fileId)[0] ?? null;
 		if ($file instanceof File) {
-			$metadata = $this->extractMetadata($file, $userFolder, $file->getPath(), true);
+			$metadata = $this->extractMetadata($file, $containingFolder, $file->getPath(), true);
 			$cover = $metadata['picture'];
 			if (!empty($cover)) {
 				$cover = $this->coverService->scaleDownAndCrop([
