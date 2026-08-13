@@ -38,10 +38,11 @@
 
 ### Changed
 - Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
+  [#154](https://github.com/nc-music/music/pull/154) @lachlan-00
 - Show some error details in the browser console when subscribing a podcast channel fails
   [#132](https://github.com/nc-music/music/issues/132)
 - Avoid PostgreSQL logging tons of unique constraint violations on typical library scan
-  [owncloud/music#1135](https://github.com/nc-music/oc-music/issues/1135)
+  [oc-music#1135](https://github.com/nc-music/oc-music/issues/1135)
 - Show a confirmation dialog before removing the unavailable files from the library
   [#140](https://github.com/nc-music/music/pull/140) @sturlan
 - Do not automatically remove the unavailable files during the "rescan all"
@@ -52,7 +53,7 @@
   * Show also the MusicBrainz Recording Id stored in id3v2.4 tag `UFID` (MusicBrainz Picard uses this on mp3 files)
   * Show all values of multi-valued metadata tags
 - Attempt to restart the playing radio stream if it abruptly ends
-  [nc-music#89](https://github.com/nc-music/music/issues/89)
+  [#89](https://github.com/nc-music/music/issues/89)
 - Improved web UI view switching performance for huge libraries
 - Playlist view remains lightning fast even on insanely large playlists
 - Extensive internal refactoring on the web UI
@@ -64,6 +65,7 @@
 
 ### Fixed
 - HTTP status 500 on all the Ampache, Subsonic, and web UI endpoints accessing the file system in case the configured music folder no longer exists; the APIs now return a proper protocol error instead
+  [#149](https://github.com/nc-music/music/pull/149) @lachlan-00
 - HTTP redirection not working (e.g. on radio streams) when the `Location` header contains a relative URL
 - Deprecation warnings printed on PHP 8.3+ while executing the Music background tasks
 - Web UI trying to load an invalid image URL upon page load
