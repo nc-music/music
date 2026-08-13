@@ -223,9 +223,9 @@ class Maintenance {
 
 		$handlers = [
 			['covers',           fn () => $this->removeObsoleteAlbumCoverImages() + $this->removeObsoleteArtistCoverImages()],
-			['artists',          fn () => $this->removeObsoleteArtists()],
-			['albums',           fn () => $this->removeObsoleteAlbums() + $this->removeAlbumsWithNoArtist()],
 			['tracks',           fn () => $this->removeObsoleteTracks() + $this->removeTracksWithNoAlbum() + $this->removeTracksWithNoArtist()],
+			['albums',           fn () => $this->removeObsoleteAlbums() + $this->removeAlbumsWithNoArtist()],
+			['artists',          fn () => $this->removeObsoleteArtists()],
 			['genres',           fn () => $this->removeObsoleteGenres()],
 			['bookmarks',        fn () => $this->removeObsoleteBookmarks()],
 			['podcast_episodes', fn () => $this->removeObsoletePodcastEpisodes()],
