@@ -189,7 +189,9 @@ class Scanner extends PublicEmitter {
 		$track = $this->trackBusinessLayer->addOrUpdateTrack(
 				$meta['title'], $meta['track_number'], $meta['disc_number'], $meta['year'], $genre->getId(),
 				$artistId, $albumId, $fileId, $mimetype, $userId, $meta['length'], $meta['bitrate'],
-				$meta['bpm'], $composerId, $meta['comment'], $meta['mb_recording_id'], $meta['mb_release_track_id']);
+				$meta['bpm'], $composerId, $meta['comment'], $meta['mb_recording_id'], $meta['mb_release_track_id'],
+				$meta['replaygain_album_gain'], $meta['replaygain_album_peak'], $meta['replaygain_track_gain'],
+				$meta['replaygain_track_peak'], $meta['r128_album_gain'], $meta['r128_track_gain']);
 
 		// if present, use the embedded album art as cover for the respective album
 		if (!empty($meta['picture'])) {
@@ -340,6 +342,14 @@ class Scanner extends PublicEmitter {
 		if ($meta['compilation'] && empty($meta['mb_release_artist_id'])) {
 			$meta['mb_release_artist_id'] = ArtistMapper::VARIOUS_ARTISTS_MBID;
 		}
+
+		// Replay gain
+		$meta['replaygain_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_album_gain'));
+		$meta['replaygain_album_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_album_peak'));
+		$meta['replaygain_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_gain'));
+		$meta['replaygain_track_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_peak'));
+		$meta['r128_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_albur128_album_gainm_gain'));
+		$meta['r128_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'r128_track_gain'));
 
 		return $meta;
 	}
@@ -893,6 +903,18 @@ class Scanner extends PublicEmitter {
 		if (\is_numeric($value)) {
 			$value = (int)\round((float)$value);
 			$value = (int)Util::limit($value, 0, Util::SINT32_MAX); // can't use UINT32_MAX since PostgreSQL has no unsigned types
+		} else {
+			$value = null;
+		}
+		return $value;
+	}
+
+	private static function normalizeFloat(int|float|string|null $value) : ?float {
+		if (\is_numeric($value)) {
+			$value = (float)$value;
+		} elseif (\is_string($value) && \preg_match('/(\d+(\.\d+)?).*/', $value, $matches) === 1) {
+			// numeric value followed by something, probably the unit
+			$value = (float)$matches[1];
 		} else {
 			$value = null;
 		}

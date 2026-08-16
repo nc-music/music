@@ -14,6 +14,7 @@
 
 namespace OCA\Music\Db;
 
+use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\StringUtil;
 use OCA\Music\Utility\Util;
 use OCP\IL10N;
@@ -64,6 +65,18 @@ use OCP\IURLGenerator;
  * @method void setComment(?string $comment)
  * @method ?int getScanVersion()
  * @method void setScanVersion(?int $version)
+ * @method ?float getReplaygainAlbumGain()
+ * @method void setReplaygainAlbumGain(?float $gain)
+ * @method ?float getReplaygainAlbumPeak()
+ * @method void setReplaygainAlbumPeak(?float $peak)
+ * @method ?float getReplaygainTrackGain()
+ * @method void setReplaygainTrackGain(?float $gain)
+ * @method ?float getReplaygainTrackPeak()
+ * @method void setReplaygainTrackPeak(?float $peak)
+ * @method ?float getR128AlbumGain()
+ * @method void setR128AlbumGain(?float $gain)
+ * @method ?float getR128TrackGain()
+ * @method void setR128TrackGain(?float $gain)
  *
  * @method string getFilename()
  * @method int getSize()
@@ -97,6 +110,12 @@ class Track extends Entity {
 	public ?int $composerId = null;
 	public ?string $comment = null;
 	public ?int $scanVersion = null; // version of the Music app used to scan this track
+	public ?float $replaygainAlbumGain = null;
+	public ?float $replaygainAlbumPeak = null;
+	public ?float $replaygainTrackGain = null;
+	public ?float $replaygainTrackPeak = null;
+	public ?float $r128AlbumGain = null;
+	public ?float $r128TrackGain = null;
 
 	// not from the music_tracks table but still part of the standard content of this entity:
 	public string $filename = '';
@@ -134,6 +153,12 @@ class Track extends Entity {
 		$this->addType('size', 'int');
 		$this->addType('fileModTime', 'int');
 		$this->addType('folderId', 'int');
+		$this->addType('replaygainAlbumGain', 'float');
+		$this->addType('replaygainAlbumPeak', 'float');
+		$this->addType('replaygainTrackGain', 'float');
+		$this->addType('replaygainTrackPeak', 'float');
+		$this->addType('r128AlbumGain', 'float');
+		$this->addType('r128TrackGain', 'float');
 	}
 
 	public function getAlbum() : ?Album {
@@ -287,12 +312,12 @@ class Track extends Entity {
 			'rate'                  => null, // sample rate [Hz]
 			'comment'               => $this->getComment() ?: null,
 			'mbid'                  => $this->getMbid(),
-			'replaygain_album_gain' => null,
-			'replaygain_album_peak' => null,
-			'replaygain_track_gain' => null,
-			'replaygain_track_peak' => null,
-			'r128_album_gain'       => null,
-			'r128_track_gain'       => null,
+			'replaygain_album_gain' => $this->getReplaygainAlbumGain(),
+			'replaygain_album_peak' => $this->getReplaygainAlbumPeak(),
+			'replaygain_track_gain' => $this->getReplaygainTrackGain(),
+			'replaygain_track_peak' => $this->getReplaygainTrackPeak(),
+			'r128_album_gain'       => $this->getR128AlbumGain(),
+			'r128_track_gain'       => $this->getR128TrackGain(),
 		];
 
 		$result['has_art'] = !empty($result['art']);
@@ -329,7 +354,7 @@ class Track extends Entity {
 		$album = $this->getAlbum();
 		$hasCoverArt = ($album !== null && !empty($album->getCoverFileId()));
 
-		return [
+		$result = [
 			'id'              => 'track-' . $this->getId(),
 			'parent'          => 'album-' . $albumId,
 			'discNumber'      => $this->getDisk(),
@@ -364,7 +389,20 @@ class Track extends Entity {
 			'played'          => Util::formatZuluDateTime($this->getLastPlayed()) ?? '', // OpenSubsonic
 			'sortName'        => StringUtil::splitPrefixAndBasename($this->getTitle(), $ignoredArticles)['basename'], // OpenSubsonic
 			'musicBrainzId'   => $this->getMbid(), // OpenSubsonic
+			'replayGain'      => [ // OpenSubsonic
+				'albumGain' => $this->getReplaygainAlbumGain(),
+				'albumPeak' => $this->getReplaygainAlbumPeak(),
+				'trackGain' => $this->getReplaygainTrackGain(),
+				'trackPeak' => $this->getReplaygainTrackPeak(),
+			],
 		];
+
+		// replayGain is removed if it doesn't contain any data
+		if (ArrayUtil::all($result['replayGain'], fn ($val) => \is_null($val))) {
+			$result['replayGain'] = null;
+		}
+
+		return $result;
 	}
 
 	private function buildContributors() : array {

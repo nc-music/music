@@ -322,7 +322,9 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
 			int $fileId, string $mimetype, string $userId, ?int $length = null, ?int $bitrate = null, ?int $bpm = null,
-			?int $composerId = null, ?string $comment = null, ?string $mbid = null, ?string $mbidRelTrack = null) : Track {
+			?int $composerId = null, ?string $comment = null, ?string $mbid = null, ?string $mbidRelTrack = null,
+			?float $replaygainAlbumGain = null, ?float $replaygainAlbumPeak = null, ?float $replaygainTrackGain = null,
+			?float $replaygainTrackPeak = null, ?float $r128AlbumGain = null, ?float $r128TrackGain = null) : Track {
 		$track = new Track();
 		$track->setTitle(StringUtil::truncate($title, 256)); // some DB setups can't truncate automatically to column max size
 		$track->setNumber($number);
@@ -343,6 +345,12 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		$track->setMbid(StringUtil::truncate($mbid, 36)); // valid mbid is always 36 characters, prepare for invalid data
 		$track->setMbidRelTrack(StringUtil::truncate($mbidRelTrack, 36));
 		$track->setScanVersion(AppInfo::getEncodedVersion());
+		$track->setReplaygainAlbumGain($replaygainAlbumGain);
+		$track->setReplaygainAlbumPeak($replaygainAlbumPeak);
+		$track->setReplaygainTrackGain($replaygainTrackGain);
+		$track->setReplaygainTrackPeak($replaygainTrackPeak);
+		$track->setR128AlbumGain($r128AlbumGain);
+		$track->setR128TrackGain($r128TrackGain);
 		return $this->mapper->updateOrInsert($track);
 	}
 

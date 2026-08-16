@@ -28,6 +28,9 @@
 - Compilation field support [#127](https://github.com/nc-music/music/issues/127)
   * The `compilation` metadata tag is stored to the DB when scanning the library
   * Subsonic API: Include OpenSubsonic property `isCompilation` in the AlbumID3 responses
+- Partial support for replaygain [#63](https://github.com/nc-music/music/issues/63)
+  * The replaygain fields are saved to the DB while scanning and included in the song responses of the Ampache and Subsonic APIs
+  * The web UI player does *not* use the replaygain data
 - Context menu with the "Import from file" action on the "New Playlist" navigation item
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
 - Scan improvements:

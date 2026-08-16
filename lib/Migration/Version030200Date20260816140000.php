@@ -13,7 +13,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * Migrate the DB schema to Music v3.2.0 level from the v2.1.0 level
  */
-class Version030200Date20260813000000 extends SimpleMigrationStep {
+class Version030200Date20260816140000 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -35,11 +35,17 @@ class Version030200Date20260813000000 extends SimpleMigrationStep {
 	private static function migrateTracks(ISchemaWrapper $schema) : void {
 		$tracks = $schema->getTable('music_tracks');
 
-		self::addColumnIfMissing($tracks, 'bpm',            Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
-		self::addColumnIfMissing($tracks, 'composer_id',    Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
-		self::addColumnIfMissing($tracks, 'comment',        Types::TEXT,    ['notnull' => false]);
-		self::addColumnIfMissing($tracks, 'mbid_rel_track', Types::STRING,  ['notnull' => false, 'length' => 36]);
-		self::addColumnIfMissing($tracks, 'scan_version',   Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'bpm',                   Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'composer_id',           Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'comment',               Types::TEXT,    ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'mbid_rel_track',        Types::STRING,  ['notnull' => false, 'length' => 36]);
+		self::addColumnIfMissing($tracks, 'scan_version',          Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'replaygain_album_gain', Types::FLOAT,   ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'replaygain_album_peak', Types::FLOAT,   ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'replaygain_track_gain', Types::FLOAT,   ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'replaygain_track_peak', Types::FLOAT,   ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'r128_album_gain',       Types::FLOAT,   ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'r128_track_gain',       Types::FLOAT,   ['notnull' => false]);
 
 		self::addIndexIfMissing($tracks, 'music_tracks_composer_id_idx', ['composer_id']);
 		self::addIndexIfMissing($tracks, 'music_tracks_genre_id_idx', ['genre_id']);
