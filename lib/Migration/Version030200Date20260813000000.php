@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Music\Migration;
 
 use Closure;
+use Doctrine\DBAL\Types\Types;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -34,11 +35,11 @@ class Version030200Date20260813000000 extends SimpleMigrationStep {
 	private static function migrateTracks(ISchemaWrapper $schema) : void {
 		$tracks = $schema->getTable('music_tracks');
 
-		self::addColumnIfMissing($tracks, 'bpm', 'integer', ['notnull' => false, 'unsigned' => true]);
-		self::addColumnIfMissing($tracks, 'composer_id', 'integer', ['notnull' => false, 'unsigned' => true]);
-		self::addColumnIfMissing($tracks, 'comment', 'text', ['notnull' => false]);
-		self::addColumnIfMissing($tracks, 'mbid_rel_track', 'string', ['notnull' => false, 'length' => 36]);
-		self::addColumnIfMissing($tracks, 'scan_version', 'integer', ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'bpm',            Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'composer_id',    Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'comment',        Types::TEXT,    ['notnull' => false]);
+		self::addColumnIfMissing($tracks, 'mbid_rel_track', Types::STRING,  ['notnull' => false, 'length' => 36]);
+		self::addColumnIfMissing($tracks, 'scan_version',   Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 
 		self::addIndexIfMissing($tracks, 'music_tracks_composer_id_idx', ['composer_id']);
 		self::addIndexIfMissing($tracks, 'music_tracks_genre_id_idx', ['genre_id']);
@@ -52,8 +53,8 @@ class Version030200Date20260813000000 extends SimpleMigrationStep {
 		// NC versions < 33 globally prevent not-null boolean columns because of Oracle DB limitations, so we can't use that combination.
 		// NC 33+ has a saner approach of just converting those not-null columns to nullable in case Oracle DB is used.
 		// We don't support Oracle DB, but to avoid issues with NC < 33, we make the boolean columns nullable (but only use non-null values).
-		self::addColumnIfMissing($albums, 'album_artist_uncertain', 'boolean', ['notnull' => false, 'default' => false]);
-		self::addColumnIfMissing($albums, 'compilation', 'boolean', ['notnull' => false, 'default' => false]);
+		self::addColumnIfMissing($albums, 'album_artist_uncertain', Types::BOOLEAN, ['notnull' => false, 'default' => false]);
+		self::addColumnIfMissing($albums, 'compilation',            Types::BOOLEAN, ['notnull' => false, 'default' => false]);
 
 		// replace unique index for user_id/hash with one for user_id/hash/album_artist_id/mbid (the hash will no longer involve album_artist_id)
 		self::dropObsoleteIndex($albums, 'ma_user_id_hash_idx');
