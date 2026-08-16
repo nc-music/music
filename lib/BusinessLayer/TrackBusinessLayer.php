@@ -310,6 +310,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	 * @param int $fileId the file id of the track
 	 * @param string $mimetype the mimetype of the track
 	 * @param string $userId the name of the user
+	 * @param ?int $recordLabelId the ID for the track's record label
 	 * @param ?int $length track length in seconds
 	 * @param ?int $bitrate track bitrate in bits (not kbits)
 	 * @param ?int $bpm beats per minute
@@ -321,7 +322,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	 */
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
-			int $fileId, string $mimetype, string $userId, ?int $length = null, ?int $bitrate = null, ?int $bpm = null,
+			int $fileId, string $mimetype, string $userId, ?int $recordLabelId = null, ?int $length = null, ?int $bitrate = null, ?int $bpm = null,
 			?int $composerId = null, ?string $comment = null, ?string $mbid = null, ?string $mbidRelTrack = null,
 			?float $replaygainAlbumGain = null, ?float $replaygainAlbumPeak = null, ?float $replaygainTrackGain = null,
 			?float $replaygainTrackPeak = null, ?float $r128AlbumGain = null, ?float $r128TrackGain = null) : Track {
@@ -340,6 +341,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		$track->setBitrate($bitrate);
 		$track->setBpm($bpm);
 		$track->setComposerId($composerId);
+		$track->setRecordLabelId($recordLabelId);
 		$track->setComment($comment);
 		$track->setDirty(0);
 		$track->setMbid(StringUtil::truncate($mbid, 36)); // valid mbid is always 36 characters, prepare for invalid data

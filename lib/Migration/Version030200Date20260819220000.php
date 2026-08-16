@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Music\Migration;
 
 use Closure;
+use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
@@ -13,7 +14,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * Migrate the DB schema to Music v3.2.0 level from the v2.1.0 level
  */
-class Version030200Date20260816140000 extends SimpleMigrationStep {
+class Version030200Date20260819220000 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -28,6 +29,7 @@ class Version030200Date20260816140000 extends SimpleMigrationStep {
 		self::migrateTracks($schema);
 		self::migrateAlbums($schema);
 		self::migrateArtists($schema);
+		self::migrateRecordLabels($schema);
 
 		return $schema;
 	}
@@ -37,6 +39,7 @@ class Version030200Date20260816140000 extends SimpleMigrationStep {
 
 		self::addColumnIfMissing($tracks, 'bpm',                   Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'composer_id',           Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
+		self::addColumnIfMissing($tracks, 'record_label_id',       Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'comment',               Types::TEXT,    ['notnull' => false]);
 		self::addColumnIfMissing($tracks, 'mbid_rel_track',        Types::STRING,  ['notnull' => false, 'length' => 36]);
 		self::addColumnIfMissing($tracks, 'scan_version',          Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
@@ -48,6 +51,7 @@ class Version030200Date20260816140000 extends SimpleMigrationStep {
 		self::addColumnIfMissing($tracks, 'r128_track_gain',       Types::FLOAT,   ['notnull' => false]);
 
 		self::addIndexIfMissing($tracks, 'music_tracks_composer_id_idx', ['composer_id']);
+		self::addIndexIfMissing($tracks, 'music_tracks_record_label_id_idx', ['record_label_id']);
 		self::addIndexIfMissing($tracks, 'music_tracks_genre_id_idx', ['genre_id']);
 	}
 
@@ -75,46 +79,56 @@ class Version030200Date20260816140000 extends SimpleMigrationStep {
 		self::addUniqueIndexIfMissing($artists, 'user_hash_mbid_idx', ['user_id', 'hash', 'mbid']);
 	}
 
-	/**
-	 * @param \Doctrine\DBAL\Schema\Table $table
-	 */
-	private static function addColumnIfMissing($table, string $name, string $type, array $args) : void {
+	private static function migrateRecordLabels(ISchemaWrapper $schema) : void {
+		$labels = self::getOrCreateTable($schema, 'music_record_labels');
+
+		self::addColumnIfMissing($labels, 'id',      Types::INTEGER,            ['autoincrement' => true, 'notnull' => true, 'unsigned' => true]);
+		self::addColumnIfMissing($labels, 'user_id', Types::STRING,             ['notnull' => true, 'length' => 64]);
+		self::addColumnIfMissing($labels, 'name',    Types::STRING,             ['notnull' => true, 'length' => 256]);
+		self::addColumnIfMissing($labels, 'hash',    Types::STRING,             ['notnull' => true, 'length' => 32]);
+		self::addColumnIfMissing($labels, 'created', Types::DATETIME_IMMUTABLE, ['notnull' => false]);
+		self::addColumnIfMissing($labels, 'updated', Types::DATETIME_IMMUTABLE, ['notnull' => false]);
+
+		if ($labels->getPrimaryKey() === null) {
+			$labels->setPrimaryKey(['id']);
+		}
+
+		self::addUniqueIndexIfMissing($labels, 'user_hash_idx', ['user_id', 'hash']);
+	}
+
+	private static function getOrCreateTable(ISchemaWrapper $schema, string $name) : Table {
+		if (!$schema->hasTable($name)) {
+			return $schema->createTable($name);
+		} else {
+			return $schema->getTable($name);
+		}
+	}
+
+	private static function addColumnIfMissing(Table $table, string $name, string $type, array $args) : void {
 		if (!$table->hasColumn($name)) {
 			$table->addColumn($name, $type, $args);
 		}
 	}
 
-	/**
-	 * @param \Doctrine\DBAL\Schema\Table $table
-	 */
-	private static function addIndexIfMissing($table, string $name, array $columns) : void {
+	private static function addIndexIfMissing(Table $table, string $name, array $columns) : void {
 		if (!$table->hasIndex($name)) {
 			$table->addIndex($columns, $name);
 		}
 	}
 
-	/**
-	 * @param \Doctrine\DBAL\Schema\Table $table
-	 */
-	private static function addUniqueIndexIfMissing($table, string $name, array $columns) : void {
+	private static function addUniqueIndexIfMissing(Table $table, string $name, array $columns) : void {
 		if (!$table->hasIndex($name)) {
 			$table->addUniqueIndex($columns, $name);
 		}
 	}
 
-	/**
-	 * @param \Doctrine\DBAL\Schema\Table $table
-	 */
-	private static function dropObsoleteIndex($table, string $name) : void {
+	private static function dropObsoleteIndex(Table $table, string $name) : void {
 		if ($table->hasIndex($name)) {
 			$table->dropIndex($name);
 		}
 	}
 
-	/**
-	 * @param \Doctrine\DBAL\Schema\Table $table
-	 */
-	private static function dropObsoleteColumn($table, string $name) : void {
+	private static function dropObsoleteColumn(Table $table, string $name) : void {
 		if ($table->hasColumn($name)) {
 			$table->dropColumn($name);
 		}

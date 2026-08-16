@@ -22,7 +22,7 @@ use OCP\IURLGenerator;
 
 class Library {
 
-	public const DB_SCHEMA_VERSION = '3.2.0-alpha2'; // the version of Music app which last modified the database schema of the library tables
+	public const DB_SCHEMA_VERSION = '3.2.0-alpha3'; // the version of Music app which last modified the database schema of the library tables
 
 	public function __construct(
 		private AlbumBusinessLayer $albumBusinessLayer,
