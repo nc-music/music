@@ -52,7 +52,7 @@
 - Track details pane:
   * Collapse the more exotic tags by default and show them by clicking "Show more…"
   * Make all MusicBrainz Ids from the tags into links to the MusicBrainz site (like previously done with MbIds from Last.fm)
-  * On tag names, abbreviate "musicbrainz" as "mb" to not truncate the more important parts of the name
+  * On tag names, abbreviate "musicbrainz" as "mb" and "replaygain" as "rg" to not truncate the more important parts of the name
   * Show also the MusicBrainz Recording Id stored in id3v2.4 tag `UFID` (MusicBrainz Picard uses this on mp3 files)
   * Show all values of multi-valued metadata tags
 - Attempt to restart the playing radio stream if it abruptly ends

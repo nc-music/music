@@ -131,8 +131,9 @@ angular.module('Music').controller('TrackDetailsController', [
 		};
 
 		$scope.formatDetailName = function(rawName) {
-			// replace musicbrainz in tag names with "mb" to avoid truncation of long names in the sidebar
+			// abbreviate "musicbrainz" and "replaygain" in tag names to avoid truncation of long names in the sidebar
 			rawName = rawName.replace(/musicbrainz/, 'mb');
+			rawName = rawName.replace(/replaygain/, 'rg');
 
 			switch (rawName) {
 			case 'band':			return 'album artist';
