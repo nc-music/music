@@ -82,6 +82,7 @@
 - The embedded music player within Files being slightly misplaced on NC 34+
 - Performance problem on background cleanup task with huge libraries
   [#157](https://github.com/nc-music/music/issues/157)
+- Album covers from Last.fm not showing up in the details pane since Last.fm changed the sub domain hosting the images
 - Subsonic API:
   * Attribute `parent` misplaced in the response of `getMusicDirectory` when browsing by file system folders
   * Endpoints `savePlayQueue` and `savePlayQueueByIndex` not allowing an empty list to clear the queue
