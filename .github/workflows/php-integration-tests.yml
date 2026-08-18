@@ -33,6 +33,9 @@ jobs:
           - nc: 34.0.0
             php: 8.5
             db: pgsql
+          - nc: 35.0.0beta3
+            php: 8.4
+            db: mysql
 
     steps:
     - name: Checkout repository
