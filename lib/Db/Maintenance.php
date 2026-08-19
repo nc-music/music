@@ -178,6 +178,10 @@ class Maintenance {
 		return $this->removeUnreferencedDbRows('music_genres', 'music_tracks', 'id', 'genre_id');
 	}
 
+	private function removeObsoleteRecordLabels() : int {
+		return $this->removeUnreferencedDbRows('music_record_labels', 'music_tracks', 'id', 'record_label_id');
+	}
+
 	/**
 	 * Remove bookmarks referring tracks which do not exist
 	 * @return int Number of removed bookmarks
@@ -227,6 +231,7 @@ class Maintenance {
 			['albums',           fn () => $this->removeObsoleteAlbums() + $this->removeAlbumsWithNoArtist()],
 			['artists',          fn () => $this->removeObsoleteArtists()],
 			['genres',           fn () => $this->removeObsoleteGenres()],
+			['record_labels',    fn () => $this->removeObsoleteRecordLabels()],
 			['bookmarks',        fn () => $this->removeObsoleteBookmarks()],
 			['podcast_episodes', fn () => $this->removeObsoletePodcastEpisodes()],
 		];
