@@ -28,6 +28,7 @@ use OCA\Music\BusinessLayer\PlaylistBusinessLayer;
 use OCA\Music\BusinessLayer\PodcastChannelBusinessLayer;
 use OCA\Music\BusinessLayer\PodcastEpisodeBusinessLayer;
 use OCA\Music\BusinessLayer\RadioStationBusinessLayer;
+use OCA\Music\BusinessLayer\RecordLabelBusinessLayer;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
 use OCA\Music\Db\Album;
 use OCA\Music\Db\AmpacheSession;
@@ -40,6 +41,7 @@ use OCA\Music\Db\Playlist;
 use OCA\Music\Db\PodcastChannel;
 use OCA\Music\Db\PodcastEpisode;
 use OCA\Music\Db\RadioStation;
+use OCA\Music\Db\RecordLabel;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\AmpacheAPI;
@@ -113,6 +115,7 @@ class AmpacheController extends ApiController {
 		private PodcastChannelBusinessLayer $podcastChannelBusinessLayer,
 		private PodcastEpisodeBusinessLayer $podcastEpisodeBusinessLayer,
 		private RadioStationBusinessLayer $radioStationBusinessLayer,
+		private RecordLabelBusinessLayer $recordLabelBusinessLayer,
 		private TrackBusinessLayer $trackBusinessLayer,
 		private Library $library,
 		private PodcastService $podcastService,
@@ -301,7 +304,7 @@ class AmpacheController extends ApiController {
 			'catalogs'            => 0,
 			'shares'              => 0,
 			'licenses'            => 0,
-			'labels'              => 0,
+			'labels'              => $this->recordLabelBusinessLayer->count($user),
 			'max_song'            => $this->trackBusinessLayer->maxId($user),
 			'max_album'           => $this->albumBusinessLayer->maxId($user),
 			'max_artist'          => $this->artistBusinessLayer->maxId($user),
@@ -1147,6 +1150,24 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
+	protected function labels(?string $filter, int $limit, int $offset = 0, bool $exact = false) : array {
+		$labels = $this->findEntities($this->recordLabelBusinessLayer, $filter, $exact, $limit, $offset);
+		return $this->renderRecordLabels($labels);
+	}
+
+	#[AmpacheAPI]
+	protected function label(int $filter) : array {
+		$label = $this->recordLabelBusinessLayer->find($filter, $this->userId());
+		return $this->renderRecordLabels([$label]);
+	}
+
+	#[AmpacheAPI]
+	protected function label_artists(int $filter, int $limit, int $offset = 0) : array {
+		$artists = $this->artistBusinessLayer->findAllByRecordLabel($filter, $this->userId(), $limit, $offset);
+		return $this->renderArtists($artists);
+	}
+
+	#[AmpacheAPI]
 	protected function bookmarks(int $include = 0) : array {
 		$bookmarks = $this->bookmarkBusinessLayer->findAll($this->userId());
 		return $this->renderBookmarks($bookmarks, $include);
@@ -1932,6 +1953,15 @@ class AmpacheController extends ApiController {
 	private function renderGenres(array $genres) : array {
 		return [
 			'genre' => \array_map(fn ($g) => $g->toAmpacheApi($this->l10n), $genres)
+		];
+	}
+
+	/**
+	 * @param RecordLabel[] $labels
+	 */
+	private function renderRecordLabels(array $labels) : array {
+		return [
+			'label' => \array_map(fn ($l) => $l->toAmpacheApi(), $labels)
 		];
 	}
 

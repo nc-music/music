@@ -317,6 +317,7 @@ class Track extends Entity {
 			'mode'                  => null, // cbr/vbr
 			'rate'                  => null, // sample rate [Hz]
 			'comment'               => $this->getComment() ?: null,
+			'publisher'             => $this->getRecordLabelName(),
 			'mbid'                  => $this->getMbid(),
 			'replaygain_album_gain' => $this->getReplaygainAlbumGain(),
 			'replaygain_album_peak' => $this->getReplaygainAlbumPeak(),

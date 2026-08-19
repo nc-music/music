@@ -125,6 +125,19 @@ class ArtistMapper extends BaseMapper {
 	}
 
 	/**
+	 * @return Artist[]
+	 */
+	public function findAllByRecordLabel(int $labelId, string $userId, ?int $limit = null, ?int $offset = null) : array {
+		$sql = $this->selectUserEntities('EXISTS '
+				. '(SELECT 1 FROM `*PREFIX*music_tracks` `track`
+				  WHERE `*PREFIX*music_artists`.`id` = `track`.`artist_id`
+				  AND `track`.`record_label_id` = ?)');
+
+		$params = [$userId, $labelId];
+		return $this->findEntities($sql, $params, $limit, $offset);
+	}
+
+	/**
 	 * returns summed track play counts of each artist of the user, omitting artists which have never been played
 	 *
 	 * @return array<int, int> keys are artist IDs and values are play count sums; ordered largest counts first
