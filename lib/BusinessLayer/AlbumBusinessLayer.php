@@ -274,12 +274,14 @@ class AlbumBusinessLayer extends BusinessLayer {
 			$years = $this->mapper->getYearsByAlbumId($albumIds, $userId);
 			$diskCounts = $this->mapper->getDiscCountByAlbumId($albumIds, $userId);
 			$genres = $this->mapper->getGenresByAlbumId($albumIds, $userId);
+			$labels = $this->mapper->getRecordLabelsByAlbumId($albumIds, $userId);
 
 			foreach ($albums as $album) {
 				$albumId = $album->getId();
 				$album->setArtists(\array_map(fn ($id) => $artists[$id], $artistIdsByAlbum[$albumId] ?? []));
 				$album->setNumberOfDisks($diskCounts[$albumId] ?? 1);
 				$album->setGenres($genres[$albumId] ?? null);
+				$album->setRecordLabels($labels[$albumId] ?? null);
 				$album->setYears($years[$albumId] ?? null);
 			}
 		}
