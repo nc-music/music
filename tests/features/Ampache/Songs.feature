@@ -63,3 +63,14 @@ Feature: Ampache API - Songs
     Then I should get:
       | title                          | artist                   | album                          | time | track |
       | Médiane                        | Pascal Boiseau (Pascalb) | Nuance                         | 2    | 1     |
+
+
+  Scenario: Check various song metadata properties
+    Given I am logged in with an auth token
+    When I specify the parameter "limit" with value "3"
+    And I request the "songs" resource
+    Then I should get:
+      | title                          | artist                   | album                          | time | track | year | composer                 | publisher              |
+      | Aç                             | Pascal Boiseau (Pascalb) | Nuance                         | 3    | 7     | 2006 | Pascal Boiseau (Pascalb) | http://www.jamendo.com |
+      | Balrog Boogie                  | Diablo Swing Orchestra   | The Butcher's Ballroom         | 2    | 1     | 2009 |                          | Jamendo                |
+      | Forgotten Days                 | Simon Bowman             | Instrumental Film Music Vol. 1 | 2    | 1     | 2013 | Simon Bowman             | http://www.jamendo.com |
