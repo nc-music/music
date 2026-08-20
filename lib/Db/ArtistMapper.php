@@ -261,6 +261,7 @@ class ArtistMapper extends BaseMapper {
 			'album_count'      => "{$this->sqlCoalesce('`ownAlbumCount`', '0')} $sqlOp ?",
 			'song_count'       => "{$this->sqlCoalesce('`trackCount`', '0')} $sqlOp ?",
 			'time'             => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING SUM(`length`) $sqlOp ?) mysqlhack)",
+			'label'            => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_record_labels` `l` ON `t`.`record_label_id` = `l`.`id` WHERE $conv(`l`.`name`) $sqlOp $conv(?))",
 			'artist_genre'     => "`*PREFIX*music_artists`.`id` IN (SELECT * FROM (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `artist_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
 			'song_genre'       => "`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE $conv(`g`.`name`) $sqlOp $conv(?))",
 			'no_genre'         => '`*PREFIX*music_artists`.`id` IN (SELECT `artist_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE `g`.`name` ' . (($sqlOp == 'IS NOT NULL') ? '=' : '!=') . ' "")',
