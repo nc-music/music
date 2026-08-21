@@ -91,6 +91,14 @@ class ArtistBusinessLayer extends BusinessLayer {
 	}
 
 	/**
+	 * Returns all artists filtered by record label
+	 * @return Artist[] artists
+	 */
+	public function findAllByRecordLabel(int $labelId, string $userId, ?int $limit = null, ?int $offset = null) : array {
+		return $this->mapper->findAllByRecordLabel($labelId, $userId, $limit, $offset);
+	}
+
+	/**
 	 * Find most frequently played artists, judged by the total play count of the contained tracks
 	 * @return Artist[]
 	 */

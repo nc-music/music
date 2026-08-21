@@ -37,7 +37,7 @@ class TrackMapper extends BaseMapper {
 	protected function selectEntities(string $condition, ?string $extension = null) : string {
 		return "SELECT `*PREFIX*music_tracks`.*, `file`.`name` AS `filename`, `file`.`size`, `file`.`mtime` AS `file_mod_time`, `file`.`parent` AS `folder_id`,
 						`album`.`name` AS `album_name`, `artist`.`name` AS `artist_name`, `genre`.`name` AS `genre_name`,
-						`composer`.`name` AS `composer_name`
+						`composer`.`name` AS `composer_name`, `record_label`.`name` AS `record_label_name`
 				FROM `*PREFIX*music_tracks`
 				INNER JOIN `*PREFIX*filecache` `file`
 				ON `*PREFIX*music_tracks`.`file_id` = `file`.`fileid`
@@ -49,6 +49,8 @@ class TrackMapper extends BaseMapper {
 				ON `*PREFIX*music_tracks`.`genre_id` = `genre`.`id`
 				LEFT JOIN `*PREFIX*music_artists` `composer`
 				ON `*PREFIX*music_tracks`.`composer_id` = `composer`.`id`
+				LEFT JOIN `*PREFIX*music_record_labels` `record_label`
+				ON `*PREFIX*music_tracks`.`record_label_id` = `record_label`.`id`
 				WHERE $condition $extension";
 	}
 
@@ -643,6 +645,7 @@ class TrackMapper extends BaseMapper {
 			'recent_played'     => "`*PREFIX*music_tracks`.`id` IN (SELECT * FROM (SELECT `id` FROM `*PREFIX*music_tracks` WHERE `user_id` = ? ORDER BY `last_played` DESC LIMIT $sqlOp) mysqlhack)",
 			'file'              => "$conv(`file`.`name`) $sqlOp $conv(?)",
 			'comment'           => "$conv(`comment`) $sqlOp $conv(?)",
+			'label'             => "$conv(`record_label`.`name`) $sqlOp $conv(?)",
 			'mbid_album'        => "$conv(`album`.`mbid`) $sqlOp $conv(?)",
 			'mbid_album_group'  => "$conv(`album`.`mbid_group`) $sqlOp $conv(?)",
 			'mbid_artist'       => "$conv(`artist`.`mbid`) $sqlOp $conv(?)",
@@ -667,6 +670,7 @@ class TrackMapper extends BaseMapper {
 			'`composer`.`name`',
 			'`album`.`name`',
 			'`genre`.`name`',
+			'`record_label`.`name`',
 			'`*PREFIX*music_tracks`.`mbid`',
 			'`*PREFIX*music_tracks`.`mbid_rel_track`',
 			'`album`.`mbid`',

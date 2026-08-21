@@ -32,6 +32,11 @@
 - Partial support for replaygain [#63](https://github.com/nc-music/music/issues/63)
   * The replaygain fields are saved to the DB while scanning and included in the song responses of the Ampache and Subsonic APIs
   * The web UI player does *not* use the replaygain data
+- Record label support
+  * The record labels are scanned from the song metadata tag `publisher` and store in the DB
+  * Ampache API: Add actions `labels`, `label`, and `label_artists`. Include property `publisher` to the song responses.
+  * Subsonic API: Include property `recordLabels` on the album responses (OpenSubsonic addition)
+  * Advanced search can find tracks/albums/artists by the record label
 - Context menu with the "Import from file" action on the "New Playlist" navigation item
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
 - Scan improvements:

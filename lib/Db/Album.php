@@ -59,6 +59,8 @@ class Album extends Entity {
 	private ?array $years = null;
 	/** @var ?Genre[] $genres - AlbumBusinessLayer injects *partial* Genre objects, not all properties are set */
 	private ?array $genres = null;
+	/** @var ?RecordLabel[] $recordLabels - AlbumBusinessLayer injects *partial* RecordLabel objects, not all properties are set */
+	private ?array $recordLabels = null;
 	/** @var ?Artist[] $artists */
 	private ?array $artists = null;
 	private ?int $numberOfDisks = null;
@@ -101,6 +103,20 @@ class Album extends Entity {
 	 */
 	public function setGenres(?array $genres) : void {
 		$this->genres = $genres;
+	}
+
+	/**
+	 * @return ?RecordLabel[]
+	 */
+	public function getRecordLabels() : ?array {
+		return $this->recordLabels;
+	}
+
+	/**
+	 * @param ?RecordLabel[] $labels
+	 */
+	public function setRecordLabels(?array $labels) : void {
+		$this->recordLabels = $labels;
 	}
 
 	/**

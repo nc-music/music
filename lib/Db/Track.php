@@ -61,6 +61,8 @@ use OCP\IURLGenerator;
  * @method void setBpm(?int $bpm)
  * @method ?int getComposerId()
  * @method void setComposerId(?int $composerId)
+ * @method ?int getRecordLabelId()
+ * @method void setRecordLabelId(?int $labelId)
  * @method ?string getComment()
  * @method void setComment(?string $comment)
  * @method ?int getScanVersion()
@@ -85,6 +87,7 @@ use OCP\IURLGenerator;
  * @method ?string getArtistName()
  * @method ?string getGenreName()
  * @method ?string getComposerName()
+ * @method ?string getRecordLabelName()
  * @method int getFolderId()
  */
 class Track extends Entity {
@@ -108,6 +111,7 @@ class Track extends Entity {
 	public int $dirty = 0;
 	public ?int $bpm = null;
 	public ?int $composerId = null;
+	public ?int $recordLabelId = null;
 	public ?string $comment = null;
 	public ?int $scanVersion = null; // version of the Music app used to scan this track
 	public ?float $replaygainAlbumGain = null;
@@ -125,6 +129,7 @@ class Track extends Entity {
 	public ?string $artistName = null;
 	public ?string $genreName = null;
 	public ?string $composerName = null;
+	public ?string $recordLabelName = null;
 	public int $folderId = 0;
 
 	// the rest of the variables are injected separately when needed
@@ -149,6 +154,7 @@ class Track extends Entity {
 		$this->addType('dirty', 'int');
 		$this->addType('bpm', 'int');
 		$this->addType('composerId', 'int');
+		$this->addType('recordLabelId', 'int');
 		$this->addType('scanVersion', 'int');
 		$this->addType('size', 'int');
 		$this->addType('fileModTime', 'int');
@@ -311,6 +317,7 @@ class Track extends Entity {
 			'mode'                  => null, // cbr/vbr
 			'rate'                  => null, // sample rate [Hz]
 			'comment'               => $this->getComment() ?: null,
+			'publisher'             => $this->getRecordLabelName(),
 			'mbid'                  => $this->getMbid(),
 			'replaygain_album_gain' => $this->getReplaygainAlbumGain(),
 			'replaygain_album_peak' => $this->getReplaygainAlbumPeak(),

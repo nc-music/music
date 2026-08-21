@@ -259,7 +259,7 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 			}
 
 			foreach ($expectedElement as $key => $expectedValue) {
-				$actualValue = $element->xpath($key)[0]->__toString();
+				$actualValue = (string)($element->xpath($key)[0] ?? '');
 				if ($actualValue !== $expectedValue) {
 					throw new Exception(\ucfirst($key) . ' does not match - expected: ' . $expectedValue . ' got: ' . $actualValue . PHP_EOL . $this->xml->asXML());
 				}

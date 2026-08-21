@@ -41,6 +41,7 @@ class AdvSearchRules {
 					'bitrate'      => $l10n->t('Bit rate'),
 					'bpm'          => $l10n->t('BPM'),
 					'comment'      => $l10n->t('Comment'),
+					'label'        => $l10n->t('Record label'),
 					'song_genre'   => $l10n->t('Track genre'),
 					'album_genre'  => $l10n->t('Album genre'),
 					'artist_genre' => $l10n->t('Artist genre'),
@@ -91,6 +92,7 @@ class AdvSearchRules {
 					'time'        => $l10n->t('Duration (minutes)'),
 					'song_count'  => $l10n->t('Track count'),
 					'disk_count'  => $l10n->t('Disk count'),
+					'label'       => $l10n->t('Record label'),
 					'album_genre' => $l10n->t('Album genre'),
 					'song_genre'  => $l10n->t('Track genre'),
 					'no_genre'    => $l10n->t('Has no genre'),
@@ -136,6 +138,7 @@ class AdvSearchRules {
 					'time'        => $l10n->t('Duration (minutes)'),
 					'album_count' => $l10n->t('Album count'),
 					'song_count'  => $l10n->t('Track count'),
+					'label'       => $l10n->t('Record label'),
 					'genre'       => $l10n->t('Artist genre'),
 					'song_genre'  => $l10n->t('Track genre'),
 					'no_genre'    => $l10n->t('Has no genre'),
@@ -246,13 +249,13 @@ class AdvSearchRules {
 		$rulesPerType = [
 			'text' => [
 				'anywhere', 'title', 'song', 'album', 'artist', 'podcast', 'podcast_episode', 'album_artist', 'song_artist', 'comment',
-				'favorite', 'favorite_album', 'favorite_artist', 'genre', 'song_genre', 'album_genre', 'artist_genre', 'composer',
+				'favorite', 'favorite_album', 'favorite_artist', 'genre', 'song_genre', 'album_genre', 'artist_genre', 'composer', 'label',
 				'playlist_name', 'type', 'file', 'mbid', 'mbid_album', 'mbid_artist', 'mbid_song',
 				// proprietary extensions to the Ampache spec:
 				'stream_url', 'mbid_rel_track', 'mbid_album_group'
 			],
 			// text but not supported: 'summary', 'placeformed', 'release_type', 'release_status', 'barcode',
-			// 'catalog_number', 'label', 'lyrics', 'username', 'category'
+			// 'catalog_number', 'lyrics', 'username', 'category'
 
 			'numeric' => [
 				'track', 'year', 'original_year', 'played_times', 'album_count', 'song_count', 'disk_count', 'time', 'bitrate',

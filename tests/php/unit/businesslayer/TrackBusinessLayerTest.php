@@ -132,13 +132,14 @@ class TrackBusinessLayerTest extends TestCase {
 		$this->assertEquals($track, $result);
 	}
 
-	public function testAddOrUpdateTrackWithBpmAndComposerId() {
+	public function testAddOrUpdateTrackWithOptionalParameters() {
 		$fileId = 2;
 
 		$this->mapper->expects($this->once())
 			->method('updateOrInsert')
 			->with($this->callback(function (Track $track) {
-				return $track->getBpm() === 120
+				return $track->getRecordLabelId() === 99
+					&& $track->getBpm() === 120
 					&& $track->getComposerId() === 42;
 			}))
 			->will($this->returnCallback(function (Track $track) {
@@ -148,18 +149,20 @@ class TrackBusinessLayerTest extends TestCase {
 
 		$result = $this->trackBusinessLayer->addOrUpdateTrack(
 			'test', null, null, null, 1, 1, 1, $fileId, 'audio/mpeg', $this->userId,
-			null, null, 120, 42);
+			99, null, null, 120, 42);
+		$this->assertEquals(99, $result->getRecordLabelId());
 		$this->assertEquals(120, $result->getBpm());
 		$this->assertEquals(42, $result->getComposerId());
 	}
 
-	public function testAddOrUpdateTrackWithNullBpmAndComposerId() {
+	public function testAddOrUpdateTrackWithoutOptionalParameters() {
 		$fileId = 2;
 
 		$this->mapper->expects($this->once())
 			->method('updateOrInsert')
 			->with($this->callback(function (Track $track) {
-				return $track->getBpm() === null
+				return $track->getRecordLabelId() === null
+					&& $track->getBpm() === null
 					&& $track->getComposerId() === null;
 			}))
 			->will($this->returnCallback(function (Track $track) {
@@ -169,6 +172,7 @@ class TrackBusinessLayerTest extends TestCase {
 
 		$result = $this->trackBusinessLayer->addOrUpdateTrack(
 			'test', null, null, null, 1, 1, 1, $fileId, 'audio/mpeg', $this->userId);
+		$this->assertNull($result->getRecordLabelId());
 		$this->assertNull($result->getBpm());
 		$this->assertNull($result->getComposerId());
 	}

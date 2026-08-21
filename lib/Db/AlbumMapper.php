@@ -150,6 +150,40 @@ class AlbumMapper extends BaseMapper {
 	}
 
 	/**
+	 * returns record labels mapped to album IDs
+	 *
+	 * @param integer[]|null $albumIds IDs of the albums; get all albums of the user if null given
+	 * @param string $userId the user ID
+	 * @return array<int, RecordLabel[]> keys are albums IDs and values are arrays of *partial* RecordLabel objects (only id and name properties set)
+	 */
+	public function getRecordLabelsByAlbumId(?array $albumIds, string $userId) : array {
+		$sql = 'SELECT DISTINCT `album_id`, `record_label_id`, `*PREFIX*music_record_labels`.`name` AS `record_label_name`
+				FROM `*PREFIX*music_tracks`
+				LEFT JOIN `*PREFIX*music_record_labels`
+				ON `record_label_id` = `*PREFIX*music_record_labels`.`id`
+				WHERE `*PREFIX*music_tracks`.`user_id` = ?
+				AND `record_label_id` IS NOT NULL ';
+		$params = [$userId];
+
+		if ($albumIds !== null) {
+			$sql .= 'AND `album_id` IN ' . $this->questionMarks(\count($albumIds));
+			$params = \array_merge($params, $albumIds);
+		}
+
+		$result = $this->execute($sql, $params);
+		$labels = [];
+		while ($row = $result->fetch()) {
+			$label = new RecordLabel();
+			$label->setUserId($userId);
+			$label->setId((int)$row['record_label_id']);
+			$label->setName($row['record_label_name']);
+			$labels[$row['album_id']][] = $label;
+		}
+		$result->closeCursor();
+		return $labels;
+	}
+
+	/**
 	 * returns number of disks per album ID
 	 *
 	 * @param integer[]|null $albumIds IDs of the albums; get all albums of the user if null given
@@ -520,6 +554,7 @@ class AlbumMapper extends BaseMapper {
 			'song_count'       => "`*PREFIX*music_albums`.`id` IN (SELECT * FROM (SELECT `album_id` FROM `*PREFIX*music_tracks` GROUP BY `album_id` HAVING COUNT(`id`) $sqlOp ?) mysqlhack)",
 			'disk_count'       => "`*PREFIX*music_albums`.`id` IN (SELECT * FROM (SELECT `album_id` FROM `*PREFIX*music_tracks` GROUP BY `album_id` HAVING MAX(`disk`) $sqlOp ?) mysqlhack)",
 			'time'             => "`*PREFIX*music_albums`.`id` IN (SELECT * FROM (SELECT `album_id` FROM `*PREFIX*music_tracks` GROUP BY `album_id` HAVING SUM(`length`) $sqlOp ?) mysqlhack)",
+			'label'            => "`*PREFIX*music_albums`.`id` IN (SELECT `album_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_record_labels` `l` ON `t`.`record_label_id` = `l`.`id` WHERE $conv(`l`.`name`) $sqlOp $conv(?))",
 			'album_genre'      => "`*PREFIX*music_albums`.`id` IN (SELECT * FROM (SELECT `album_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `album_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
 			'song_genre'       => "`*PREFIX*music_albums`.`id` IN (SELECT `album_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE $conv(`g`.`name`) $sqlOp $conv(?))",
 			'no_genre'         => '`*PREFIX*music_albums`.`id` IN (SELECT `album_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` WHERE `g`.`name` ' . (($sqlOp == 'IS NOT NULL') ? '=' : '!=') . ' "")',

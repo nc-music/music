@@ -20,6 +20,7 @@ use OCA\Music\BusinessLayer\AlbumBusinessLayer;
 use OCA\Music\BusinessLayer\ArtistBusinessLayer;
 use OCA\Music\BusinessLayer\GenreBusinessLayer;
 use OCA\Music\BusinessLayer\PlaylistBusinessLayer;
+use OCA\Music\BusinessLayer\RecordLabelBusinessLayer;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
 use OCA\Music\Db\ArtistMapper;
 use OCA\Music\Db\Cache;
@@ -46,6 +47,7 @@ class Scanner extends PublicEmitter {
 		private TrackBusinessLayer $trackBusinessLayer,
 		private PlaylistBusinessLayer $playlistBusinessLayer,
 		private GenreBusinessLayer $genreBusinessLayer,
+		private RecordLabelBusinessLayer $recordLabelBusinessLayer,
 		private Cache $cache,
 		private CoverService $coverService,
 		private Logger $logger,
@@ -178,6 +180,13 @@ class Scanner extends PublicEmitter {
 		// add/update genre and get genre entity
 		$genre = $this->genreBusinessLayer->addOrUpdateGenre($meta['genre'], $userId);
 
+		// add/update record label and get the entity
+		$recordLabelId = null;
+		if (!empty($meta['record_label'])) {
+			$label = $this->recordLabelBusinessLayer->addOrUpdate($meta['record_label'], $userId);
+			$recordLabelId = $label->getId();
+		}
+
 		// add/update composer artist and get artist entity (if composer metadata exists)
 		$composerId = null;
 		if (!empty($meta['composer'])) {
@@ -188,7 +197,7 @@ class Scanner extends PublicEmitter {
 		// add/update track and get track entity
 		$track = $this->trackBusinessLayer->addOrUpdateTrack(
 				$meta['title'], $meta['track_number'], $meta['disc_number'], $meta['year'], $genre->getId(),
-				$artistId, $albumId, $fileId, $mimetype, $userId, $meta['length'], $meta['bitrate'],
+				$artistId, $albumId, $fileId, $mimetype, $userId, $recordLabelId, $meta['length'], $meta['bitrate'],
 				$meta['bpm'], $composerId, $meta['comment'], $meta['mb_recording_id'], $meta['mb_release_track_id'],
 				$meta['replaygain_album_gain'], $meta['replaygain_album_peak'], $meta['replaygain_track_gain'],
 				$meta['replaygain_track_peak'], $meta['r128_album_gain'], $meta['r128_track_gain']);
@@ -302,6 +311,8 @@ class Scanner extends PublicEmitter {
 		);
 
 		$meta['genre'] = ExtractorGetID3::getTag($fileInfo, 'genre') ?: ''; // empty string used for "scanned but unknown"
+
+		$meta['record_label'] = ExtractorGetID3::getTag($fileInfo, 'publisher');
 
 		$meta['bpm'] = self::normalizeUnsigned(ExtractorGetID3::getTag($fileInfo, 'bpm'));
 
