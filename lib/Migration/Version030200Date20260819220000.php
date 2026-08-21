@@ -96,7 +96,8 @@ class Version030200Date20260819220000 extends SimpleMigrationStep {
 		self::addUniqueIndexIfMissing($labels, 'user_hash_idx', ['user_id', 'hash']);
 	}
 
-	private static function getOrCreateTable(ISchemaWrapper $schema, string $name) : Table {
+	/** @return Table or OCP\DB\Schema\ITable on NC35+ */
+	private static function getOrCreateTable(ISchemaWrapper $schema, string $name) : object {
 		if (!$schema->hasTable($name)) {
 			return $schema->createTable($name);
 		} else {
@@ -104,31 +105,36 @@ class Version030200Date20260819220000 extends SimpleMigrationStep {
 		}
 	}
 
-	private static function addColumnIfMissing(Table $table, string $name, string $type, array $args) : void {
+	/** @param Table $table or OCP\DB\Schema\ITable on NC35+ */
+	private static function addColumnIfMissing(object $table, string $name, string $type, array $args) : void {
 		if (!$table->hasColumn($name)) {
 			$table->addColumn($name, $type, $args);
 		}
 	}
 
-	private static function addIndexIfMissing(Table $table, string $name, array $columns) : void {
+	/** @param Table $table or OCP\DB\Schema\ITable on NC35+ */
+	private static function addIndexIfMissing(object $table, string $name, array $columns) : void {
 		if (!$table->hasIndex($name)) {
 			$table->addIndex($columns, $name);
 		}
 	}
 
-	private static function addUniqueIndexIfMissing(Table $table, string $name, array $columns) : void {
+	/** @param Table $table or OCP\DB\Schema\ITable on NC35+ */
+	private static function addUniqueIndexIfMissing(object $table, string $name, array $columns) : void {
 		if (!$table->hasIndex($name)) {
 			$table->addUniqueIndex($columns, $name);
 		}
 	}
 
-	private static function dropObsoleteIndex(Table $table, string $name) : void {
+	/** @param Table $table or OCP\DB\Schema\ITable on NC35+ */
+	private static function dropObsoleteIndex(object $table, string $name) : void {
 		if ($table->hasIndex($name)) {
 			$table->dropIndex($name);
 		}
 	}
 
-	private static function dropObsoleteColumn(Table $table, string $name) : void {
+	/** @param Table $table or OCP\DB\Schema\ITable on NC35+ */
+	private static function dropObsoleteColumn(object $table, string $name) : void {
 		if ($table->hasColumn($name)) {
 			$table->dropColumn($name);
 		}
