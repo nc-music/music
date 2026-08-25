@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 ### Added
-- Support for Nextcloud 35 (tested on beta3)
+- Support for Nextcloud 35 (tested on rc2)
 - Admin settings UI to setup Last.fm API key and secret without editing `config.php` manually
   [#131](https://github.com/nc-music/music/pull/131) @mattwellss
 - Possibility to configure the default volume with the config.php key `music.default_volume`
@@ -82,7 +82,7 @@
 - Empty lines being hidden when viewing time-synced lyrics
 - Collapsible navigation pane (used on narrow screens) misbehaving when song/album/etc. dragged sideways and dropped anywhere else than the navigation pane
 - Dashboard widget not stopping the playback when "Next" button pressed on the last track of the queue
-- Web UI failing to load on NC33 if `OCA.Theming` not ready in time (systematically on Safari, randomly on Firefox and Chrome)
+- Web UI failing to load on NC33 if `OCA.Theming` not ready in time (systematically on some systems, sporadically on others)
   [#146](https://github.com/nc-music/music/issues/146)
 - Alphabet navigation working wrong in the Internet radio view when some station is unnamed (such stations are now listed as last)
 - The embedded music player within Files being slightly misplaced on NC 34+
