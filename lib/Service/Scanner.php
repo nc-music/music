@@ -359,7 +359,7 @@ class Scanner extends PublicEmitter {
 		$meta['replaygain_album_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_album_peak'));
 		$meta['replaygain_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_gain'));
 		$meta['replaygain_track_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_peak'));
-		$meta['r128_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_albur128_album_gainm_gain'));
+		$meta['r128_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'r128_album_gain'));
 		$meta['r128_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'r128_track_gain'));
 
 		return $meta;
