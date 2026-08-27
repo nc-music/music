@@ -39,6 +39,8 @@ use OCP\IURLGenerator;
  * @method void setFileId(int $fileId)
  * @method ?int getBitrate()
  * @method void setBitrate(?int $bitrate)
+ * @method ?int getSampleRate()
+ * @method void setSampleRate(?int $sampleRate)
  * @method string getMimetype()
  * @method void setMimetype(string $mimetype)
  * @method ?string getMbid()
@@ -100,6 +102,7 @@ class Track extends Entity {
 	public ?int $length = null;
 	public int $fileId = 0;
 	public ?int $bitrate = null;
+	public ?int $sampleRate = null;
 	public string $mimetype = '';
 	public ?string $mbid = null; // MusicBrainz Recording Id
 	public ?string $mbidRelTrack = null; // MusicBrainz Release Track Id
@@ -147,6 +150,7 @@ class Track extends Entity {
 		$this->addType('albumId', 'int');
 		$this->addType('length', 'int');
 		$this->addType('bitrate', 'int');
+		$this->addType('sampleRate', 'int');
 		$this->addType('fileId', 'int');
 		$this->addType('genreId', 'int');
 		$this->addType('playCount', 'int');

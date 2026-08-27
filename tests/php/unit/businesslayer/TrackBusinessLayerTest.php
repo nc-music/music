@@ -139,6 +139,9 @@ class TrackBusinessLayerTest extends TestCase {
 			->method('updateOrInsert')
 			->with($this->callback(function (Track $track) {
 				return $track->getRecordLabelId() === 99
+					&& $track->getLength() == 185
+					&& $track->getBitrate() == 128000
+					&& $track->getSampleRate() == 44100
 					&& $track->getBpm() === 120
 					&& $track->getComposerId() === 42;
 			}))
@@ -149,8 +152,11 @@ class TrackBusinessLayerTest extends TestCase {
 
 		$result = $this->trackBusinessLayer->addOrUpdateTrack(
 			'test', null, null, null, 1, 1, 1, $fileId, 'audio/mpeg', $this->userId,
-			99, null, null, 120, 42);
+			99, 185, 128000, 44100, 120, 42);
 		$this->assertEquals(99, $result->getRecordLabelId());
+		$this->assertEquals(185, $result->getLength());
+		$this->assertEquals(128000, $result->getBitrate());
+		$this->assertEquals(44100, $result->getSampleRate());
 		$this->assertEquals(120, $result->getBpm());
 		$this->assertEquals(42, $result->getComposerId());
 	}
