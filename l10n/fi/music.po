@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ownCloud\n"
 "Report-Msgid-Bugs-To: https://github.com/nc-music/music/issues\n"
-"POT-Creation-Date: 2026-08-21 22:18+0300\n"
-"PO-Revision-Date: 2026-08-21 23:32+0300\n"
+"POT-Creation-Date: 2026-08-28 23:15+0300\n"
+"PO-Revision-Date: 2026-08-28 23:15+0300\n"
 "Last-Translator: Pauli Järvinen <pauli.jarvinen@gmail.com>\n"
 "Language-Team: Finnish (Finland) (http://www.transifex.com/owncloud-org/"
 "owncloud/language/fi_FI/)\n"
@@ -344,7 +344,7 @@ msgid "Close"
 msgstr "Sulje"
 
 #: templates/partials/sidebar/playlistdetails.php:22
-#: Service/AdvSearchRules.php:43
+#: Service/AdvSearchRules.php:44
 msgid "Comment"
 msgstr "Kommentti"
 
@@ -558,19 +558,19 @@ msgid "Failed to update the playlist"
 msgstr "Soittolistan päivittäminen epäonnistui"
 
 #: templates/partials/sidebar/smartlistfilters.php:39
-#: Service/AdvSearchRules.php:58 Service/AdvSearchRules.php:109
-#: Service/AdvSearchRules.php:155 Service/AdvSearchRules.php:185
-#: Service/AdvSearchRules.php:213 Service/AdvSearchRules.php:231
+#: Service/AdvSearchRules.php:59 Service/AdvSearchRules.php:110
+#: Service/AdvSearchRules.php:156 Service/AdvSearchRules.php:186
+#: Service/AdvSearchRules.php:214 Service/AdvSearchRules.php:232
 msgid "Favorite"
 msgstr "Suosikki"
 
 #: templates/partials/sidebar/smartlistfilters.php:43
-#: Service/AdvSearchRules.php:59
+#: Service/AdvSearchRules.php:60
 msgid "Favorite album"
 msgstr "Suosikkialbumi"
 
 #: templates/partials/sidebar/smartlistfilters.php:44
-#: Service/AdvSearchRules.php:60
+#: Service/AdvSearchRules.php:61
 msgid "Favorite artist"
 msgstr "Suosikkiesittäjä"
 
@@ -583,8 +583,8 @@ msgid "Favorite track, album, or artist"
 msgstr "Suosikkikappale, -albumi tai -esittäjä"
 
 #: js/app/services/playlistfileservice.ts:58
-#: js/app/services/podcastservice.ts:80 Service/AdvSearchRules.php:51
-#: Service/AdvSearchRules.php:102 Service/AdvSearchRules.php:148
+#: js/app/services/podcastservice.ts:80 Service/AdvSearchRules.php:52
+#: Service/AdvSearchRules.php:103 Service/AdvSearchRules.php:149
 msgid "File name"
 msgstr "Tiedoston nimi"
 
@@ -662,7 +662,7 @@ msgstr ""
 "href=\"{{url}}\">tarkennettua hakua</a>"
 
 #: templates/partials/sidebar/smartlistfilters.php:50
-#: Service/AdvSearchRules.php:205 Service/AdvSearchRules.php:223
+#: Service/AdvSearchRules.php:206 Service/AdvSearchRules.php:224
 msgid "History"
 msgstr "Historia"
 
@@ -889,8 +889,8 @@ msgstr "Musiikkikirjasto"
 #: templates/partials/sidebar/albumdetails.php:44
 #: templates/partials/sidebar/artistdetails.php:61
 #: templates/partials/sidebar/radiostationdetails.php:74
-#: templates/partials/sidebar/trackdetails.php:71 Service/AdvSearchRules.php:77
-#: Service/AdvSearchRules.php:125 Service/AdvSearchRules.php:170
+#: templates/partials/sidebar/trackdetails.php:71 Service/AdvSearchRules.php:78
+#: Service/AdvSearchRules.php:126 Service/AdvSearchRules.php:171
 msgid "MusicBrainz"
 msgstr "MusicBrainz"
 
@@ -903,10 +903,10 @@ msgid "Mute / Unmute"
 msgstr "Vaimenna / Poista vaimennus"
 
 #: templates/partials/sidebar/radiostationdetails.php:18
-#: Service/AdvSearchRules.php:33 Service/AdvSearchRules.php:87
-#: Service/AdvSearchRules.php:135 Service/AdvSearchRules.php:180
-#: Service/AdvSearchRules.php:190 Service/AdvSearchRules.php:201
-#: Service/AdvSearchRules.php:219 Service/AdvSearchRules.php:237
+#: Service/AdvSearchRules.php:33 Service/AdvSearchRules.php:88
+#: Service/AdvSearchRules.php:136 Service/AdvSearchRules.php:181
+#: Service/AdvSearchRules.php:191 Service/AdvSearchRules.php:202
+#: Service/AdvSearchRules.php:220 Service/AdvSearchRules.php:238
 msgid "Name"
 msgstr "Nimi"
 
@@ -1097,10 +1097,10 @@ msgstr "Toistonopeus"
 msgid "Playback speed not adjustable for the current song"
 msgstr "Toistonopeutta ei voi säätää nykyiselle kappaleelle"
 
-#: js/app/controllers/playercontroller.js:647 Service/AdvSearchRules.php:73
-#: Service/AdvSearchRules.php:74 Service/AdvSearchRules.php:121
-#: Service/AdvSearchRules.php:122 Service/AdvSearchRules.php:166
-#: Service/AdvSearchRules.php:167 playlisttabview.js:114 playlisttabview.js:137
+#: js/app/controllers/playercontroller.js:647 Service/AdvSearchRules.php:74
+#: Service/AdvSearchRules.php:75 Service/AdvSearchRules.php:122
+#: Service/AdvSearchRules.php:123 Service/AdvSearchRules.php:167
+#: Service/AdvSearchRules.php:168 playlisttabview.js:114 playlisttabview.js:137
 msgid "Playlist"
 msgstr "Soittolista"
 
@@ -1167,16 +1167,16 @@ msgid "Rarely played"
 msgstr "Harvoin soitettu"
 
 #: templates/partials/sidebar/smartlistfilters.php:57
-#: Service/AdvSearchRules.php:54 Service/AdvSearchRules.php:105
-#: Service/AdvSearchRules.php:151 Service/AdvSearchRules.php:183
-#: Service/AdvSearchRules.php:195 Service/AdvSearchRules.php:209
-#: Service/AdvSearchRules.php:227 Service/AdvSearchRules.php:241
+#: Service/AdvSearchRules.php:55 Service/AdvSearchRules.php:106
+#: Service/AdvSearchRules.php:152 Service/AdvSearchRules.php:184
+#: Service/AdvSearchRules.php:196 Service/AdvSearchRules.php:210
+#: Service/AdvSearchRules.php:228 Service/AdvSearchRules.php:242
 msgid "Recently added"
 msgstr "Lähiaikoina lisätty"
 
 #: templates/partials/sidebar/smartlistfilters.php:53
-#: Service/AdvSearchRules.php:68 Service/AdvSearchRules.php:117
-#: Service/AdvSearchRules.php:163
+#: Service/AdvSearchRules.php:69 Service/AdvSearchRules.php:118
+#: Service/AdvSearchRules.php:164
 msgid "Recently played"
 msgstr "Lähiaikoina soitettu"
 
@@ -1456,7 +1456,7 @@ msgid "Stop"
 msgstr "Pysäytä"
 
 #: templates/partials/sidebar/radiostationdetails.php:24
-#: Service/AdvSearchRules.php:238
+#: Service/AdvSearchRules.php:239
 msgid "Stream URL"
 msgstr "Striimin URL"
 
@@ -2159,7 +2159,7 @@ msgstr "Mikä tahansa teksti"
 msgid "Track metadata"
 msgstr "Kappaleen tiedot"
 
-#: Service/AdvSearchRules.php:34 Service/AdvSearchRules.php:136
+#: Service/AdvSearchRules.php:34 Service/AdvSearchRules.php:137
 msgid "Album name"
 msgstr "Albumin nimi"
 
@@ -2167,7 +2167,7 @@ msgstr "Albumin nimi"
 msgid "Artist name"
 msgstr "Esittäjän nimi"
 
-#: Service/AdvSearchRules.php:36 Service/AdvSearchRules.php:88
+#: Service/AdvSearchRules.php:36 Service/AdvSearchRules.php:89
 msgid "Album artist name"
 msgstr "Albumin esittäjän nimi"
 
@@ -2179,193 +2179,197 @@ msgstr "Säveltäjän nimi"
 msgid "Track number"
 msgstr "Kappaleen numero"
 
-#: Service/AdvSearchRules.php:39 Service/AdvSearchRules.php:91
+#: Service/AdvSearchRules.php:39 Service/AdvSearchRules.php:92
 msgid "Year"
 msgstr "Vuosi"
 
-#: Service/AdvSearchRules.php:40 Service/AdvSearchRules.php:92
-#: Service/AdvSearchRules.php:138 Service/AdvSearchRules.php:203
-#: Service/AdvSearchRules.php:221
+#: Service/AdvSearchRules.php:40 Service/AdvSearchRules.php:93
+#: Service/AdvSearchRules.php:139 Service/AdvSearchRules.php:204
+#: Service/AdvSearchRules.php:222
 msgid "Duration (minutes)"
 msgstr "Kesto (minuuttia)"
 
 #: Service/AdvSearchRules.php:42
+msgid "Sample rate"
+msgstr "Näytetaajuus"
+
+#: Service/AdvSearchRules.php:43
 msgid "BPM"
 msgstr "BPM"
 
-#: Service/AdvSearchRules.php:44 Service/AdvSearchRules.php:95
-#: Service/AdvSearchRules.php:141
+#: Service/AdvSearchRules.php:45 Service/AdvSearchRules.php:96
+#: Service/AdvSearchRules.php:142
 msgid "Record label"
 msgstr "Levy-yhtiö"
 
-#: Service/AdvSearchRules.php:45 Service/AdvSearchRules.php:97
-#: Service/AdvSearchRules.php:143
+#: Service/AdvSearchRules.php:46 Service/AdvSearchRules.php:98
+#: Service/AdvSearchRules.php:144
 msgid "Track genre"
 msgstr "Kappaleen genre"
 
-#: Service/AdvSearchRules.php:46 Service/AdvSearchRules.php:96
+#: Service/AdvSearchRules.php:47 Service/AdvSearchRules.php:97
 msgid "Album genre"
 msgstr "Albumin genre"
 
-#: Service/AdvSearchRules.php:47 Service/AdvSearchRules.php:142
+#: Service/AdvSearchRules.php:48 Service/AdvSearchRules.php:143
 msgid "Artist genre"
 msgstr "Esittäjän genre"
 
-#: Service/AdvSearchRules.php:48 Service/AdvSearchRules.php:98
-#: Service/AdvSearchRules.php:144
+#: Service/AdvSearchRules.php:49 Service/AdvSearchRules.php:99
+#: Service/AdvSearchRules.php:145
 msgid "Has no genre"
 msgstr "Ei genreä"
 
-#: Service/AdvSearchRules.php:50 Service/AdvSearchRules.php:101
-#: Service/AdvSearchRules.php:147
+#: Service/AdvSearchRules.php:51 Service/AdvSearchRules.php:102
+#: Service/AdvSearchRules.php:148
 msgid "File data"
 msgstr "Tiedoston tiedot"
-
-#: Service/AdvSearchRules.php:52 Service/AdvSearchRules.php:103
-#: Service/AdvSearchRules.php:149 Service/AdvSearchRules.php:181
-#: Service/AdvSearchRules.php:193 Service/AdvSearchRules.php:207
-#: Service/AdvSearchRules.php:225 Service/AdvSearchRules.php:239
-msgid "Add date"
-msgstr "Lisäyspäivä"
 
 #: Service/AdvSearchRules.php:53 Service/AdvSearchRules.php:104
 #: Service/AdvSearchRules.php:150 Service/AdvSearchRules.php:182
 #: Service/AdvSearchRules.php:194 Service/AdvSearchRules.php:208
 #: Service/AdvSearchRules.php:226 Service/AdvSearchRules.php:240
+msgid "Add date"
+msgstr "Lisäyspäivä"
+
+#: Service/AdvSearchRules.php:54 Service/AdvSearchRules.php:105
+#: Service/AdvSearchRules.php:151 Service/AdvSearchRules.php:183
+#: Service/AdvSearchRules.php:195 Service/AdvSearchRules.php:209
+#: Service/AdvSearchRules.php:227 Service/AdvSearchRules.php:241
 msgid "Update date"
 msgstr "Päivityspäivä"
 
-#: Service/AdvSearchRules.php:55 Service/AdvSearchRules.php:106
-#: Service/AdvSearchRules.php:152 Service/AdvSearchRules.php:184
-#: Service/AdvSearchRules.php:196 Service/AdvSearchRules.php:210
-#: Service/AdvSearchRules.php:228 Service/AdvSearchRules.php:242
+#: Service/AdvSearchRules.php:56 Service/AdvSearchRules.php:107
+#: Service/AdvSearchRules.php:153 Service/AdvSearchRules.php:185
+#: Service/AdvSearchRules.php:197 Service/AdvSearchRules.php:211
+#: Service/AdvSearchRules.php:229 Service/AdvSearchRules.php:243
 msgid "Recently updated"
 msgstr "Lähiaikoina päivitetty"
 
-#: Service/AdvSearchRules.php:57 Service/AdvSearchRules.php:61
-#: Service/AdvSearchRules.php:108 Service/AdvSearchRules.php:110
-#: Service/AdvSearchRules.php:154 Service/AdvSearchRules.php:156
-#: Service/AdvSearchRules.php:212 Service/AdvSearchRules.php:214
-#: Service/AdvSearchRules.php:230 Service/AdvSearchRules.php:232
+#: Service/AdvSearchRules.php:58 Service/AdvSearchRules.php:62
+#: Service/AdvSearchRules.php:109 Service/AdvSearchRules.php:111
+#: Service/AdvSearchRules.php:155 Service/AdvSearchRules.php:157
+#: Service/AdvSearchRules.php:213 Service/AdvSearchRules.php:215
+#: Service/AdvSearchRules.php:231 Service/AdvSearchRules.php:233
 msgid "Rating"
 msgstr "Arvosana"
 
-#: Service/AdvSearchRules.php:62 Service/AdvSearchRules.php:158
+#: Service/AdvSearchRules.php:63 Service/AdvSearchRules.php:159
 msgid "Album rating"
 msgstr "Albumin arvosana"
 
-#: Service/AdvSearchRules.php:63 Service/AdvSearchRules.php:112
+#: Service/AdvSearchRules.php:64 Service/AdvSearchRules.php:113
 msgid "Artist rating"
 msgstr "Esittäjän arvosana"
 
-#: Service/AdvSearchRules.php:65 Service/AdvSearchRules.php:114
-#: Service/AdvSearchRules.php:160
+#: Service/AdvSearchRules.php:66 Service/AdvSearchRules.php:115
+#: Service/AdvSearchRules.php:161
 msgid "Play history"
 msgstr "Soittohistoria"
 
-#: Service/AdvSearchRules.php:66 Service/AdvSearchRules.php:115
-#: Service/AdvSearchRules.php:161
+#: Service/AdvSearchRules.php:67 Service/AdvSearchRules.php:116
+#: Service/AdvSearchRules.php:162
 msgid "Played times"
 msgstr "Soittokerrat"
 
-#: Service/AdvSearchRules.php:67 Service/AdvSearchRules.php:116
-#: Service/AdvSearchRules.php:162
+#: Service/AdvSearchRules.php:68 Service/AdvSearchRules.php:117
+#: Service/AdvSearchRules.php:163
 msgid "Last played"
 msgstr "Viimeksi soitettu"
 
-#: Service/AdvSearchRules.php:69 Service/AdvSearchRules.php:118
-#: Service/AdvSearchRules.php:164
+#: Service/AdvSearchRules.php:70 Service/AdvSearchRules.php:119
+#: Service/AdvSearchRules.php:165
 msgid "Is played"
 msgstr "On soitettu"
 
-#: Service/AdvSearchRules.php:70
+#: Service/AdvSearchRules.php:71
 msgid "Is played album"
 msgstr "On soitettu albumi"
 
-#: Service/AdvSearchRules.php:71 Service/AdvSearchRules.php:119
+#: Service/AdvSearchRules.php:72 Service/AdvSearchRules.php:120
 msgid "Is played artist"
 msgstr "On soitettu esittäjä"
 
-#: Service/AdvSearchRules.php:75 Service/AdvSearchRules.php:123
-#: Service/AdvSearchRules.php:168
+#: Service/AdvSearchRules.php:76 Service/AdvSearchRules.php:124
+#: Service/AdvSearchRules.php:169
 msgid "Playlist name"
 msgstr "Soittolistan nimi"
 
-#: Service/AdvSearchRules.php:78 Service/AdvSearchRules.php:126
-#: Service/AdvSearchRules.php:171
+#: Service/AdvSearchRules.php:79 Service/AdvSearchRules.php:127
+#: Service/AdvSearchRules.php:172
 msgid "MusicBrainz recording id"
 msgstr "MusicBrainz-tallennetunniste"
 
-#: Service/AdvSearchRules.php:79 Service/AdvSearchRules.php:127
-#: Service/AdvSearchRules.php:172
+#: Service/AdvSearchRules.php:80 Service/AdvSearchRules.php:128
+#: Service/AdvSearchRules.php:173
 msgid "MusicBrainz release track id"
 msgstr "MusicBrainz-kappaleen julkaisutunniste"
 
-#: Service/AdvSearchRules.php:80 Service/AdvSearchRules.php:128
-#: Service/AdvSearchRules.php:173
+#: Service/AdvSearchRules.php:81 Service/AdvSearchRules.php:129
+#: Service/AdvSearchRules.php:174
 msgid "MusicBrainz release id"
 msgstr "MusicBrainz-julkaisutunniste"
 
-#: Service/AdvSearchRules.php:81 Service/AdvSearchRules.php:129
-#: Service/AdvSearchRules.php:174
+#: Service/AdvSearchRules.php:82 Service/AdvSearchRules.php:130
+#: Service/AdvSearchRules.php:175
 msgid "MusicBrainz release group id"
 msgstr "MusicBrainz-julkaisuryhmän tunniste"
 
-#: Service/AdvSearchRules.php:82 Service/AdvSearchRules.php:130
-#: Service/AdvSearchRules.php:175
+#: Service/AdvSearchRules.php:83 Service/AdvSearchRules.php:131
+#: Service/AdvSearchRules.php:176
 msgid "MusicBrainz artist id"
 msgstr "MusicBrainz-artistin tunniste"
 
-#: Service/AdvSearchRules.php:86
+#: Service/AdvSearchRules.php:87
 msgid "Album metadata"
 msgstr "Albumin tiedot"
 
-#: Service/AdvSearchRules.php:89
+#: Service/AdvSearchRules.php:90
 msgid "Track artist name"
 msgstr "Kappaleen esittäjän nimi"
 
-#: Service/AdvSearchRules.php:90 Service/AdvSearchRules.php:137
+#: Service/AdvSearchRules.php:91 Service/AdvSearchRules.php:138
 msgid "Track name"
 msgstr "Kappaleen nimi"
 
-#: Service/AdvSearchRules.php:93 Service/AdvSearchRules.php:140
-#: Service/AdvSearchRules.php:192
+#: Service/AdvSearchRules.php:94 Service/AdvSearchRules.php:141
+#: Service/AdvSearchRules.php:193
 msgid "Track count"
 msgstr "Kappaleiden määrä"
 
-#: Service/AdvSearchRules.php:94
+#: Service/AdvSearchRules.php:95
 msgid "Disk count"
 msgstr "Levyjen määrä"
 
-#: Service/AdvSearchRules.php:99 Service/AdvSearchRules.php:145
+#: Service/AdvSearchRules.php:100 Service/AdvSearchRules.php:146
 msgid "Has image"
 msgstr "Kuva asetettu"
 
-#: Service/AdvSearchRules.php:111 Service/AdvSearchRules.php:157
+#: Service/AdvSearchRules.php:112 Service/AdvSearchRules.php:158
 msgid "Track rating"
 msgstr "Kappaleen arvosana"
 
-#: Service/AdvSearchRules.php:134
+#: Service/AdvSearchRules.php:135
 msgid "Artist metadata"
 msgstr "Esittäjän tiedot"
 
-#: Service/AdvSearchRules.php:139 Service/AdvSearchRules.php:191
+#: Service/AdvSearchRules.php:140 Service/AdvSearchRules.php:192
 msgid "Album count"
 msgstr "Albumien määrä"
 
-#: Service/AdvSearchRules.php:200 Service/AdvSearchRules.php:218
+#: Service/AdvSearchRules.php:201 Service/AdvSearchRules.php:219
 msgid "Podcast metadata"
 msgstr "Podcastin tiedot"
 
-#: Service/AdvSearchRules.php:202
+#: Service/AdvSearchRules.php:203
 msgid "Podcast channel"
 msgstr "Podcast-kanava"
 
-#: Service/AdvSearchRules.php:206 Service/AdvSearchRules.php:224
+#: Service/AdvSearchRules.php:207 Service/AdvSearchRules.php:225
 msgid "Date published"
 msgstr "Julkaisupäivä"
 
-#: Service/AdvSearchRules.php:220
+#: Service/AdvSearchRules.php:221
 msgid "Podcast episode"
 msgstr "Podcast-jakso"
 

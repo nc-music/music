@@ -635,6 +635,7 @@ class TrackMapper extends BaseMapper {
 			'myplayedartist'    => "`artist_id` IN (SELECT * FROM (SELECT `artist_id` from `*PREFIX*music_tracks` GROUP BY `artist_id` HAVING MAX(`last_played`) $sqlOp) mysqlhack)", // operator "IS NULL" or "IS NOT NULL"
 			'time'              => "`length` $sqlOp ?",
 			'bitrate'           => "`bitrate` $sqlOp ?",
+			'sample_rate'       => "`sample_rate` $sqlOp ?",
 			'bpm'               => "`bpm` $sqlOp ?",
 			'song_genre'        => "$conv(`genre`.`name`) $sqlOp $conv(?)",
 			'album_genre'       => "`album_id` IN (SELECT * FROM (SELECT `album_id` FROM `*PREFIX*music_tracks` `t` JOIN `*PREFIX*music_genres` `g` ON `t`.`genre_id` = `g`.`id` GROUP BY `album_id` HAVING $conv(" . $this->sqlGroupConcat('`g`.`name`') . ") $sqlOp $conv(?)) mysqlhack)",
