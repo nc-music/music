@@ -319,7 +319,7 @@ class Track extends Entity {
 			'language'              => null,
 			'lyrics'                => $this->lyrics,
 			'mode'                  => null, // cbr/vbr
-			'rate'                  => null, // sample rate [Hz]
+			'rate'                  => $this->getSampleRate(),
 			'comment'               => $this->getComment() ?: null,
 			'publisher'             => $this->getRecordLabelName(),
 			'mbid'                  => $this->getMbid(),
@@ -379,6 +379,7 @@ class Track extends Entity {
 			'suffix'          => $this->getFileExtension(),
 			'duration'        => $this->getLength() ?? 0,
 			'bitRate'         => empty($this->getBitrate()) ? null : (int)\round($this->getBitrate() / 1000), // convert bps to kbps
+			'samplingRate'    => $this->getSampleRate(), // OpenSubsonic
 			'path'            => $this->getPath(),
 			'isVideo'         => false,
 			'albumId'         => 'album-' . $albumId,
