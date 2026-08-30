@@ -1,4 +1,4 @@
-## [Unreleased]
+## 3.2.0 - 2026-08-30
 
 ### Added
 - Support for Nextcloud 35 (tested on rc2)
