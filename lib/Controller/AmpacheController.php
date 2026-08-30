@@ -1569,7 +1569,7 @@ class AmpacheController extends ApiController {
 				$streamUrl = $episode->getStreamUrl();
 				if ($streamUrl === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-				} elseif ($this->isInternalSession() && $this->config->getSystemValue('music.relay_podcast_stream', true)) {
+				} elseif ($this->podcastRelayEnabled()) {
 					return new RelayStreamResponse($streamUrl);
 				} else {
 					return new RedirectResponse($streamUrl);
@@ -2154,7 +2154,20 @@ class AmpacheController extends ApiController {
 	 */
 	private function radioRelayEnabled() : bool {
 		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
-		return (bool)$this->config->getSystemValue('music.relay_radio_stream_on_api', $enabled);
+		return $this->isInternalSession()
+			? $enabled
+			: (bool)$this->config->getSystemValue('music.relay_radio_stream_on_api', $enabled);
+	}
+
+	/**
+	 * Relaying the podcasts to the API clients is a separate decision from relaying them to the web UI,
+	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
+	 */
+	private function podcastRelayEnabled() : bool {
+		$enabled = (bool)$this->config->getSystemValue('music.relay_podcast_stream', true);
+		return $this->isInternalSession()
+			? $enabled
+			: (bool)$this->config->getSystemValue('music.relay_podcast_stream_on_api', $enabled);
 	}
 
 	/**

@@ -52,8 +52,9 @@
   [#155](https://github.com/nc-music/music/pull/155) @lachlan-00
 - Ampache API: Actions `catalogs` and `catalog`, presenting the library as the two synthetic catalogs `music` and `podcasts` which the action `browse` has always used
   [#144](https://github.com/nc-music/music/issues/144) @lachlan-00
-- Ampache API: Play internet radio through the server, resolving any `.pls`/`.m3u` playlist URL and relaying the stream like the web UI already does. The relay can be disabled for the API clients alone with the config.php key `music.relay_radio_stream_on_api`
+- Ampache API: Play internet radio through the server, resolving any `.pls`/`.m3u` playlist URL and relaying the stream like the web UI already does. The relay can be disabled for the API clients alone with the config.php key `music.relay_radio_stream_on_api`.
   [#88](https://github.com/nc-music/music/issues/88) @lachlan-00
+- Ampache API: Play podcast streams through the server. The relay can be disabled for the API clients alone with the config.php key `music.relay_podcast_stream_on_api`.
 
 ### Changed
 - Ampache API: Reject the deprecated actions `tag`, `tags`, `tag_albums`, `tag_artists`, and `tag_songs` on API versions 5 and 6 like the original Ampache server does, answering with the error 4706 and, on version 6, the HTTP status 410. The actions still work on API version 4, and the renamed `genre` variants are unaffected
