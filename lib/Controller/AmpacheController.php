@@ -447,7 +447,6 @@ class AmpacheController extends ApiController {
 		// The argument `catalog` narrows the children instead of addressing the parent. Both of our catalogs are
 		// synthetic and each entity type belongs to exactly one of them, so this filter either lets everything
 		// through or excludes everything.
-		$filterCatalogId = null;
 		if (!empty($catalog) && !\array_key_exists($catalog, self::CATALOGS)) {
 			throw new AmpacheException("Catalog '$catalog' not found", 404);
 		}
