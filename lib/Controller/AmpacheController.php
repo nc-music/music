@@ -1377,7 +1377,6 @@ class AmpacheController extends ApiController {
 	 */
 	#[AmpacheAPI]
 	protected function now_playing() : array {
-		\assert($this->session !== null);
 		$userId = $this->userId();
 
 		try {
@@ -1408,7 +1407,7 @@ class AmpacheController extends ApiController {
 			'client' => $nowPlaying['client'] ?? 'api',
 			'expire' => $expire,
 			'user'   => [
-				'id'       => (string)$this->session->getAmpacheUserId(),
+				'id'       => $userId,
 				'username' => $userId
 			]
 		]]];
