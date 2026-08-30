@@ -60,7 +60,9 @@ use OCA\Music\Service\FileSystemService;
 use OCA\Music\Service\LastfmService;
 use OCA\Music\Service\LibrarySettings;
 use OCA\Music\Service\PodcastService;
+use OCA\Music\Service\RadioService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
+use OCA\Music\Service\StreamTokenService;
 use OCA\Music\Utility\AppInfo;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\Random;
@@ -139,6 +141,8 @@ class AmpacheController extends ApiController {
 		private FileSystemService $fileSystemService,
 		private LastfmService $lastfmService,
 		private LibrarySettings $librarySettings,
+		private RadioService $radioService,
+		private StreamTokenService $streamTokenService,
 		private Random $random,
 		private Logger $logger,
 		private IScrobbler $scrobbler,
@@ -1565,10 +1569,38 @@ class AmpacheController extends ApiController {
 				$streamUrl = $episode->getStreamUrl();
 				if ($streamUrl === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-				} elseif ($this->isInternalSession() && $this->config->getSystemValue('music.relay_podcast_stream', true)) {
+				} elseif ($this->podcastRelayEnabled()) {
 					return new RelayStreamResponse($streamUrl);
 				} else {
 					return new RedirectResponse($streamUrl);
+				}
+			} elseif ($type === 'live_stream') {
+				$station = $this->radioStationBusinessLayer->find($id, $userId);
+				$resolved = $this->radioService->resolveStreamUrl($station->getStreamUrl());
+
+				if ($resolved['url'] === null) {
+					return new ErrorResponse(Http::STATUS_NOT_FOUND, "Failed to resolve the stream URL of the live stream $id");
+				} elseif ($this->radioRelayEnabled()) {
+					if (!$resolved['hls']) {
+						// Relay a non-HLS stream
+						return new RelayStreamResponse($resolved['url']);
+					} else if ($this->config->getSystemValue('music.enable_radio_hls', true)) {
+						// Relay a HLS stream.
+						// The manifest has to be rewritten so that the segments are also fetched through us, and that
+						// happens on a token-authenticated public route which is shared with the web UI.
+						$token = $this->streamTokenService->tokenForUrl($resolved['url']);
+						return new RedirectResponse($this->urlGenerator->linkToRouteAbsolute('music.radioApi.hlsManifest', [
+							'url'	=> \rawurlencode($resolved['url']),
+							'token'	=> \rawurlencode($token)
+						]));
+					} else {
+						// HLS stream while the HLS-relaying is disabled. Redirect to the resolved URL without relaying.
+						return new RedirectResponse($resolved['url']);
+					}
+				} else {
+					// Even without relaying, the client benefits from the redirect resolution done above, which
+					// unwraps any .pls/.m3u playlist and follows the redirections of the original URL.
+					return new RedirectResponse($resolved['url']);
 				}
 			} elseif ($type === 'playlist') {
 				$songIds = ($id === self::ALL_TRACKS_PLAYLIST_ID)
@@ -2107,9 +2139,35 @@ class AmpacheController extends ApiController {
 	private function renderLiveStreams(array $stations) : array {
 		$createImageUrl = fn (RadioStation $station) => $this->createAmpacheActionUrl('get_art', $station->getId(), 'live_stream');
 
+		// Route the playback through our own stream action like we do for songs and podcast episodes, so that the
+		// stream URL gets resolved (and optionally relayed) by the server instead of being played directly.
+		$createStreamUrl = fn (RadioStation $station) => $this->createAmpacheActionUrl('stream', $station->getId(), 'live_stream');
+
 		return [
-			'live_stream' => \array_map(fn ($s) => $s->toAmpacheApi($createImageUrl), $stations)
+			'live_stream' => \array_map(fn ($s) => $s->toAmpacheApi($createImageUrl, $createStreamUrl), $stations)
 		];
+	}
+
+	/**
+	 * Relaying the radio streams to the API clients is a separate decision from relaying them to the web UI,
+	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
+	 */
+	private function radioRelayEnabled() : bool {
+		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
+		return $this->isInternalSession()
+			? $enabled
+			: (bool)$this->config->getSystemValue('music.relay_radio_stream_on_api', $enabled);
+	}
+
+	/**
+	 * Relaying the podcasts to the API clients is a separate decision from relaying them to the web UI,
+	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
+	 */
+	private function podcastRelayEnabled() : bool {
+		$enabled = (bool)$this->config->getSystemValue('music.relay_podcast_stream', true);
+		return $this->isInternalSession()
+			? $enabled
+			: (bool)$this->config->getSystemValue('music.relay_podcast_stream_on_api', $enabled);
 	}
 
 	/**
