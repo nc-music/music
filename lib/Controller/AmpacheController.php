@@ -94,11 +94,11 @@ class AmpacheController extends ApiController {
 	 * use it as the entry point of their directory browsing. The library is therefore presented as two fixed
 	 * synthetic catalogs, matching the split which the action `browse` has always used on its root level.
 	 */
-	public const CATALOG_MUSIC_ID = 1;
-	public const CATALOG_PODCASTS_ID = 2;
+	public const CATALOG_MUSIC_ID = 'music';
+	public const CATALOG_PODCASTS_ID = 'podcasts';
 	private const CATALOGS = [
-		self::CATALOG_MUSIC_ID    => ['name' => 'music',    'gather_types' => 'music'],
-		self::CATALOG_PODCASTS_ID => ['name' => 'podcasts', 'gather_types' => 'podcast'],
+		self::CATALOG_MUSIC_ID    => ['name' => 'Music',    'gather_types' => 'music'],
+		self::CATALOG_PODCASTS_ID => ['name' => 'Podcasts', 'gather_types' => 'podcast'],
 	];
 
 	public const API4_VERSION = '4.4.0';
@@ -448,24 +448,21 @@ class AmpacheController extends ApiController {
 		// synthetic and each entity type belongs to exactly one of them, so this filter either lets everything
 		// through or excludes everything.
 		$filterCatalogId = null;
-		if (!empty($catalog)) {
-			$filterCatalogId = self::resolveCatalogId($catalog);
-			if ($filterCatalogId === null) {
-				throw new AmpacheException("Catalog '$catalog' not found", 404);
-			}
+		if (!empty($catalog) && !\array_key_exists($catalog, self::CATALOGS)) {
+			throw new AmpacheException("Catalog '$catalog' not found", 404);
 		}
 
 		if ($type == 'root') {
 			$catalogId = null;
 			$childType = 'catalog';
 			$children = \array_map(
-				fn ($id, $catalog) => ['id' => $id, 'name' => $catalog['name']],
+				fn ($id, $catalogDetails) => ['id' => $id, 'name' => $this->l10n->t($catalogDetails['name'])],
 				\array_keys(self::CATALOGS), self::CATALOGS
 			);
 		} else {
 			if ($type == 'catalog') {
 				// the catalog may be addressed with the argument `catalog` when there is no `filter`
-				$catalogId = self::resolveCatalogId(empty($filter) ? $catalog : $filter);
+				$catalogId = empty($filter) ? $catalog : $filter;
 				$parentId = null;
 
 				switch ($catalogId) {
@@ -476,7 +473,7 @@ class AmpacheController extends ApiController {
 						$childType = 'podcast';
 						break;
 					default:
-						throw new AmpacheException("Filter '$filter' is not a valid catalog", 400);
+						throw new AmpacheException("Filter '$catalogId' is not a valid catalog", 400);
 				}
 			} else {
 				$catalogId = StringUtil::startsWith($type, 'podcast') ? self::CATALOG_PODCASTS_ID : self::CATALOG_MUSIC_ID;
@@ -503,7 +500,7 @@ class AmpacheController extends ApiController {
 
 			// Each of our entity types belongs to exactly one of the synthetic catalogs, so a request for the
 			// other catalog has nothing to return.
-			if ($filterCatalogId !== null && $type != 'catalog' && $filterCatalogId !== $catalogId) {
+			if ($catalog !== null && $type != 'catalog' && $catalog !== $catalogId) {
 				$children = [];
 			} else {
 				$businessLayer = $this->getBusinessLayer($childType);
@@ -544,12 +541,11 @@ class AmpacheController extends ApiController {
 
 	#[AmpacheAPI]
 	protected function catalog(string $filter) : array {
-		$catalogId = self::resolveCatalogId($filter);
-		if ($catalogId === null) {
+		if (!\array_key_exists($filter, self::CATALOGS)) {
 			throw new AmpacheException("Catalog $filter not found", 404);
 		}
 
-		return ['catalog' => [$this->renderCatalog($catalogId)]];
+		return ['catalog' => [$this->renderCatalog($filter)]];
 	}
 
 	#[AmpacheAPI]
@@ -2077,21 +2073,7 @@ class AmpacheController extends ApiController {
 		];
 	}
 
-	/**
-	 * Map an id or a name of one of our synthetic catalogs to the canonical catalog id. The names are accepted
-	 * because the action `browse` used them as ids before the catalog actions existed, and clients may have
-	 * stored those; they can be dropped once the next major version has been out for a while.
-	 */
-	private static function resolveCatalogId(?string $idOrName) : ?int {
-		foreach (self::CATALOGS as $id => $catalog) {
-			if ($idOrName === (string)$id || $idOrName === $catalog['name']) {
-				return $id;
-			}
-		}
-		return null;
-	}
-
-	private function renderCatalog(int $catalogId) : array {
+	private function renderCatalog(string $catalogId) : array {
 		$userId = $this->userId();
 		$isMusic = ($catalogId === self::CATALOG_MUSIC_ID);
 
@@ -2106,8 +2088,8 @@ class AmpacheController extends ApiController {
 		}
 
 		return [
-			'id'             => (string)$catalogId,
-			'name'           => self::CATALOGS[$catalogId]['name'],
+			'id'             => $catalogId,
+			'name'           => $this->l10n->t(self::CATALOGS[$catalogId]['name']),
 			'type'           => 'local',
 			'gather_types'   => self::CATALOGS[$catalogId]['gather_types'],
 			'enabled'        => true,

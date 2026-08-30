@@ -10,9 +10,9 @@ Feature: Ampache API - Catalogs
     Given I am logged in with an auth token
     When I request the "catalogs" resource
     Then I should get:
-      | @id | name     | type  | gather_types |
-      | 1   | music    | local | music        |
-      | 2   | podcasts | local | podcast      |
+      | @id      | name     | type  | gather_types |
+      | music    | Music    | local | music        |
+      | podcasts | Podcasts | local | podcast      |
 
 
   Scenario: List catalogs filtered by gather type
@@ -21,7 +21,7 @@ Feature: Ampache API - Catalogs
     And I request the "catalogs" resource
     Then I should get:
       | @id | name     | type  | gather_types |
-      | 2   | podcasts | local | podcast      |
+      | podcasts | Podcasts | local | podcast      |
 
 
   Scenario: List catalogs with a gather type which we have no catalog for
@@ -37,32 +37,23 @@ Feature: Ampache API - Catalogs
     When I specify the parameter "limit" with value "1"
     And I request the "catalogs" resource
     Then I should get:
-      | @id | name  | type  | gather_types |
-      | 1   | music | local | music        |
+      | @id   | name  | type  | gather_types |
+      | music | Music | local | music        |
 
 
   Scenario: Get a single catalog by id
     Given I am logged in with an auth token
-    When I specify the parameter "filter" with value "2"
+    When I specify the parameter "filter" with value "podcasts"
     And I request the "catalog" resource
     Then I should get:
-      | @id | name     | type  | gather_types |
-      | 2   | podcasts | local | podcast      |
-
-
-  Scenario: Get a single catalog by the legacy name used by the browse action
-    Given I am logged in with an auth token
-    When I specify the parameter "filter" with value "music"
-    And I request the "catalog" resource
-    Then I should get:
-      | @id | name  | type  | gather_types |
-      | 1   | music | local | music        |
+      | @id      | name     | type  | gather_types |
+      | podcasts | Podcasts | local | podcast      |
 
 
   Scenario: List all catalogs in the JSON format on API version 6
     Given I am logged in with API version "6.6.0"
     When I request the "catalogs" resource in JSON format
     Then I should get JSON:
-      | id | name     | type  | gather_types | enabled | rename_pattern | sort_pattern |
-      | 1  | music    | local | music        | 1       |                |              |
-      | 2  | podcasts | local | podcast      | 1       |                |              |
+      | id       | name     | type  | gather_types | enabled | rename_pattern | sort_pattern |
+      | music    | Music    | local | music        | 1       |                |              |
+      | podcasts | Podcasts | local | podcast      | 1       |                |              |
