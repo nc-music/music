@@ -46,6 +46,7 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 		'songs'              => 'song',
 		'catalogs'           => 'catalog',
 		'catalog'            => 'catalog',
+		'browse'             => 'browse',
 		'live_streams'       => 'live_stream',
 		'live_stream'        => 'live_stream',
 		'live_stream_create' => 'live_stream',
@@ -245,6 +246,110 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 		if ($expectedCount !== $actualCount) {
 			throw new Exception('Not all elements are in the result set - ' . $actualCount
 								. ' does not match the expected ' . $expectedCount . PHP_EOL . \json_encode($this->json));
+		}
+	}
+
+	/**
+	 * Assert a single value of the XML response, addressed with an absolute XPath. This is what makes the
+	 * nested responses testable, as the table-based steps can only describe a flat list of elements.
+	 *
+	 * @Then the element :xpath should be :expected
+	 */
+	public function theElementShouldBe($xpath, $expected) {
+		$found = $this->xml->xpath($xpath);
+		if ($found === false || empty($found)) {
+			throw new Exception("Nothing found with the XPath '$xpath'" . PHP_EOL . $this->xml->asXML());
+		}
+		$actual = $found[0]->__toString();
+		if ($actual !== $expected) {
+			throw new Exception("Expected '$expected' at '$xpath' but got '$actual'" . PHP_EOL . $this->xml->asXML());
+		}
+	}
+
+	/**
+	 * @Then there should be :count :xpath elements
+	 */
+	public function thereShouldBeElements($count, $xpath) {
+		$found = $this->xml->xpath($xpath);
+		$actual = ($found === false) ? 0 : \count($found);
+		if ($actual !== (int)$count) {
+			throw new Exception("Expected $count elements at '$xpath' but got $actual"
+								. PHP_EOL . $this->xml->asXML());
+		}
+	}
+
+	/**
+	 * Assert a single value of the JSON response, addressed with a dot-separated path where the steps are
+	 * either object keys or numeric array indices.
+	 *
+	 * @Then the JSON path :path should be :expected
+	 */
+	public function theJsonPathShouldBe($path, $expected) {
+		$actual = $this->jsonValueAt($path);
+		// the feature files always carry strings, so compare loosely to accept ints and bools as well
+		if ($actual != $expected) {
+			throw new Exception("Expected '$expected' at '$path' but got '"
+								. \var_export($actual, true) . "'" . PHP_EOL . \json_encode($this->json));
+		}
+	}
+
+	/**
+	 * Walk a dot-separated path within the latest JSON response
+	 * @return mixed
+	 */
+	private function jsonValueAt(string $path) {
+		$value = $this->json;
+		foreach (\explode('.', $path) as $step) {
+			if (!\is_array($value) || !\array_key_exists($step, $value)) {
+				throw new Exception("Nothing found at the path '$path', stopped at '$step'"
+									. PHP_EOL . \json_encode($this->json));
+			}
+			$value = $value[$step];
+		}
+		return $value;
+	}
+
+	/**
+	 * Like the step above but strict about the JSON type, for the properties which the original Ampache
+	 * renders as strings even when the value is numeric.
+	 *
+	 * @Then the JSON path :path should be the string :expected
+	 */
+	public function theJsonPathShouldBeTheString($path, $expected) {
+		$actual = $this->jsonValueAt($path);
+		if (!\is_string($actual)) {
+			throw new Exception("Expected a string at '$path' but got " . \gettype($actual)
+								. ' ' . \var_export($actual, true) . PHP_EOL . \json_encode($this->json));
+		}
+		if ($actual !== $expected) {
+			throw new Exception("Expected '$expected' at '$path' but got '$actual'"
+								. PHP_EOL . \json_encode($this->json));
+		}
+	}
+
+	/**
+	 * Assert the JSON type alone, for the properties whose value depends on the installation.
+	 *
+	 * @Then the JSON path :path should be a string
+	 */
+	public function theJsonPathShouldBeAString($path) {
+		$actual = $this->jsonValueAt($path);
+		if (!\is_string($actual)) {
+			throw new Exception("Expected a string at '$path' but got " . \gettype($actual)
+								. ' ' . \var_export($actual, true) . PHP_EOL . \json_encode($this->json));
+		}
+	}
+
+	/**
+	 * Worded so that it cannot also match the generic step above, which would make the match ambiguous.
+	 *
+	 * @Then the JSON path :path should have no value
+	 */
+	public function theJsonPathShouldBeNull($path) {
+		$actual = $this->jsonValueAt($path);
+		if ($actual !== null) {
+			throw new Exception("Expected null at '$path' but got " . \gettype($actual)
+								. ' ' . \var_export($actual, true) . PHP_EOL . \json_encode($this->json));
 		}
 	}
 

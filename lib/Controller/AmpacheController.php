@@ -88,6 +88,19 @@ class AmpacheController extends ApiController {
 	private array $namePrefixes;
 
 	public const ALL_TRACKS_PLAYLIST_ID = -1;
+
+	/**
+	 * The app has no catalog concept of its own but the Ampache API requires one, and clients like Amperfy
+	 * use it as the entry point of their directory browsing. The library is therefore presented as two fixed
+	 * synthetic catalogs, matching the split which the action `browse` has always used on its root level.
+	 */
+	public const CATALOG_MUSIC_ID = 'music';
+	public const CATALOG_PODCASTS_ID = 'podcasts';
+	private const CATALOGS = [
+		self::CATALOG_MUSIC_ID    => ['name' => 'Music',    'gather_types' => 'music'],
+		self::CATALOG_PODCASTS_ID => ['name' => 'Podcasts', 'gather_types' => 'podcast'],
+	];
+
 	public const API4_VERSION = '4.4.0';
 	public const API5_VERSION = '5.6.0';
 	public const API6_VERSION = '6.8.0';
@@ -301,7 +314,7 @@ class AmpacheController extends ApiController {
 			'live_streams'        => $this->radioStationBusinessLayer->count($user),
 			$genresKey            => $this->genreBusinessLayer->count($user),
 			'videos'              => 0,
-			'catalogs'            => 0,
+			'catalogs'            => \count(self::CATALOGS),
 			'shares'              => 0,
 			'licenses'            => 0,
 			'labels'              => $this->recordLabelBusinessLayer->count($user),
@@ -429,39 +442,52 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function browse(string $type, ?string $filter, ?string $add, ?string $update, int $limit, int $offset = 0) : array {
-		// note: the argument 'catalog' is disregarded in our implementation
+	protected function browse(
+			string $type, ?string $filter, ?string $add, ?string $update, int $limit, int $offset = 0, ?string $catalog = null) : array {
+		// The argument `catalog` narrows the children instead of addressing the parent. Both of our catalogs are
+		// synthetic and each entity type belongs to exactly one of them, so this filter either lets everything
+		// through or excludes everything.
+		$filterCatalogId = null;
+		if (!empty($catalog) && !\array_key_exists($catalog, self::CATALOGS)) {
+			throw new AmpacheException("Catalog '$catalog' not found", 404);
+		}
+
 		if ($type == 'root') {
 			$catalogId = null;
 			$childType = 'catalog';
-			$children = [
-				['id' => 'music', 'name' => 'music'],
-				['id' => 'podcasts', 'name' => 'podcasts']
-			];
+			$children = \array_map(
+				fn ($id, $catalogDetails) => ['id' => $id, 'name' => $this->l10n->t($catalogDetails['name'])],
+				\array_keys(self::CATALOGS), self::CATALOGS
+			);
 		} else {
 			if ($type == 'catalog') {
-				$catalogId = null;
+				// the catalog may be addressed with the argument `catalog` when there is no `filter`
+				$catalogId = empty($filter) ? $catalog : $filter;
 				$parentId = null;
 
-				switch ($filter) {
-					case 'music':
+				switch ($catalogId) {
+					case self::CATALOG_MUSIC_ID:
 						$childType = 'artist';
 						break;
-					case 'podcasts':
+					case self::CATALOG_PODCASTS_ID:
 						$childType = 'podcast';
 						break;
 					default:
-						throw new AmpacheException("Filter '$filter' is not a valid catalog", 400);
+						throw new AmpacheException("Filter '$catalogId' is not a valid catalog", 400);
 				}
 			} else {
-				$catalogId = StringUtil::startsWith($type, 'podcast') ? 'podcasts' : 'music';
+				$catalogId = StringUtil::startsWith($type, 'podcast') ? self::CATALOG_PODCASTS_ID : self::CATALOG_MUSIC_ID;
 				$parentId = empty($filter) ? null : (int)$filter;
 
 				switch ($type) {
 					case 'podcast':
 						$childType = 'podcast_episode';
 						break;
+					// The original Ampache browses a music catalog with the type `album_artist` while still
+					// reporting the child type as `artist`. We list the artists having albums in any case,
+					// so the two types are equivalent for us.
 					case 'artist':
+					case 'album_artist':
 						$childType = 'album';
 						break;
 					case 'album':
@@ -472,19 +498,54 @@ class AmpacheController extends ApiController {
 				}
 			}
 
-			$businessLayer = $this->getBusinessLayer($childType);
-			[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
-			$children = $businessLayer->findAllIdsAndNames(
-				$this->userId(), $this->l10n, $parentId, $limit, $offset, $addMin, $addMax, $updateMin, $updateMax, true);
+			// Each of our entity types belongs to exactly one of the synthetic catalogs, so a request for the
+			// other catalog has nothing to return.
+			if ($catalog !== null && $type != 'catalog' && $catalog !== $catalogId) {
+				$children = [];
+			} else {
+				$businessLayer = $this->getBusinessLayer($childType);
+				[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
+				$children = $businessLayer->findAllIdsAndNames(
+					$this->userId(), $this->l10n, $parentId, $limit, $offset, $addMin, $addMax, $updateMin, $updateMax, true);
+			}
 		}
 
+		// The original Ampache renders all these IDs as strings, which is visible on the JSON API. A null is
+		// rendered as an empty string, matching its `(string)` casts.
 		return [
-			'catalog_id'  => $catalogId,
-			'parent_id'   => $filter,
+			'catalog_id'  => (string)$catalogId,
+			'parent_id'   => (string)$filter,
 			'parent_type' => $type,
 			'child_type'  => $childType,
-			'browse'      => \array_map(fn ($idAndName) => $idAndName + $this->prefixAndBaseName($idAndName['name']), $children)
+			'browse'      => \array_map(
+				fn ($idAndName) => ['id' => (string)$idAndName['id'], 'name' => $idAndName['name']]
+							+ $this->prefixAndBaseName($idAndName['name']),
+				$children)
 		];
+	}
+
+	#[AmpacheAPI]
+	protected function catalogs(?string $filter, int $limit, int $offset = 0) : array {
+		$catalogIds = \array_keys(self::CATALOGS);
+
+		// On the original Ampache server, the filter of this action selects by gather type, not by name
+		if (!empty($filter)) {
+			$catalogIds = \array_values(\array_filter(
+				$catalogIds, fn ($id) => self::CATALOGS[$id]['gather_types'] === $filter));
+		}
+
+		$catalogIds = \array_slice($catalogIds, $offset, $limit);
+
+		return ['catalog' => \array_map(fn ($id) => $this->renderCatalog($id), $catalogIds)];
+	}
+
+	#[AmpacheAPI]
+	protected function catalog(string $filter) : array {
+		if (!\array_key_exists($filter, self::CATALOGS)) {
+			throw new AmpacheException("Catalog $filter not found", 404);
+		}
+
+		return ['catalog' => [$this->renderCatalog($filter)]];
 	}
 
 	#[AmpacheAPI]
@@ -2012,6 +2073,35 @@ class AmpacheController extends ApiController {
 		];
 	}
 
+	private function renderCatalog(string $catalogId) : array {
+		$userId = $this->userId();
+		$isMusic = ($catalogId === self::CATALOG_MUSIC_ID);
+
+		if ($isMusic) {
+			$addTime = $this->library->latestInsertTime($userId);
+			$updateTime = $this->library->latestUpdateTime($userId);
+		} else {
+			$addTime = \max($this->podcastChannelBusinessLayer->latestInsertTime($userId),
+							$this->podcastEpisodeBusinessLayer->latestInsertTime($userId));
+			$updateTime = \max($this->podcastChannelBusinessLayer->latestUpdateTime($userId),
+							$this->podcastEpisodeBusinessLayer->latestUpdateTime($userId));
+		}
+
+		return [
+			'id'             => $catalogId,
+			'name'           => $this->l10n->t(self::CATALOGS[$catalogId]['name']),
+			'type'           => 'local',
+			'gather_types'   => self::CATALOGS[$catalogId]['gather_types'],
+			'enabled'        => true,
+			'last_add'       => $addTime->getTimestamp(),
+			'last_clean'     => \time(), // we don't track the time of the latest removal, see also the action `handshake`
+			'last_update'    => $updateTime->getTimestamp(),
+			'path'           => $isMusic ? $this->librarySettings->getPath($userId) : '',
+			'rename_pattern' => '',
+			'sort_pattern'   => ''
+		];
+	}
+
 	/**
 	 * @param RadioStation[] $stations
 	 */
@@ -2285,7 +2375,7 @@ class AmpacheController extends ApiController {
 
 		// all 'entity list' kind of responses shall have the (deprecated) total_count element
 		if (\in_array($firstKey, ['song', 'album', 'artist', 'album_artist', 'song_artist',
-			'playlist', 'tag', 'genre', 'podcast', 'podcast_episode', 'live_stream'])) {
+			'playlist', 'tag', 'genre', 'podcast', 'podcast_episode', 'live_stream', 'catalog'])) {
 			$content = ['total_count' => \count($content[$firstKey])] + $content;
 		}
 
