@@ -14,7 +14,7 @@ use OCP\Migration\SimpleMigrationStep;
 /**
  * Migrate the DB schema to Music v3.2.0 level from the v2.1.0 level
  */
-class Version030200Date20260819220000 extends SimpleMigrationStep {
+class Version030200Date20260828195000 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -37,6 +37,7 @@ class Version030200Date20260819220000 extends SimpleMigrationStep {
 	private static function migrateTracks(ISchemaWrapper $schema) : void {
 		$tracks = $schema->getTable('music_tracks');
 
+		self::addColumnIfMissing($tracks, 'sample_rate',           Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'bpm',                   Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'composer_id',           Types::INTEGER, ['notnull' => false, 'unsigned' => true]);
 		self::addColumnIfMissing($tracks, 'record_label_id',       Types::INTEGER, ['notnull' => false, 'unsigned' => true]);

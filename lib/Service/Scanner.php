@@ -198,9 +198,9 @@ class Scanner extends PublicEmitter {
 		$track = $this->trackBusinessLayer->addOrUpdateTrack(
 				$meta['title'], $meta['track_number'], $meta['disc_number'], $meta['year'], $genre->getId(),
 				$artistId, $albumId, $fileId, $mimetype, $userId, $recordLabelId, $meta['length'], $meta['bitrate'],
-				$meta['bpm'], $composerId, $meta['comment'], $meta['mb_recording_id'], $meta['mb_release_track_id'],
-				$meta['replaygain_album_gain'], $meta['replaygain_album_peak'], $meta['replaygain_track_gain'],
-				$meta['replaygain_track_peak'], $meta['r128_album_gain'], $meta['r128_track_gain']);
+				$meta['sample_rate'], $meta['bpm'], $composerId, $meta['comment'], $meta['mb_recording_id'],
+				$meta['mb_release_track_id'], $meta['replaygain_album_gain'], $meta['replaygain_album_peak'],
+				$meta['replaygain_track_gain'], $meta['replaygain_track_peak'], $meta['r128_album_gain'], $meta['r128_track_gain']);
 
 		// if present, use the embedded album art as cover for the respective album
 		if (!empty($meta['picture'])) {
@@ -325,6 +325,8 @@ class Scanner extends PublicEmitter {
 		$meta['length'] = self::normalizeUnsigned($fileInfo['playtime_seconds'] ?? null);
 
 		$meta['bitrate'] = self::normalizeUnsigned($fileInfo['audio']['bitrate'] ?? null);
+
+		$meta['sample_rate'] = self::normalizeUnsigned($fileInfo['audio']['sample_rate'] ?? null);
 
 		// MusicBrainz IDs
 		$meta['mb_recording_id'] = self::normalizeMbid(

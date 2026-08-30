@@ -39,6 +39,7 @@ class AdvSearchRules {
 					'year'         => $l10n->t('Year'),
 					'time'         => $l10n->t('Duration (minutes)'),
 					'bitrate'      => $l10n->t('Bit rate'),
+					'sample_rate'  => $l10n->t('Sample rate'),
 					'bpm'          => $l10n->t('BPM'),
 					'comment'      => $l10n->t('Comment'),
 					'label'        => $l10n->t('Record label'),
@@ -260,7 +261,7 @@ class AdvSearchRules {
 			'numeric' => [
 				'track', 'year', 'original_year', 'played_times', 'album_count', 'song_count', 'disk_count', 'time', 'bitrate',
 				// proprietary extensions to the Ampache spec:
-				'bpm'
+				'bpm', 'sample_rate'
 			],
 			// numeric but not supported: 'yearformed', 'skipped_times', 'play_skip_ratio', 'image_height', 'image_width'
 

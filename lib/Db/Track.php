@@ -39,6 +39,8 @@ use OCP\IURLGenerator;
  * @method void setFileId(int $fileId)
  * @method ?int getBitrate()
  * @method void setBitrate(?int $bitrate)
+ * @method ?int getSampleRate()
+ * @method void setSampleRate(?int $sampleRate)
  * @method string getMimetype()
  * @method void setMimetype(string $mimetype)
  * @method ?string getMbid()
@@ -100,6 +102,7 @@ class Track extends Entity {
 	public ?int $length = null;
 	public int $fileId = 0;
 	public ?int $bitrate = null;
+	public ?int $sampleRate = null;
 	public string $mimetype = '';
 	public ?string $mbid = null; // MusicBrainz Recording Id
 	public ?string $mbidRelTrack = null; // MusicBrainz Release Track Id
@@ -147,6 +150,7 @@ class Track extends Entity {
 		$this->addType('albumId', 'int');
 		$this->addType('length', 'int');
 		$this->addType('bitrate', 'int');
+		$this->addType('sampleRate', 'int');
 		$this->addType('fileId', 'int');
 		$this->addType('genreId', 'int');
 		$this->addType('playCount', 'int');
@@ -315,7 +319,7 @@ class Track extends Entity {
 			'language'              => null,
 			'lyrics'                => $this->lyrics,
 			'mode'                  => null, // cbr/vbr
-			'rate'                  => null, // sample rate [Hz]
+			'rate'                  => $this->getSampleRate(),
 			'comment'               => $this->getComment() ?: null,
 			'publisher'             => $this->getRecordLabelName(),
 			'mbid'                  => $this->getMbid(),
@@ -375,6 +379,7 @@ class Track extends Entity {
 			'suffix'          => $this->getFileExtension(),
 			'duration'        => $this->getLength() ?? 0,
 			'bitRate'         => empty($this->getBitrate()) ? null : (int)\round($this->getBitrate() / 1000), // convert bps to kbps
+			'samplingRate'    => $this->getSampleRate(), // OpenSubsonic
 			'path'            => $this->getPath(),
 			'isVideo'         => false,
 			'albumId'         => 'album-' . $albumId,

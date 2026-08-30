@@ -434,6 +434,7 @@ OC.L10N.register(
     "Track number" : "Kappaleen numero",
     "Year" : "Vuosi",
     "Duration (minutes)" : "Kesto (minuuttia)",
+    "Sample rate" : "Näytetaajuus",
     "BPM" : "BPM",
     "Record label" : "Levy-yhtiö",
     "Track genre" : "Kappaleen genre",
