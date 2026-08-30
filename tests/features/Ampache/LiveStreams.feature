@@ -11,7 +11,7 @@ Feature: Ampache API - Live streams
   Scenario: A created live stream is played back through the server
     Given I am logged in with an auth token
     When I specify the parameter "name" with value "Behat Test Radio"
-    And I specify the parameter "url" with value "http://localhost:8888/behat-test-stream.mp3"
+    And I specify the parameter "url" with value "https://cdn.jsdelivr.net/gh/lunu-bounir/audio-equalizer/test/both.ogg"
     And I request the "live_stream_create" resource
     Then the "name" of the first result should contain "Behat Test Radio"
     And the "url" of the first result should contain "action=stream"
@@ -24,7 +24,7 @@ Feature: Ampache API - Live streams
   Scenario: The stream URL of a listed live stream also points at the server
     Given I am logged in with an auth token
     When I specify the parameter "name" with value "Behat Listed Radio"
-    And I specify the parameter "url" with value "http://localhost:8888/behat-listed-stream.mp3"
+    And I specify the parameter "url" with value "https://cdn.jsdelivr.net/gh/lunu-bounir/audio-equalizer/test/both.ogg"
     And I request the "live_stream_create" resource
     And I store the "@id" of the first result as "stationId"
     And I specify the parameter "filter" with value "Behat Listed Radio"
