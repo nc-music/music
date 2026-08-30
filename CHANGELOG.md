@@ -37,6 +37,7 @@
   * Ampache API: Add actions `labels`, `label`, and `label_artists`. Include property `publisher` to the song responses.
   * Subsonic API: Include property `recordLabels` on the album responses (OpenSubsonic addition)
   * Advanced search can find tracks/albums/artists by the record label
+- Sample rate is scanned and included in the song responses of Ampache and Subsonic APIs. Advanced search can find songs by sample rate.
 - Context menu with the "Import from file" action on the "New Playlist" navigation item
   [#80 (comment)](https://github.com/nc-music/music/issues/80#issuecomment-3725231400)
 - Scan improvements:
