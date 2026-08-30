@@ -2,7 +2,6 @@
 
 ### Added
 - Support for Nextcloud 35 (tested on rc2)
-  [#144](https://github.com/nc-music/music/issues/144)
 - Admin settings UI to setup Last.fm API key and secret without editing `config.php` manually
   [#131](https://github.com/nc-music/music/pull/131) @mattwellss
 - Possibility to configure the default volume with the config.php key `music.default_volume`
