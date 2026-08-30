@@ -114,7 +114,7 @@ class ExternalScrobbler implements IScrobbler {
 		$this->config->setSystemValue("music.{$this->identifier}_api_secret", $apiSecret);
 	}
 
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null) : void {
+	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
 		$timeOfPlay = $timeOfPlay ?? new \DateTime();
 		$userId = $track->getUserId();
 		$sessionKey = $this->getApiSession($userId);

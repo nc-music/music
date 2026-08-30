@@ -698,7 +698,7 @@ class SubsonicController extends ApiController {
 	}
 
 	#[SubsonicAPI]
-	protected function scrobble(array $id, array $time, bool $submission = true) : array {
+	protected function scrobble(string $c, array $id, array $time, bool $submission = true) : array {
 		if (\count($id) === 0) {
 			throw new SubsonicException("Required parameter 'id' missing", 10);
 		}
@@ -747,9 +747,9 @@ class SubsonicController extends ApiController {
 					}
 
 					if ($submission) {
-						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $timeOfPlay);
+						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $timeOfPlay, $c);
 					} else {
-						$this->scrobbler->setNowPlaying($tracksById[$trackId], $timeOfPlay);
+						$this->scrobbler->setNowPlaying($tracksById[$trackId], $timeOfPlay, $c);
 					}
 				}
 			}
@@ -1102,6 +1102,7 @@ class SubsonicController extends ApiController {
 				$apiTrack['username'] = $this->user();
 				$apiTrack['minutesAgo'] = (int)(($now->getTimestamp() - $nowPlaying['timeOfPlay']) / 60);
 				$apiTrack['playerId'] = 0; // dummy
+				$apiTrack['playerName'] = $nowPlaying['client'];
 				$apiTracks[] = $apiTrack;
 			}
 		} catch (BusinessLayerException $e) {
