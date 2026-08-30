@@ -2238,7 +2238,7 @@ class AmpacheController extends ApiController {
 			// For singular actions (like "song", "artist"), the root object contains directly the entity properties.
 			else {
 				$action = $this->request->getParam('action');
-				$plural = (\substr($action, -1) === 's' || \in_array($action, ['get_similar', 'advanced_search', 'search', 'list', 'index']));
+				$plural = (\substr($action, -1) === 's' || \in_array($action, ['get_similar', 'advanced_search', 'search', 'list', 'index', 'player', 'now_playing']));
 
 				// In APIv5, the action "album" is an exception, it is formatted as if it was a plural action.
 				// This outlier has been fixed in APIv6.
