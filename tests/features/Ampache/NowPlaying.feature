@@ -28,7 +28,7 @@ Feature: Ampache API - Now playing
     And I request the "player" resource
     Then the "type" of the first result should contain "song"
     And the "client" of the first result should contain "Behat"
-    And the "user/username" of the first result should contain "ampache"
+    And the "user/username" of the first result should contain ":username"
 
 
   Scenario: The reported song is still playing on a later request
