@@ -26,15 +26,15 @@ class AggregateScrobbler implements IScrobbler {
 	) {
 	}
 
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null): void {
+	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null): void {
 		foreach ($this->scrobblers as $scrobbler) {
-			$scrobbler->recordTrackPlayed($track, $timeOfPlay);
+			$scrobbler->recordTrackPlayed($track, $timeOfPlay, $client);
 		}
 	}
 
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null): void {
+	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null): void {
 		foreach ($this->scrobblers as $scrobbler) {
-			$scrobbler->setNowPlaying($track, $timeOfPlay);
+			$scrobbler->setNowPlaying($track, $timeOfPlay, $client);
 		}
 	}
 }

@@ -17,6 +17,12 @@ namespace OCA\Music\Service\Scrobbling;
 use OCA\Music\Db\Track;
 
 interface IScrobbler {
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null) : void;
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null) : void;
+	/**
+	 * @param ?\DateTime $timeOfPlay When the track was played, default to "now".
+	 * @param ?string $client Name of the application reporting the play, when it is known. It's up to each scrobbler if it uses this for anything.
+	 */
+	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void;
+
+	/** @see self::recordTrackPlayed for the parameters */
+	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void;
 }

@@ -226,7 +226,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	/**
 	 * Update "last played" timestamp and increment the total play count of the track.
 	 */
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null) : void {
+	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
 		$timeOfPlay = $timeOfPlay ?? new \DateTime();
 		$userId = $track->getUserId();
 
@@ -258,23 +258,32 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			}
 		}
 
-		$this->setNowPlaying($track, $timeOfPlay);
+		$this->setNowPlaying($track, $timeOfPlay, $client);
 	}
 
 	/**
 	 * Save the track to config as the "now playing" track with the provided timestamp
+	 * @param ?string $client Name of the application reporting the play, when it is known
 	 */
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null) : void {
+	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
 		$data = [
 			'trackId'    => $track->getId(),
-			'timeOfPlay' => ($timeOfPlay ?? new \DateTime())->getTimestamp()
+			'timeOfPlay' => ($timeOfPlay ?? new \DateTime())->getTimestamp(),
+			'client'     => $client
 		];
 		$this->cache->set($track->getUserId(), 'nowPlaying', \json_encode($data));
 	}
 
 	/**
+	 * Drop the "now playing" state of the user, e.g. when a client reports that it has stopped playing
+	 */
+	public function clearNowPlaying(string $userId) : void {
+		$this->cache->remove($userId, 'nowPlaying');
+	}
+
+	/**
 	 * Return the "now playing" track along with its time of play
-	 * @return ?array{track: Track, timeOfPlay: int} - null if no data available
+	 * @return ?array{track: Track, timeOfPlay: int, client: ?string} - null if no data available
 	 * @throws BusinessLayerException if data available but somehow incorrect
 	 */
 	public function getNowPlaying(string $userId) : ?array {
@@ -294,7 +303,8 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 
 		return [
 			'track'      => $track,
-			'timeOfPlay' => $timeOfPlay
+			'timeOfPlay' => $timeOfPlay,
+			'client'     => $nowPlayingData['client'] ?? null
 		];
 	}
 

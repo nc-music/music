@@ -7,7 +7,9 @@
  * later. See the COPYING file.
  *
  * @author Morris Jobke <hey@morrisjobke.de>
+ * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Morris Jobke 2015
+ * @copyright Pauli Järvinen 2026
  */
 
 use Behat\Behat\Context\Context;
@@ -37,11 +39,13 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 
 	/** @var array maps resources to the name of the XML element of the response */
 	private $resourceToXMLElementMapping = [
-		'artists'  => 'artist',
-		'albums'   => 'album',
-		'songs'    => 'song',
-		'catalogs' => 'catalog',
-		'catalog'  => 'catalog',
+		'player'             => 'now_playing',
+		'now_playing'        => 'now_playing',
+		'artists'            => 'artist',
+		'albums'             => 'album',
+		'songs'              => 'song',
+		'catalogs'           => 'catalog',
+		'catalog'            => 'catalog',
 		'live_streams'       => 'live_stream',
 		'live_stream'        => 'live_stream',
 		'live_stream_create' => 'live_stream',
@@ -69,6 +73,7 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 		$this->username = $username;
 		$this->password = $password;
 		$this->client = new AmpacheClient($baseUrl, $username, $password);
+		$this->storedValues['username'] = $username; // make visible for the test cases
 	}
 
 	/**
@@ -120,6 +125,7 @@ class AmpacheContext implements Context, SnippetAcceptingContext {
 	 * @Then the :key of the first result should contain :expected
 	 */
 	public function theValueOfTheFirstResultShouldContain($key, $expected) {
+		$expected = $this->storedValues[\ltrim($expected, ':')] ?? $expected; // the expected value may be a stored value with the syntax ":key"
 		$elements = $this->xml->xpath('/root/' . $this->resourceToXMLElementMapping[$this->resource]);
 		if (empty($elements)) {
 			throw new Exception('No results' . PHP_EOL . $this->xml->asXML());

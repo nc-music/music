@@ -1328,6 +1328,91 @@ class AmpacheController extends ApiController {
 		return ['success' => 'play recorded'];
 	}
 
+	/**
+	 * How long a track of unknown length is reported as playing by the action `now_playing`. Only the media
+	 * scanned without a duration and the live streams end up needing this.
+	 */
+	private const NOW_PLAYING_FALLBACK_DURATION = 300;
+
+	/**
+	 * Report the playback state of the client. The state is stored in the same place where the web UI and the
+	 * Subsonic API keep theirs, so that whatever the user plays is visible through all of them.
+	 *
+	 * Only the type `song` is supported: the shared "now playing" state of this app is track-based, and the
+	 * podcast episodes of this app are not tracks. The type `video` has no counterpart here at all.
+	 */
+	#[AmpacheAPI]
+	protected function player(int $filter, string $type = 'song', string $state = 'play', ?int $time = null, ?string $client = null) : array {
+		$type = \mb_strtolower($type);
+		$state = \mb_strtolower($state);
+
+		if ($type !== 'song') {
+			throw new AmpacheException("Unsupported type '$type'", 400);
+		}
+		if (!\in_array($state, ['play', 'stop'])) {
+			throw new AmpacheException("Invalid state '$state'", 400);
+		}
+
+		if ($state === 'play') {
+			$track = $this->trackBusinessLayer->find($filter, $this->userId());
+			// The argument `time` is the elapsed play time, and the play has hence started that many seconds
+			// ago. Anchoring the timestamp on the start keeps the expiry time below correct.
+			$position = \max($time ?? 0, 0);
+			$timeOfPlay = new \DateTime('@' . (\time() - $position));
+
+			// This reaches the external scrobbling services and the shared "now playing" state alike, as the
+			// TrackBusinessLayer is registered as one of the scrobblers.
+			$this->scrobbler->setNowPlaying($track, $timeOfPlay, $client);
+		} else {
+			$this->trackBusinessLayer->clearNowPlaying($this->userId());
+		}
+
+		return $this->now_playing();
+	}
+
+	/**
+	 * Note: The original Ampache server reports what every user of the instance is playing, but we return only
+	 * the data of the requesting user. Publishing one user's activity to the others would need an opt-in setting
+	 * of its own, and the same call of the Subsonic API is limited in the same way for the same reason.
+	 */
+	#[AmpacheAPI]
+	protected function now_playing() : array {
+		$userId = $this->userId();
+
+		try {
+			$nowPlaying = $this->trackBusinessLayer->getNowPlaying($userId);
+		} catch (BusinessLayerException $e) {
+			// malformed data or a track which no longer exists; nothing is playing as far as we are concerned
+			$this->logger->warning($e->getMessage());
+			$nowPlaying = null;
+		}
+
+		if ($nowPlaying === null) {
+			return ['now_playing' => []];
+		}
+
+		$track = $nowPlaying['track'];
+		// Like on the original Ampache server, the entry expires by itself when the track would have played to
+		// its end, so that a client which stops without telling us leaves nothing behind. The state itself is
+		// left in place, as it is shared with the Subsonic API which reports it regardless of its age.
+		// A track of unknown length would expire immediately, and gets the fallback window instead.
+		$expire = $nowPlaying['timeOfPlay'] + ($track->getLength() ?: self::NOW_PLAYING_FALLBACK_DURATION);
+		if ($expire <= \time()) {
+			return ['now_playing' => []];
+		}
+
+		return ['now_playing' => [[
+			'id'     => (string)$track->getId(),
+			'type'   => 'song',
+			'client' => $nowPlaying['client'] ?? 'api',
+			'expire' => $expire,
+			'user'   => [
+				'id'       => $userId,
+				'username' => $userId
+			]
+		]]];
+	}
+
 	#[AmpacheAPI]
 	protected function scrobble(string $song, string $artist, string $album, ?int $date) : array {
 		// arguments songmbid, artistmbid, and albummbid not supported for now
@@ -2152,7 +2237,7 @@ class AmpacheController extends ApiController {
 			// For singular actions (like "song", "artist"), the root object contains directly the entity properties.
 			else {
 				$action = $this->request->getParam('action');
-				$plural = (\substr($action, -1) === 's' || \in_array($action, ['get_similar', 'advanced_search', 'search', 'list', 'index']));
+				$plural = (\substr($action, -1) === 's' || \in_array($action, ['get_similar', 'advanced_search', 'search', 'list', 'index', 'player', 'now_playing']));
 
 				// In APIv5, the action "album" is an exception, it is formatted as if it was a plural action.
 				// This outlier has been fixed in APIv6.

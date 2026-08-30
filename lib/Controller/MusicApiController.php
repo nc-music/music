@@ -279,7 +279,7 @@ class MusicApiController extends Controller {
 	public function setPlayingTrack(int $trackId) : JSONResponse {
 		try {
 			$track = $this->trackBusinessLayer->find($trackId, $this->user());
-			$this->scrobbler->setNowPlaying($track);
+			$this->scrobbler->setNowPlaying($track, null, 'nc-music');
 			return new JSONResponse(['success' => true]);
 		} catch (BusinessLayerException $e) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND);
