@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+- Administration settings view failing to load after update to Music v3.2.0
+  [#159](https://github.com/nc-music/music/issues/159)
+
 ## 3.2.0 - 2026-08-30
 
 ### Added

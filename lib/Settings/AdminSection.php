@@ -7,19 +7,20 @@
  * later. See the COPYING file.
  *
  * @author Matthew Wells
+ * @author Pauli Järvinen <pauli.jarvinen@gmail.com>
  * @copyright Matthew Wells 2026
+ * @copyright Pauli Järvinen 2026
  */
 
 namespace OCA\Music\Settings;
 
+use OCA\Music\Utility\HtmlUtil;
 use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
 
 class AdminSection implements IIconSection {
 	public function __construct(
-		private IURLGenerator $url,
-		private IL10N $l,
+		private IL10N $l10n,
 	) {
 	}
 
@@ -34,7 +35,7 @@ class AdminSection implements IIconSection {
 	 * @return string
 	 */
 	public function getName() {
-		return $this->l->t('Music');
+		return $this->l10n->t('Music');
 	}
 
 	/**
@@ -48,6 +49,6 @@ class AdminSection implements IIconSection {
 	 * @return string
 	 */
 	public function getIcon() {
-		return $this->url->imagePath('music', 'music-dark.svg');
+		return HtmlUtil::getSvgPath('music-dark');
 	}
 }
