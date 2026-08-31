@@ -1,7 +1,7 @@
 {
 	"name": "music",
 	"description": "Music player and server for Nextcloud",
-	"version": "3.2.0",
+	"version": "3.2.1",
 	"private": true,
 	"homepage": "https://github.com/nc-music/music",
 	"repository": {
