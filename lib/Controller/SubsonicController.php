@@ -37,6 +37,7 @@ use OCA\Music\Http\Attribute\SubsonicAPI;
 use OCA\Music\Http\FileResponse;
 use OCA\Music\Http\FileStreamResponse;
 use OCA\Music\Http\XmlResponse;
+use OCA\Music\Http\AudioTranscodeResponse;
 use OCA\Music\Middleware\SubsonicException;
 use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\CoverService;
@@ -70,6 +71,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
+use OCP\IBinaryFinder;
 
 class SubsonicController extends ApiController {
 	private const API_VERSION = '1.16.1';
@@ -82,6 +84,7 @@ class SubsonicController extends ApiController {
 	private array $ignoredArticles;
 	private string $format;
 	private ?string $callback;
+	private string|false $ffmpegPath;
 
 	public function __construct(
 		string $appName,
@@ -110,6 +113,7 @@ class SubsonicController extends ApiController {
 		private IConfig $configManager,
 		private IScrobbler $scrobbler,
 		private Concurrency $concurrency,
+		IBinaryFinder $binaryFinder,
 	) {
 		parent::__construct($appName, $request, 'POST, GET', 'Authorization, Content-Type, Accept, X-Requested-With');
 
@@ -118,6 +122,7 @@ class SubsonicController extends ApiController {
 		$this->keyId = null;
 		$this->ignoredArticles = [];
 		$this->format = 'xml'; // default, should be immediately overridden by SubsonicMiddleware
+		$this->ffmpegPath = $binaryFinder->findBinaryPath("ffmpeg");
 	}
 
 	/**
@@ -456,34 +461,17 @@ class SubsonicController extends ApiController {
 	}
 
 	#[SubsonicAPI]
-	protected function stream(string $id) : Response {
-		// We don't support transcoding, so 'stream' and 'download' act identically
-		return $this->download($id);
+	protected function stream(
+		string $id,
+		?string $format,
+		?int $maxBitRate,
+	): Response {
+		return $this->doDownload($id, $format, $maxBitRate);
 	}
 
 	#[SubsonicAPI]
-	protected function download(string $id) : Response {
-		[$type, $entityId] = self::parseEntityId($id);
-
-		if ($type === 'track') {
-			$track = $this->trackBusinessLayer->find($entityId, $this->user());
-			$file = $this->getFilesystemNode($track->getFileId());
-
-			if ($file instanceof File) {
-				return new FileStreamResponse($file);
-			} else {
-				return $this->subsonicErrorResponse(70, 'file not found');
-			}
-		} elseif ($type === 'podcast_episode') {
-			$episode = $this->podcastService->getEpisode($entityId, $this->user());
-			if ($episode instanceof PodcastEpisode) {
-				return new RedirectResponse($episode->getStreamUrl());
-			} else {
-				return $this->subsonicErrorResponse(70, 'episode not found');
-			}
-		} else {
-			return $this->subsonicErrorResponse(0, "id of type $type not supported");
-		}
+	protected function download(string $id): Response {
+		return $this->doDownload($id, null, null);
 	}
 
 	#[SubsonicAPI]
@@ -1127,10 +1115,73 @@ class SubsonicController extends ApiController {
 	 * Helper methods
 	 * -------------------------------------------------------------------------
 	 */
+	private function canTranscode(
+		Track $track,
+		?string $format,
+		?int $maxBitrate,
+	): bool {
+		// no ffmpeg or no asked format or raw asked format => do not transcode
+		if (
+			$this->ffmpegPath == null ||
+			!$this->ffmpegPath ||
+			$format == null ||
+			$format == "raw"
+		) {
+			return false;
+		}
+		$mimeType = AudioTranscodeResponse::getMimetype($format);
+		// format not supported or result mimetype same with compatible bitrate => do not transcode
+		if (
+			$mimeType == null ||
+			(str_starts_with($mimeType, $track->getMimetype()) &&
+				($maxBitrate == null ||
+					$maxBitrate == 0 ||
+					$track->getBitrate() <= $maxBitrate * 1024))
+		) {
+			return false;
+		}
+		return true;
+	}
 
-	private static function ensureParamHasValue(string $paramName, string|int|null $paramValue) : void {
-		if ($paramValue === null || $paramValue === '') {
-			throw new SubsonicException("Required parameter '$paramName' missing", 10);
+	private function doDownload(
+		string $id,
+		?string $format,
+		?int $maxBitrate,
+	): Response {
+		[$type, $entityId] = self::parseEntityId($id);
+		if ($type === "track") {
+			$track = $this->trackBusinessLayer->find($entityId, $this->user());
+			$file = $this->getFilesystemNode($track->getFileId());
+
+			if ($file instanceof File) {
+				if ($this->canTranscode($track, $format, $maxBitrate)) {
+					return new AudioTranscodeResponse(
+						$this->ffmpegPath,
+						$this->logger,
+						$file,
+						$format,
+						$maxBitrate,
+					);
+				}
+				return new FileStreamResponse($file);
+			} else {
+				return $this->subsonicErrorResponse(70, "file not found");
+			}
+		} elseif ($type === "podcast_episode") {
+			$episode = $this->podcastService->getEpisode(
+				$entityId,
+				$this->user(),
+			);
+			if ($episode instanceof PodcastEpisode) {
+				return new RedirectResponse($episode->getStreamUrl());
+			} else {
+				return $this->subsonicErrorResponse(70, "episode not found");
+			}
+		} else {
+			return $this->subsonicErrorResponse(
+				0,
+				"id of type $type not supported",
+			);
 		}
 	}
 
