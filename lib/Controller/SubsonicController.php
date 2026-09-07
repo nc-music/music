@@ -1185,6 +1185,12 @@ class SubsonicController extends ApiController {
 		}
 	}
 
+	private static function ensureParamHasValue(string $paramName, string|int|null $paramValue) : void {
+		if ($paramValue === null || $paramValue === '') {
+			throw new SubsonicException("Required parameter '$paramName' missing", 10);
+		}
+	}
+
 	private static function parseBookmarkIdParam(string $id) : array {
 		[$typeName, $entityId] = self::parseEntityId($id);
 
