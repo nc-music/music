@@ -1134,8 +1134,8 @@ class SubsonicController extends ApiController {
 		if (
 			$mimeType == null ||
 			(str_starts_with($mimeType, $track->getMimetype()) &&
-				($maxBitrate == null ||
-					$maxBitrate == 0 ||
+				($maxBitrate === null ||
+					$maxBitrate === 0 ||
 					$track->getBitrate() <= $maxBitrate * 1024))
 		) {
 			return false;

@@ -194,6 +194,9 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 				["-movflags", "frag_keyframe+empty_moov+default_base_moof"],
 			],
 			self::MP3 => ["libmp3lame", "mp3", []],
+			default => throw new \LogicException(
+				"Unsupported output format: {$this->outputFormat}",
+			),
 		};
 
 		$filePath = $this->file
@@ -215,7 +218,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			"-1",
 			"-c:a",
 			$codec,
-			...$this->bitrate == null || $this->bitrate == 0
+			...$this->bitrate === null || $this->bitrate === 0
 				? []
 				: ["-b:a", $this->bitrate . "k"],
 			...$extra,
