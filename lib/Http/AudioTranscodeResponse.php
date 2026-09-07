@@ -44,11 +44,11 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 	}
 
 	public function __construct(
-		private readonly string $ffmpegPath,
-		private readonly Logger $logger,
-		private readonly File $file,
-		private readonly string $outputFormat,
-		private readonly ?int $bitrate,
+		private string $ffmpegPath,
+		private Logger $logger,
+		private File $file,
+		private string $outputFormat,
+		private ?int $bitrate,
 	) {
 		parent::__construct();
 		if (
