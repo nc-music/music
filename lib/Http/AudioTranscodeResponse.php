@@ -31,6 +31,24 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 	public const AAC = "aac";
 	public const M4A = "m4a";
 
+	private const ALLOWED_BITRATES = [32, 48, 64, 96, 128, 160, 192, 256, 320];
+
+	private static function getValidFormat(?string $format): string
+	{
+		$defaultFormat = self::MP3;
+		if ($format === null) {
+			return $defaultFormat;
+		}
+		return match ($format) {
+			self::OGG => $format,
+			self::OPUS => $format,
+			self::AAC => $format,
+			self::M4A => $format,
+			self::MP3 => $format,
+			default => $defaultFormat,
+		};
+	}
+
 	public static function getMimetype(string $format): ?string
 	{
 		return match ($format) {
@@ -43,22 +61,27 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		};
 	}
 
+	private string $outputFormat;
+
 	public function __construct(
 		private string $ffmpegPath,
 		private Logger $logger,
 		private File $file,
-		private string $outputFormat,
+		?string $outputFormat,
 		private ?int $bitrate,
 	) {
 		parent::__construct();
+		$this->outputFormat = self::getValidFormat($outputFormat);
 		if (
 			isset($_SERVER["HTTP_RANGE"]) &&
 			$_SERVER["HTTP_RANGE"] != "bytes=0-"
 		) {
 			$this->setStatus(Http::STATUS_REQUEST_RANGE_NOT_SATISFIABLE);
 		} else {
-			$contentType = self::getMimetype($outputFormat);
-			$this->addHeader("Content-Type", $contentType);
+			$contentType = self::getMimetype($this->outputFormat);
+			if ($contentType !== null) {
+				$this->addHeader("Content-Type", $contentType);
+			}
 			$this->setStatus(Http::STATUS_OK);
 		}
 	}
@@ -182,6 +205,24 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		}
 	}
 
+	private function getBitrateCommandArguments(): array
+	{
+		if ($this->bitrate === null || $this->bitrate === 0) {
+			return [];
+		}
+
+		$bitrate = (int) $this->bitrate;
+		$closest = self::ALLOWED_BITRATES[0];
+
+		foreach (self::ALLOWED_BITRATES as $allowedBitrate) {
+			if (abs($bitrate - $allowedBitrate) < abs($bitrate - $closest)) {
+				$closest = $allowedBitrate;
+			}
+		}
+
+		return ["-b:a", $closest . "k"];
+	}
+
 	private function buildCommand(): array
 	{
 		[$codec, $container, $extra] = match ($this->outputFormat) {
@@ -218,9 +259,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			"-1",
 			"-c:a",
 			$codec,
-			...$this->bitrate === null || $this->bitrate === 0
-				? []
-				: ["-b:a", $this->bitrate . "k"],
+			...$this->getBitrateCommandArguments(),
 			...$extra,
 			"-f",
 			$container,

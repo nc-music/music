@@ -121,8 +121,16 @@ class SubsonicController extends ApiController {
 		$this->userId = null;
 		$this->keyId = null;
 		$this->ignoredArticles = [];
-		$this->format = 'xml'; // default, should be immediately overridden by SubsonicMiddleware
-		$this->ffmpegPath = $binaryFinder->findBinaryPath("ffmpeg");
+		$this->format = "xml"; // default, should be immediately overridden by SubsonicMiddleware
+
+		$useFfmpeg = $configManager->getSystemValue("music.use_ffpmeg", true);
+		if ($useFfmpeg === false) {
+			$this->ffmpegPath = false;
+		} elseif (is_string($useFfmpeg)) {
+			$this->ffmpegPath = $useFfmpeg;
+		} else {
+			$this->ffmpegPath = $binaryFinder->findBinaryPath("ffmpeg");
+		}
 	}
 
 	/**
@@ -1120,23 +1128,36 @@ class SubsonicController extends ApiController {
 		?string $format,
 		?int $maxBitrate,
 	): bool {
-		// no ffmpeg or no asked format or raw asked format => do not transcode
-		if (
-			$this->ffmpegPath == null ||
-			!$this->ffmpegPath ||
-			$format == null ||
-			$format == "raw"
-		) {
+		// no ffmpeg or disabled
+		if (!$this->ffmpegPath) {
 			return false;
 		}
-		$mimeType = AudioTranscodeResponse::getMimetype($format);
-		// format not supported or result mimetype same with compatible bitrate => do not transcode
+		// raw format asked
+		if ($format === "raw") {
+			return false;
+		}
+		// no format specified and no max bitrate => can use original
+		if ($format === null && ($maxBitrate === 0 || $maxBitrate === null)) {
+			return false;
+		}
+		// claculate if has same mimetype
+		$sameMimetype = true;
+		// if format is not defined, consider that mimetype is same
+		if ($format !== null && $format !== "") {
+			$mimeType = AudioTranscodeResponse::getMimetype($format);
+			if ($mimeType !== null) {
+				$sameMimetype = str_starts_with(
+					$mimeType,
+					$track->getMimetype(),
+				);
+			}
+		}
+		// if same format, and bitrate is compatible => no need to transcode
 		if (
-			$mimeType == null ||
-			(str_starts_with($mimeType, $track->getMimetype()) &&
-				($maxBitrate === null ||
-					$maxBitrate === 0 ||
-					$track->getBitrate() <= $maxBitrate * 1024))
+			$sameMimetype &&
+			($maxBitrate === null ||
+				$maxBitrate === 0 ||
+				$track->getBitrate() <= $maxBitrate * 1024)
 		) {
 			return false;
 		}
