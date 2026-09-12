@@ -121,7 +121,7 @@ class SubsonicController extends ApiController {
 		$this->userId = null;
 		$this->keyId = null;
 		$this->ignoredArticles = [];
-		$this->format = "xml"; // default, should be immediately overridden by SubsonicMiddleware
+		$this->format = 'xml'; // default, should be immediately overridden by SubsonicMiddleware
 
 		$useFfmpeg = $configManager->getSystemValue("music.use_ffpmeg", true);
 		if ($useFfmpeg === false) {
