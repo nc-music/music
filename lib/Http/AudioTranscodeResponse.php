@@ -3,8 +3,11 @@
 /**
  * Nextcloud Music app
  *
- * @author ipoupaille
- * @copyright MIT
+ * This file is licensed under the Affero General Public License version 3 or
+ * later. See the COPYING file.
+ *
+ * @author Ipoupaille
+ * @copyright Ipoupaille 2026
  */
 
 namespace OCA\Music\Http;
