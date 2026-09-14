@@ -33,6 +33,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 	public const OPUS = "opus";
 	public const AAC = "aac";
 	public const M4A = "m4a";
+	public const FLAC = "flac";
 
 	private const ALLOWED_BITRATES = [
 		32,
@@ -60,6 +61,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			self::AAC => $format,
 			self::M4A => $format,
 			self::MP3 => $format,
+			self::FLAC => $format,
 			default => $defaultFormat,
 		};
 	}
@@ -72,6 +74,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			self::AAC => "audio/aac",
 			self::M4A => "audio/mp4",
 			self::MP3 => "audio/mpeg",
+			self::FLAC => "audio/flac",
 			default => null,
 		};
 	}
@@ -222,7 +225,11 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 
 	private function getBitrateCommandArguments(): array
 	{
-		if ($this->bitrate === null || $this->bitrate === 0) {
+		if (
+			$this->bitrate === null ||
+			$this->bitrate === 0 ||
+			$this->outputFormat === self::FLAC
+		) {
 			return [];
 		}
 
@@ -249,6 +256,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 				"mp4",
 				["-movflags", "frag_keyframe+empty_moov+default_base_moof"],
 			],
+			self::FLAC => ["flac", "flac", ["-compression_level", "5"]],
 			self::MP3 => ["libmp3lame", "mp3", []],
 			default => throw new \LogicException(
 				"Unsupported output format: {$this->outputFormat}",
