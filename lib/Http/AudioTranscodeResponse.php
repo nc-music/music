@@ -31,7 +31,19 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 	public const AAC = "aac";
 	public const M4A = "m4a";
 
-	private const ALLOWED_BITRATES = [32, 48, 64, 96, 128, 160, 192, 256, 320];
+	private const ALLOWED_BITRATES = [
+		32,
+		48,
+		64,
+		80,
+		96,
+		112,
+		128,
+		160,
+		192,
+		256,
+		320,
+	];
 
 	private static function getValidFormat(?string $format): string
 	{
