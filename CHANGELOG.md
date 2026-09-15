@@ -7,6 +7,8 @@
 ### Fixed
 - Unhandled exception breaking the Music UI when operating within the Nextcloud Desktop Workspace
   [#162](https://github.com/nc-music/music/issues/162)
+- Streaming of files on encrypted or other non-seekable storages: seek failures are no longer silently ignored, files with no known size are streamed without a declared length, and a failure to open the file is reported as HTTP 403 instead of 500
+  [#19](https://github.com/nc-music/music/issues/19)
 
 ## 3.2.1 - 2026-08-31
 
