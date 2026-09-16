@@ -1169,6 +1169,16 @@ class SubsonicController extends ApiController {
 		?string $format,
 		?int $maxBitrate,
 	): Response {
+		if (
+			$format === AudioTranscodeResponse::FLAC &&
+			$maxBitrate !== null &&
+			$maxBitrate !== 0
+		) {
+			return $this->subsonicErrorResponse(
+				0,
+				"Cannot limit bitrate when requesting a lossless format",
+			);
+		}
 		[$type, $entityId] = self::parseEntityId($id);
 		if ($type === "track") {
 			$track = $this->trackBusinessLayer->find($entityId, $this->user());
