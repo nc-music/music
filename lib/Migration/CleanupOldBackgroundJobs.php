@@ -12,16 +12,14 @@
 
 namespace OCA\Music\Migration;
 
-use OCA\Music\BackgroundJob\Cleanup;
-use OCA\Music\BackgroundJob\PodcastUpdateCheck;
 use OCP\BackgroundJob\IJobList;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 
-class RegisterBackgroundJobs implements IRepairStep {
+class CleanupOldBackgroundJobs implements IRepairStep {
 
 	public function getName() {
-		return 'Register Music background jobs and remove legacy registrations';
+		return 'Remove legacy background job registrations';
 	}
 
 	/**
@@ -29,12 +27,8 @@ class RegisterBackgroundJobs implements IRepairStep {
 	 * @return void
 	 */
 	public function run(IOutput $output) {
-		$jobList = \OC::$server->query(IJobList::class);
-
-		$jobList->add(Cleanup::class);
-		$jobList->add(PodcastUpdateCheck::class);
-
 		// remove legacy job registrations possibly made by older versions of the Music app
+		$jobList = \OC::$server->query(IJobList::class);
 		$jobList->remove('OC\BackgroundJob\Legacy\RegularJob', ['OCA\Music\Backgroundjob\Cleanup', 'run']);
 		$jobList->remove('OC\BackgroundJob\Legacy\RegularJob', ['OCA\Music\Backgroundjob\CleanUp', 'run']);
 		$jobList->remove('OC\BackgroundJob\Legacy\RegularJob', ['OCA\Music\Backgroundjob\PodcastUpdateCheck', 'run']);
