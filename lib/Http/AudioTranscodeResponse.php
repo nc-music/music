@@ -20,7 +20,6 @@ use OCP\AppFramework\Http\Response;
 use OCP\Files\File;
 use RuntimeException;
 
-opcache_invalidate(__FILE__, true);
 
 /**
  * A renderer for files with ffmpeg transcoding
