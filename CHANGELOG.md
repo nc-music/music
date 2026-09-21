@@ -12,7 +12,14 @@
 ### Fixed
 - Unhandled exception breaking the Music UI when operating within the Nextcloud Desktop Workspace
   [#162](https://github.com/nc-music/music/issues/162)
-
+- An image file named after an artist no longer doubles as the cover of the album in the same folder, unless the folder has no other image. A rescan is needed for this to take effect on an existing library
+  [#102](https://github.com/nc-music/music/issues/102)
+- Ampache API:
+  * Property `art` is now always a valid URL like on the original Ampache server, and the clients should use the property `has_art` to tell whether it resolves to a real image
+  * Art URL was broken if the API key used on the handshake had been deleted since
+  * Art fetched with the action `get_art` was not cached by the clients, unlike the art fetched from `image.php`
+    [#102](https://github.com/nc-music/music/issues/102)
+    
 ## 3.2.1 - 2026-08-31
 
 ### Fixed

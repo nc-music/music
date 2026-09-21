@@ -284,6 +284,7 @@ class Track extends Entity {
 			IL10N $l10n,
 			callable $createPlayUrl,
 			callable $createImageUrl,
+			callable $hasArt,
 			callable $renderAlbumOrArtistRef,
 			string $genreKey,
 			bool $includeArtists) : array {
@@ -331,7 +332,7 @@ class Track extends Entity {
 			'r128_track_gain'       => $this->getR128TrackGain(),
 		];
 
-		$result['has_art'] = !empty($result['art']);
+		$result['has_art'] = $hasArt($this);
 
 		$genreId = $this->getGenreId();
 		if ($genreId !== null) {
