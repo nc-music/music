@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 ### Added
-- Subsonic: Transcoding support in the `stream` endpoint
+- Subsonic API: Transcoding support in the `stream` endpoint
   [#163](https://github.com/nc-music/music/pull/163) @ipoupaille
   * Enabled by default if `ffmpeg` is available in the path
   * To opt out, configure `'music.use_ffpmeg' => false`
@@ -14,6 +14,8 @@
   [#162](https://github.com/nc-music/music/issues/162)
 - Background tasks not being registered on a new application install before disable + enable of the app or app upgrade or `occ maintenance:repair`
   [#172](https://github.com/nc-music/music/pull/172) @Bubu
+- Subsonic API: HTTP error 500 when trying to open an album containing no tracks
+  [#169](https://github.com/nc-music/music/issues/169)
 
 ## 3.2.1 - 2026-08-31
 
