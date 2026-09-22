@@ -12,6 +12,8 @@
 ### Fixed
 - Unhandled exception breaking the Music UI when operating within the Nextcloud Desktop Workspace
   [#162](https://github.com/nc-music/music/issues/162)
+- Background tasks not being registered on a new application install before disable + enable of the app or app upgrade or `occ maintenance:repair`
+  [#172](https://github.com/nc-music/music/pull/172) @Bubu
 
 ## 3.2.1 - 2026-08-31
 
