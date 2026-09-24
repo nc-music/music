@@ -206,11 +206,35 @@ class ExtractorGetID3 {
 	}
 
 	/**
-	 * @param string[] $contributors E.g. ['role1', 'name1a', 'role1', 'name1b', 'role2', 'name2', ...]
+	 * @param array $contributors Flat list ['role1', 'name1a', 'role1', 'name1b', ...] from the ID3v2.4 frames
+	 *                            TIPL and TMCL, or nested [[['position' => 'role1', 'person' => 'name1a'], ...]]
+	 *                            from the ID3v2.3 frame IPLS, which GetID3 pairs up itself.
 	 * @return array<string, string[]> E.g. ['role1' => ['name1a', 'name1b'], 'role2' => ['name2']]
 	 */
 	private static function parseId3ContributorList(array $contributors) : array {
 		$result = [];
+
+		// Any IPLS frame arrives nested and already paired up; the flat parsing below would use an array as an array key, fatal on PHP 8.
+		if (\is_array($contributors[0] ?? null)) {
+			foreach ($contributors as $frame) {
+				foreach ($frame as $pair) {
+					if (\is_array($pair)) {
+						// a frame with an odd number of null-delimited parts yields role-less entries like ['name']
+						$role = $pair['position'] ?? '';
+						$name = $pair['person'] ?? $pair[0] ?? null;
+					} else {
+						// a frame with no null delimiters at all is split to bare names on the punctuation
+						$role = '';
+						$name = $pair;
+					}
+					if (\is_string($name) && $name !== '') {
+						$result[$role][] = $name;
+					}
+				}
+			}
+			return $result;
+		}
+
 		while (\count($contributors)) {
 			$role = \array_shift($contributors);
 			$name = \array_shift($contributors);
