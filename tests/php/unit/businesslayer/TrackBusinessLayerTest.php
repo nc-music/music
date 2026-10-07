@@ -19,6 +19,7 @@ use OCA\Music\Db\Cache;
 use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
 use OCA\Music\Service\FileSystemService;
+use OCP\EventDispatcher\IEventDispatcher;
 use PHPUnit\Framework\TestCase;
 
 class TrackBusinessLayerTest extends TestCase {
@@ -45,7 +46,10 @@ class TrackBusinessLayerTest extends TestCase {
 		$this->cache = $this->getMockBuilder(Cache::class)
 			->disableOriginalConstructor()
 			->getMock();
-		$this->trackBusinessLayer = new TrackBusinessLayer($this->mapper, $this->fileSystemService, $this->logger, $this->cache);
+		$eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)
+			->disableOriginalConstructor()
+			->getMock();
+		$this->trackBusinessLayer = new TrackBusinessLayer($this->mapper, $this->fileSystemService, $this->logger, $this->cache, $eventDispatcher);
 		$this->userId = 'jack';
 		$this->artistId = 3;
 		$this->albumId = 3;
