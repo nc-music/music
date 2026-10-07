@@ -1,6 +1,8 @@
 ## [Unreleased]
 
 ### Added
+- `TrackPlayedEvent` dispatched whenever a track play is recorded, allowing other apps to react to plays
+  [#85](https://github.com/nc-music/music/issues/85) @potagerGit
 - Subsonic API: Transcoding support in the `stream` endpoint
   [#163](https://github.com/nc-music/music/pull/163) @ipoupaille
   * Enabled by default if `ffmpeg` is available in the path
