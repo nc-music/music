@@ -22,6 +22,7 @@ use OCA\Music\Db\MatchMode;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
+use OCA\Music\Event\TrackPlayedEvent;
 use OCA\Music\Service\FileSystemService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
 use OCA\Music\Utility\AppInfo;
@@ -29,6 +30,7 @@ use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\StringUtil;
 use OCA\Music\Utility\Util;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\EventDispatcher\IEventDispatcher;
 
 /**
  * Base class functions with the actually used inherited types to help IDE and Scrutinizer:
@@ -45,6 +47,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		private FileSystemService $fileSystemService,
 		private Logger $logger,
 		private Cache $cache,
+		private IEventDispatcher $eventDispatcher,
 	) {
 		parent::__construct($trackMapper);
 	}
@@ -225,6 +228,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 
 	/**
 	 * Update "last played" timestamp and increment the total play count of the track.
+	 * On success, dispatch TrackPlayedEvent to let other apps know about the play.
 	 */
 	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
 		$timeOfPlay = $timeOfPlay ?? new \DateTime();
@@ -233,6 +237,12 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		if (!$this->mapper->recordTrackPlayed($track->getId(), $userId, $timeOfPlay)) {
 			// failing to update the play count would be unexpected as the caller has already obtained the Track from the DB
 			$this->logger->error("Could not record track with ID {$track->getId()} as played");
+		} else {
+			$this->eventDispatcher->dispatchTyped(new TrackPlayedEvent(
+				$userId,
+				$track->getId(),
+				\DateTimeImmutable::createFromMutable($timeOfPlay)
+			));
 		}
 
 		// Update also "now playing" if the client hasn't updated it separately
