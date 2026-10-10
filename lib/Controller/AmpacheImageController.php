@@ -70,6 +70,15 @@ class AmpacheImageController extends Controller {
 			return new ErrorResponse(Http::STATUS_FORBIDDEN, 'invalid token');
 		}
 
+		if ($object_type === 'playlist' && (int)$object_id === AmpacheController::ALL_TRACKS_PLAYLIST_ID) {
+			// The "All tracks" pseudo playlist has no counterpart in the database, so there is no cover to
+			// look up for it. Give it its own placeholder rather than answering with a "not found" error,
+			// consistent with every other playlist always having a valid, cacheable art URL.
+			$response = new FileResponse(PlaceholderImage::generateForResponse('*', $object_type, 200));
+			HttpUtil::setClientCachingDays($response, 365);
+			return $response;
+		}
+
 		$businessLayer = $this->getBusinessLayer($object_type);
 		if ($businessLayer === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, "invalid object_type $object_type");

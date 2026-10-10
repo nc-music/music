@@ -115,7 +115,7 @@ class Playlist extends Entity {
 		];
 	}
 
-	public function toAmpacheApi(callable $createImageUrl, bool $includeTracks) : array {
+	public function toAmpacheApi(callable $createImageUrl, callable $hasArt, bool $includeTracks) : array {
 		$result = [
 			'id'    => (string)$this->getId(),
 			'name'  => $this->getName(),
@@ -133,7 +133,7 @@ class Playlist extends Entity {
 			'last_update'     => \strtotime($this->getUpdated() ?? ''),
 			'md5'             => $this->getTrackIdsHash()
 		];
-		$result['has_art'] = !empty($result['art']);
+		$result['has_art'] = $hasArt($this);
 
 		if ($includeTracks) {
 			$ids = $this->getTrackIdsAsArray();

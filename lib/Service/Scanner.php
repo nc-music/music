@@ -137,17 +137,27 @@ class Scanner extends PublicEmitter {
 	}
 
 	private function updateImage(File $file, string $userId) : void {
-		$coverFileId = $file->getId();
-		$parentFolderId = $file->getParent()->getId();
-		if ($this->albumBusinessLayer->updateFolderCover($coverFileId, $parentFolderId)) {
-			$this->logger->debug('updateImage - the image was set as cover for some album(s)');
-			$this->cache->remove($userId, 'collection');
-		}
-
+		// Resolve the artist covers first, as whether this image depicts an artist decides if it may also
+		// be used as the album cover of the containing folder.
 		$artistIds = $this->artistBusinessLayer->updateCover($file, $userId, $this->userL10N($userId));
 		foreach ($artistIds as $artistId) {
 			$this->logger->debug("updateImage - the image was set as cover for the artist $artistId");
 			$this->coverService->removeArtistCoverFromCache($artistId, $userId);
+		}
+
+		// An image named after an artist is a photo of that artist, and letting it double as the album cover
+		// is what makes an uploaded artist photo look like it replaced the cover. `updateFolderCover` only
+		// ever sets the cover of an album which doesn't already have one, so a genuine cover image elsewhere
+		// in the folder still wins the slot on its own turn regardless of scan order.
+		if (empty($artistIds)) {
+			$coverFileId = $file->getId();
+			$parentFolderId = $file->getParent()->getId();
+			if ($this->albumBusinessLayer->updateFolderCover($coverFileId, $parentFolderId)) {
+				$this->logger->debug('updateImage - the image was set as cover for some album(s)');
+				$this->cache->remove($userId, 'collection');
+			}
+		} else {
+			$this->logger->debug('updateImage - artist image not used as album cover');
 		}
 	}
 
