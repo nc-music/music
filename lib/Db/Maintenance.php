@@ -15,6 +15,7 @@
 namespace OCA\Music\Db;
 
 use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\BusinessLayer\Library;
 use OCP\IDBConnection;
 
 class Maintenance {
@@ -22,6 +23,7 @@ class Maintenance {
 	public function __construct(
 		private IDBConnection $db,
 		private Logger $logger,
+		private Library $library,
 	) {
 	}
 
@@ -285,6 +287,7 @@ class Maintenance {
 			$this->logger->info('Erased music databases of all users');
 		} else {
 			$this->logger->info("Erased music database of user $userId");
+			$this->library->setLastCleanTime($userId, \time());
 		}
 	}
 

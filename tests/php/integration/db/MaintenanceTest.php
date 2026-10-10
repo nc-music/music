@@ -15,6 +15,7 @@
 namespace OCA\Music\Db;
 
 use Doctrine\DBAL\Connection;
+use OCA\Music\BusinessLayer\Library;
 use OCP\IDBConnection;
 
 class MaintenanceTest extends \PHPUnit\Framework\TestCase {
@@ -24,10 +25,15 @@ class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 
 	private $logger;
 
+	private $library;
+
 	protected function setUp() : void {
 		/** @var Connection db */
 		$this->db = \OC::$server->query(IDBConnection::class);
 		$this->logger = $this->getMockBuilder('\OCA\Music\AppFramework\Core\Logger')
+			->disableOriginalConstructor()
+			->getMock();
+		$this->library = $this->getMockBuilder(Library::class)
 			->disableOriginalConstructor()
 			->getMock();
 	}
@@ -81,7 +87,7 @@ class MaintenanceTest extends \PHPUnit\Framework\TestCase {
 		$this->checkForEmptyTables($user);
 		$this->loadData('MaintenanceCleanupData.json');
 
-		$maintenance = new Maintenance($this->db, $this->logger);
+		$maintenance = new Maintenance($this->db, $this->logger, $this->library);
 		$maintenance->cleanUp();
 		$this->checkForEmptyTables($user);
 	}

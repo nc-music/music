@@ -77,7 +77,9 @@ class Genre extends Entity {
 			'songs'        => $this->getTrackCount(),
 			'videos'       => 0,
 			'playlists'    => 0,
-			'live_streams' => 0
+			'live_streams' => 0,
+			'is_hidden'    => false,
+			'merge'        => []
 		];
 	}
 

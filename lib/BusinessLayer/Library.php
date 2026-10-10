@@ -17,6 +17,7 @@ use OCA\Music\Db\Album;
 use OCA\Music\Db\Artist;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Utility\ArrayUtil;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 
@@ -25,12 +26,14 @@ class Library {
 	public const DB_SCHEMA_VERSION = '3.2.0-beta2'; // the version of Music app which last modified the database schema of the library tables
 
 	public function __construct(
+		private string $appName,
 		private AlbumBusinessLayer $albumBusinessLayer,
 		private ArtistBusinessLayer $artistBusinessLayer,
 		private TrackBusinessLayer $trackBusinessLayer,
 		private CoverService $coverService,
 		private IURLGenerator $urlGenerator,
 		private IL10N $l10n,
+		private IConfig $configManager,
 		private Logger $logger,
 	) {
 	}
@@ -122,6 +125,20 @@ class Library {
 			$this->albumBusinessLayer->latestUpdateTime($userId),
 			$this->trackBusinessLayer->latestUpdateTime($userId)
 		);
+	}
+
+	/**
+	 * Set the timestamp of the latest clean-up operation on the library
+	 */
+	public function setLastCleanTime(string $userId, int $time) : void {
+		$this->configManager->setUserValue($userId, $this->appName, 'last_clean_time', (string)$time);
+	}
+
+	/**
+	 * Get the timestamp of the latest clean-up operation on the library
+	 */
+	public function getLastCleanTime(string $userId) : int {
+		return (int)$this->configManager->getUserValue($userId, $this->appName, 'last_clean_time', 0);
 	}
 
 	/**

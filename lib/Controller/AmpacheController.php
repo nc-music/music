@@ -47,13 +47,13 @@ use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\AmpacheAPI;
 use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\FileResponse;
-use OCA\Music\Http\FileStreamResponse;
 use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Http\XmlResponse;
 use OCA\Music\Middleware\AmpacheException;
 use OCA\Music\Service\Ampache\AmpacheAdvSearch;
 use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\Ampache\AmpachePreferences;
+use OCA\Music\Service\AudioTranscodeService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
@@ -115,6 +115,31 @@ class AmpacheController extends ApiController {
 	 */
 	private const DEPRECATED_ACTIONS = ['tag', 'tags', 'tag_albums', 'tag_artists', 'tag_songs'];
 
+	/**
+	 * Per-action map of a parameter name to an alternative name Ampache also accepts for it, used when
+	 * the primary name is missing from the request. `flag`, `rate`, `record_play`, `stream`, `download`
+	 * and `get_art` report the target object id as `id` (what API4/5 always used, and what API6 still
+	 * reports it as) but also accept `filter` as an alias (Ampache's `Api6\*Method::FILTER_ALIAS`/
+	 * `FILTER_KEY` pair). For `update_podcast`/`podcast_update` it's the other way around: `filter` is
+	 * the documented name and `id` is only an alias kept for the REST binding (`UpdatePodcastMethod`'s
+	 * own comment: "the rest route passes the podcast as `id`"). `playlist_add_song` accepts `id` as an
+	 * alias of `song`, and `playlist_add` accepts `song`/`object_type` as aliases of `id`/`type`
+	 * (`AbstractPlaylistAdd(Song)?Method`). Either way, whichever name is missing falls back to the
+	 * other, so which one is "the alias" here doesn't need to match which one Ampache calls canonical.
+	 */
+	private const PARAM_ALIASES = [
+		'flag'              => ['id' => 'filter'],
+		'rate'              => ['id' => 'filter'],
+		'record_play'       => ['id' => 'filter'],
+		'stream'            => ['id' => 'filter'],
+		'download'          => ['id' => 'filter'],
+		'get_art'           => ['id' => 'filter'],
+		'update_podcast'    => ['id' => 'filter'],
+		'podcast_update'    => ['id' => 'filter'],
+		'playlist_add_song' => ['song' => 'id'],
+		'playlist_add'      => ['id' => 'song', 'type' => 'object_type'],
+	];
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -143,6 +168,7 @@ class AmpacheController extends ApiController {
 		private LibrarySettings $librarySettings,
 		private RadioService $radioService,
 		private StreamTokenService $streamTokenService,
+		private AudioTranscodeService $transcodeService,
 		private Random $random,
 		private Logger $logger,
 		private IScrobbler $scrobbler,
@@ -248,7 +274,8 @@ class AmpacheController extends ApiController {
 					return $value;
 				};
 
-				$parameterExtractor = new RequestParameterExtractor($this->request, ['limit' => $limitFilter]);
+				$paramAliases = self::PARAM_ALIASES[$action] ?? [];
+				$parameterExtractor = new RequestParameterExtractor($this->request, ['limit' => $limitFilter], $paramAliases);
 				try {
 					$parameterValues = $parameterExtractor->getParametersForMethod($reflection);
 				} catch (RequestParameterExtractorException $ex) {
@@ -306,7 +333,7 @@ class AmpacheController extends ApiController {
 			'api'                 => $this->apiVersionString(),
 			'update'              => $updateTime->format('c'),
 			'add'                 => $addTime->format('c'),
-			'clean'               => \date('c', \time()), // TODO: actual time of the latest item removal
+			'clean'               => \date('c', $this->library->getLastCleanTime($user)),
 			'songs'               => $this->trackBusinessLayer->count($user),
 			'artists'             => $this->artistBusinessLayer->count($user),
 			'albums'              => $this->albumBusinessLayer->count($user),
@@ -325,7 +352,7 @@ class AmpacheController extends ApiController {
 			'max_song'            => $this->trackBusinessLayer->maxId($user),
 			'max_album'           => $this->albumBusinessLayer->maxId($user),
 			'max_artist'          => $this->artistBusinessLayer->maxId($user),
-			'max_video'           => null,
+			'max_video'           => 0,
 			'max_podcast'         => $this->podcastChannelBusinessLayer->maxId($user),
 			'max_podcast_episode' => $this->podcastEpisodeBusinessLayer->maxId($user),
 			'username'            => $user
@@ -693,6 +720,67 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
+	protected function song_tags(int $filter) : array {
+		$userId = $this->userId();
+		$track = $this->trackBusinessLayer->find($filter, $userId);
+		$artist = $this->artistBusinessLayer->find($track->getArtistId(), $userId);
+		$album = $this->albumBusinessLayer->find($track->getAlbumId(), $userId);
+
+		$rootFolder = $this->librarySettings->getFolder($userId);
+		$lyrics = $this->detailsService->getLyricsAsPlainText($track->getFileId(), $rootFolder);
+
+		return ['song_tag' => [$track->toAmpacheSongTagsApi($artist, $album, $lyrics)]];
+	}
+
+	#[AmpacheAPI]
+	protected function get_lyrics(int $filter) : array {
+		// request param `plugins` is ignored: we have no lyrics plugins, only our own stored/parsed lyrics
+		$userId = $this->userId();
+		$track = $this->trackBusinessLayer->find($filter, $userId);
+
+		$rootFolder = $this->librarySettings->getFolder($userId);
+		$lyrics = $this->detailsService->getLyricsAsPlainText($track->getFileId(), $rootFolder);
+
+		$plugin = [];
+		if ($lyrics !== null) {
+			$lyrics = \mb_ereg_replace("\n", '<br />', $lyrics); // matches how the `song` action already represents lyrics
+			$plugin['database'] = ['text' => $lyrics];
+		}
+
+		return [
+			'object_id'   => $filter,
+			'object_type' => 'song',
+			'plugin'      => $plugin
+		];
+	}
+
+	/**
+	 * Maps a stream/download URL, as previously handed out by this same server, back to the song it points at.
+	 * Like the original Ampache server, this is done by parsing the query string alone; the URL is never
+	 * required to originate from this exact request's host.
+	 */
+	#[AmpacheAPI]
+	protected function url_to_song(?string $filter, ?string $url) : array {
+		// the `filter` alias takes precedence over the documented `url` argument, matching the real Ampache server
+		$streamUrl = $filter ?: $url;
+		if (empty($streamUrl)) {
+			throw new AmpacheException("Required parameter 'url' missing", 400);
+		}
+
+		$query = (string)\parse_url(\html_entity_decode($streamUrl), PHP_URL_QUERY);
+		\parse_str($query, $params);
+		$action = $params['action'] ?? null;
+		$type = $params['type'] ?? 'song';
+
+		if (!\in_array($action, ['stream', 'download']) || $type !== 'song' || !isset($params['id'])) {
+			throw new AmpacheException("Not a song stream URL: $streamUrl", 400);
+		}
+
+		$track = $this->trackBusinessLayer->find((int)$params['id'], $this->userId());
+		return $this->renderSongs([$track]);
+	}
+
+	#[AmpacheAPI]
 	protected function songs(
 			?string $filter, ?string $add, ?string $update,
 			int $limit, int $offset = 0, bool $exact = false) : array {
@@ -702,8 +790,10 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function search_songs(string $filter, int $limit, int $offset = 0) : array {
+	protected function search_songs(string $filter, int $limit, int $offset = 0, ?string $rule_1_input = null) : array {
 		$userId = $this->userId();
+		// On API6, `rule_1_input` is an alias for `filter` and, when both are given, takes precedence
+		$filter = $rule_1_input ?? $filter;
 		$tracks = $this->trackBusinessLayer->findAllByNameRecursive($filter, $userId, $limit, $offset);
 		return $this->renderSongs($tracks);
 	}
@@ -1029,8 +1119,9 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function podcasts(?string $filter, ?string $include, int $limit, int $offset = 0, bool $exact = false) : array {
-		$channels = $this->findEntities($this->podcastChannelBusinessLayer, $filter, $exact, $limit, $offset);
+	protected function podcasts(
+			?string $filter, ?string $include, ?string $add, ?string $update, int $limit, int $offset = 0, bool $exact = false) : array {
+		$channels = $this->findEntities($this->podcastChannelBusinessLayer, $filter, $exact, $limit, $offset, $add, $update);
 
 		if ($include === 'episodes') {
 			$this->injectEpisodesToChannels($channels);
@@ -1112,6 +1203,14 @@ class AmpacheController extends ApiController {
 			default:
 				throw new AmpacheException("Unexpected status code {$result['status']}", 400);
 		}
+	}
+
+	/**
+	 * Alias of `update_podcast`, added under this name on API6
+	 */
+	#[AmpacheAPI]
+	protected function podcast_update(int $id) : array {
+		return $this->update_podcast($id);
 	}
 
 	#[AmpacheAPI]
@@ -1490,7 +1589,9 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function user(?string $username) : array {
+	protected function user(?string $username, ?string $filter = null) : array {
+		// `filter` is an alias for `username` and, when both are given, takes precedence
+		$username = $filter ?? $username;
 		$userId = $this->userId();
 		if (!empty($username) && \mb_strtolower($username) !== \mb_strtolower($userId)) {
 			throw new AmpacheException('Getting info of other users is forbidden', 403);
@@ -1544,9 +1645,8 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function download(int $id, string $type = 'song', bool $stats = false) : Response {
-		// request params `format` and `bitrate` are ignored
-
+	protected function download(
+			int $id, string $type = 'song', bool $stats = false, ?string $format = null, ?int $bitrate = null) : Response {
 		// On all errors, return HTTP error codes instead of Ampache errors. When client calls this action, it awaits a binary response
 		// and is probably not prepared to parse any Ampache json/xml responses.
 		$userId = $this->userId();
@@ -1560,7 +1660,9 @@ class AmpacheController extends ApiController {
 					if ($stats) {
 						$this->record_play($id, null);
 					}
-					return new FileStreamResponse($file);
+					// Ampache's `bitrate` argument is in bits per second, unlike the kbps used internally here and by Subsonic
+					$maxBitrateKbps = ($bitrate !== null) ? \intdiv($bitrate, 1000) : null;
+					return $this->transcodeService->responseForTrack($track, $file, $format, $maxBitrateKbps);
 				} else {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "File for song $id does not exist");
 				}
@@ -1610,7 +1712,7 @@ class AmpacheController extends ApiController {
 				if ($randomId === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The playlist $id is empty");
 				} else {
-					return $this->download((int)$randomId, 'song', $stats);
+					return $this->download((int)$randomId, 'song', $stats, $format, $bitrate);
 				}
 			} else {
 				return new ErrorResponse(Http::STATUS_UNSUPPORTED_MEDIA_TYPE, "Unsupported type '$type'");
@@ -1621,21 +1723,20 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function stream(int $id, ?int $offset, string $type = 'song', bool $stats = true) : Response {
-		// request params `bitrate`, `format`, and `length` are ignored
+	protected function stream(
+			int $id, ?int $offset, string $type = 'song', bool $stats = true, ?string $format = null, ?int $bitrate = null) : Response {
+		// request param `length` (requesting an estimated Content-Length) is ignored
 
-		// This is just a dummy implementation. We don't support transcoding or streaming
-		// from a time offset.
-		// All the other unsupported arguments are just ignored, but a request with an offset
-		// is responded with an error. This is because the client would probably work in an
-		// unexpected way if it thinks it's streaming from offset but actually it is streaming
-		// from the beginning of the file. Returning an error gives the client a chance to fallback
-		// to other methods of seeking.
+		// We don't support streaming from a time offset. All the other unsupported arguments are just
+		// ignored, but a request with an offset is responded with an error. This is because the client
+		// would probably work in an unexpected way if it thinks it's streaming from offset but actually
+		// it is streaming from the beginning of the file. Returning an error gives the client a chance
+		// to fallback to other methods of seeking.
 		if ($offset !== null) {
 			return new ErrorResponse(Http::STATUS_UNSUPPORTED_MEDIA_TYPE, 'Streaming with time offset is not supported');
 		}
 
-		return $this->download($id, $type, $stats);
+		return $this->download($id, $type, $stats, $format, $bitrate);
 	}
 
 	#[AmpacheAPI]
@@ -2125,7 +2226,7 @@ class AmpacheController extends ApiController {
 			'gather_types'   => self::CATALOGS[$catalogId]['gather_types'],
 			'enabled'        => true,
 			'last_add'       => $addTime->getTimestamp(),
-			'last_clean'     => \time(), // we don't track the time of the latest removal, see also the action `handshake`
+			'last_clean'     => $isMusic ? $this->library->getLastCleanTime($userId) : 0,
 			'last_update'    => $updateTime->getTimestamp(),
 			'path'           => $isMusic ? $this->librarySettings->getPath($userId) : '',
 			'rename_pattern' => '',

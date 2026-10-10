@@ -19,6 +19,7 @@ use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\BusinessLayer\AlbumBusinessLayer;
 use OCA\Music\BusinessLayer\ArtistBusinessLayer;
 use OCA\Music\BusinessLayer\GenreBusinessLayer;
+use OCA\Music\BusinessLayer\Library;
 use OCA\Music\BusinessLayer\PlaylistBusinessLayer;
 use OCA\Music\BusinessLayer\RecordLabelBusinessLayer;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
@@ -48,6 +49,7 @@ class Scanner extends PublicEmitter {
 		private PlaylistBusinessLayer $playlistBusinessLayer,
 		private GenreBusinessLayer $genreBusinessLayer,
 		private RecordLabelBusinessLayer $recordLabelBusinessLayer,
+		private Library $library,
 		private Cache $cache,
 		private CoverService $coverService,
 		private Logger $logger,
@@ -441,6 +443,10 @@ class Scanner extends PublicEmitter {
 				$result['obsoleteAlbums'],
 				$result['obsoleteArtists']
 			);
+
+			foreach ($result['affectedUsers'] as $affectedUserId) {
+				$this->library->setLastCleanTime($affectedUserId, \time());
+			}
 
 			$this->logger->debug('removed entities: ' . \json_encode($result));
 			$this->emit(self::class, 'delete', [$result['deletedTracks'], $result['affectedUsers']]);

@@ -32,8 +32,9 @@ zip -d music/music.zip "music/l10n/*/*"
 # Add the application icon back to the zip as that is still needed by the cloud core
 zip -g music/music.zip music/img/music.svg
 
-# Remove also files related to building, testing, and code analysis
+# Remove also files related to building, testing, code analysis, and developer documentation
 zip -d music/music.zip "music/build/*"
+zip -d music/music.zip "music/docs/*"
 zip -d music/music.zip "music/stubs/*"
 zip -d music/music.zip "music/tests/*"
 zip -d music/music.zip "music/composer.*"

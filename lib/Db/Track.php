@@ -352,6 +352,75 @@ class Track extends Entity {
 	}
 
 	/**
+	 * Renders the "raw file tags" view of the song used by the Ampache action `song_tags`. The field
+	 * set mirrors what the real Ampache server reads from the file's own metadata; fields we have no
+	 * corresponding data for are always null, the same way the real server nulls out any tag which
+	 * isn't present in the file.
+	 */
+	public function toAmpacheSongTagsApi(Artist $artist, Album $album, ?string $lyrics) : array {
+		return [
+			'albumartist'            => $album->getAlbumArtistName(),
+			'album'                  => $album->getName(),
+			'artist'                 => $artist->getName(),
+			'artists'                => null,
+			'art'                    => null,
+			'audio_codec'            => $this->getFileExtension(),
+			'barcode'                => null,
+			'bitrate'                => $this->getBitrate(),
+			// all songs belong to the single synthetic music catalog (see AmpacheController::CATALOG_MUSIC_ID)
+			'catalog'                => 'music',
+			'catalog_number'         => null,
+			'channels'               => null,
+			'comment'                => $this->getComment(),
+			'composer'               => $this->getComposerName(),
+			'description'            => null,
+			'disk'                   => $this->getDisk(),
+			'disksubtitle'           => null,
+			'display_x'              => null,
+			'display_y'              => null,
+			'encoding'               => null,
+			'file'                   => $this->getFilename(),
+			'frame_rate'             => null,
+			'genre'                  => $this->getGenreName(),
+			'isrc'                   => null,
+			'language'               => null,
+			'lyrics'                 => $lyrics,
+			'mb_albumartistid'       => null,
+			'mb_albumartistid_array' => null,
+			'mb_albumid_group'       => $album->getMbidGroup(),
+			'mb_albumid'             => $album->getMbid(),
+			'mb_artistid'            => $artist->getMbid(),
+			'mb_artistid_array'      => null,
+			'mb_trackid'             => $this->getMbid(),
+			'mime'                   => $this->getMimetype(),
+			'mode'                   => null,
+			'original_name'          => null,
+			'original_year'          => null,
+			'publisher'              => $this->getRecordLabelName(),
+			'r128_album_gain'        => $this->getR128AlbumGain(),
+			'r128_track_gain'        => $this->getR128TrackGain(),
+			'rate'                   => $this->getSampleRate(),
+			'rating'                 => $this->getRating(),
+			'release_date'           => null,
+			'release_status'         => null,
+			'release_type'           => null,
+			'replaygain_album_gain'  => $this->getReplaygainAlbumGain(),
+			'replaygain_album_peak'  => $this->getReplaygainAlbumPeak(),
+			'replaygain_track_gain'  => $this->getReplaygainTrackGain(),
+			'replaygain_track_peak'  => $this->getReplaygainTrackPeak(),
+			'size'                   => $this->getSize(),
+			'version'                => null,
+			'summary'                => null,
+			'time'                   => $this->getLength(),
+			'title'                  => $this->getTitle(),
+			'totaldisks'             => $album->getNumberOfDisks(),
+			'totaltracks'            => null,
+			'track'                  => $this->getNumber(),
+			'year'                   => $this->getYear(),
+		];
+	}
+
+	/**
 	 * The same API format is used both on "old" and "new" API methods. The "new" API adds some
 	 * new fields for the songs, but providing some extra fields shouldn't be a problem for the
 	 * older clients. The $track entity must have the Album reference injected prior to calling this.

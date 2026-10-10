@@ -35,11 +35,11 @@ use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\SubsonicAPI;
 use OCA\Music\Http\FileResponse;
-use OCA\Music\Http\FileStreamResponse;
 use OCA\Music\Http\XmlResponse;
 use OCA\Music\Http\AudioTranscodeResponse;
 use OCA\Music\Middleware\SubsonicException;
 use OCA\Music\Service\Ampache\AmpacheImageService;
+use OCA\Music\Service\AudioTranscodeService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
@@ -71,7 +71,6 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
-use OCP\IBinaryFinder;
 
 class SubsonicController extends ApiController {
 	private const API_VERSION = '1.16.1';
@@ -84,7 +83,6 @@ class SubsonicController extends ApiController {
 	private array $ignoredArticles;
 	private string $format;
 	private ?string $callback;
-	private string|false $ffmpegPath;
 
 	public function __construct(
 		string $appName,
@@ -108,12 +106,12 @@ class SubsonicController extends ApiController {
 		private LastfmService $lastfmService,
 		private PodcastService $podcastService,
 		private AmpacheImageService $imageService,
+		private AudioTranscodeService $transcodeService,
 		private Random $random,
 		private Logger $logger,
 		private IConfig $configManager,
 		private IScrobbler $scrobbler,
 		private Concurrency $concurrency,
-		IBinaryFinder $binaryFinder,
 	) {
 		parent::__construct($appName, $request, 'POST, GET', 'Authorization, Content-Type, Accept, X-Requested-With');
 
@@ -122,15 +120,6 @@ class SubsonicController extends ApiController {
 		$this->keyId = null;
 		$this->ignoredArticles = [];
 		$this->format = 'xml'; // default, should be immediately overridden by SubsonicMiddleware
-
-		$useFfmpeg = $configManager->getSystemValue("music.use_ffpmeg", true);
-		if ($useFfmpeg === false) {
-			$this->ffmpegPath = false;
-		} elseif (is_string($useFfmpeg)) {
-			$this->ffmpegPath = $useFfmpeg;
-		} else {
-			$this->ffmpegPath = $binaryFinder->findBinaryPath("ffmpeg");
-		}
 	}
 
 	/**
@@ -1123,47 +1112,6 @@ class SubsonicController extends ApiController {
 	 * Helper methods
 	 * -------------------------------------------------------------------------
 	 */
-	private function canTranscode(
-		Track $track,
-		?string $format,
-		?int $maxBitrate,
-	): bool {
-		// no ffmpeg or disabled
-		if (!$this->ffmpegPath) {
-			return false;
-		}
-		// raw format asked
-		if ($format === "raw") {
-			return false;
-		}
-		// no format specified and no max bitrate => can use original
-		if ($format === null && ($maxBitrate === 0 || $maxBitrate === null)) {
-			return false;
-		}
-		// claculate if has same mimetype
-		$sameMimetype = true;
-		// if format is not defined, consider that mimetype is same
-		if ($format !== null && $format !== "") {
-			$mimeType = AudioTranscodeResponse::getMimetype($format);
-			if ($mimeType !== null) {
-				$sameMimetype = str_starts_with(
-					$mimeType,
-					$track->getMimetype(),
-				);
-			}
-		}
-		// if same format, and bitrate is compatible => no need to transcode
-		if (
-			$sameMimetype &&
-			($maxBitrate === null ||
-				$maxBitrate === 0 ||
-				$track->getBitrate() <= $maxBitrate * 1000)
-		) {
-			return false;
-		}
-		return true;
-	}
-
 	private function doDownload(
 		string $id,
 		?string $format,
@@ -1185,16 +1133,7 @@ class SubsonicController extends ApiController {
 			$file = $this->getFilesystemNode($track->getFileId());
 
 			if ($file instanceof File) {
-				if ($this->canTranscode($track, $format, $maxBitrate)) {
-					return new AudioTranscodeResponse(
-						$this->ffmpegPath,
-						$this->logger,
-						$file,
-						$format,
-						$maxBitrate,
-					);
-				}
-				return new FileStreamResponse($file);
+				return $this->transcodeService->responseForTrack($track, $file, $format, $maxBitrate);
 			} else {
 				return $this->subsonicErrorResponse(70, "file not found");
 			}
