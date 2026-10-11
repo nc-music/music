@@ -241,7 +241,8 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			$this->eventDispatcher->dispatchTyped(new TrackPlayedEvent(
 				$userId,
 				$track->getId(),
-				\DateTimeImmutable::createFromMutable($timeOfPlay)
+				\DateTimeImmutable::createFromMutable($timeOfPlay),
+				$client
 			));
 		}
 

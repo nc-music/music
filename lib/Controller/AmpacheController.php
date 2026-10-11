@@ -1385,10 +1385,11 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function record_play(int $id, ?int $date) : array {
+	protected function record_play(int $id, ?int $date, ?string $client = null) : array {
 		$timeOfPlay = ($date === null) ? null : new \DateTime('@' . $date);
 		$track = $this->trackBusinessLayer->find($id, $this->userId());
-		$this->scrobbler->recordTrackPlayed($track, $timeOfPlay);
+		// The client may identify itself with the optional argument `client`
+		$this->scrobbler->recordTrackPlayed($track, $timeOfPlay, $client ?? 'ampache-api');
 		return ['success' => 'play recorded'];
 	}
 

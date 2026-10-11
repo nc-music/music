@@ -23,6 +23,7 @@ class TrackPlayedEvent extends Event {
 		private string $userId,
 		private int $trackId,
 		private \DateTimeImmutable $timeOfPlay,
+		private ?string $client = null,
 	) {
 		parent::__construct();
 	}
@@ -40,5 +41,13 @@ class TrackPlayedEvent extends Event {
 	 */
 	public function getTimeOfPlay() : \DateTimeImmutable {
 		return $this->timeOfPlay;
+	}
+
+	/**
+	 * Name of the application which reported the play: 'nc-music' for the web UI, the name given
+	 * by the client for Subsonic and Ampache (or 'ampache-api' when an Ampache client doesn't give one)
+	 */
+	public function getClient() : ?string {
+		return $this->client;
 	}
 }
