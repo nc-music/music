@@ -1683,7 +1683,7 @@ class AmpacheController extends ApiController {
 
 				if ($resolved['url'] === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "Failed to resolve the stream URL of the live stream $id");
-				} elseif ($this->radioRelayEnabled()) {
+				} elseif ($this->radioRelayEnabled() && !$resolved['is_private_ip']) {
 					if (!$resolved['hls']) {
 						// Relay a non-HLS stream
 						return new RelayStreamResponse($resolved['url']);

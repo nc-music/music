@@ -271,7 +271,9 @@ class RadioApiController extends Controller {
 		$relayEnabled = $this->streamRelayEnabled();
 		if ($resolved['url'] === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'failed to read from the stream URL');
-		} else {
+		} else if (!$resolved['is_private_ip']) {
+			// For security reasons, we don't relay streams that resolve to private IP addresses. Instead, just return the resolved URL.
+			// The client may still be able to stream from the URL directly if it is accessible from the client.
 			$token = $this->tokenService->tokenForUrl($resolved['url']);
 			if ($resolved['hls']) {
 				$resolved['url'] = $this->urlGenerator->linkToRoute(

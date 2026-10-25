@@ -19,6 +19,7 @@ use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\HttpUtil;
 use OCA\Music\Utility\StringUtil;
 use OCA\Music\Utility\Util;
+use OCP\IConfig;
 use OCP\IURLGenerator;
 
 /**
@@ -29,6 +30,7 @@ class RadioService {
 	public function __construct(
 		private IURLGenerator $urlGenerator,
 		private StreamTokenService $tokenService,
+		private IConfig $config,
 		private Logger $logger,
 	) {
 	}
@@ -172,7 +174,7 @@ class RadioService {
 			'Connection' => 'Close',
 		];
 		$context = HttpUtil::createContext($timeout, $reqHeaders);
-		$resolved = HttpUtil::resolveRedirections($streamUrl, $context);
+		$resolved = HttpUtil::resolveRedirections($streamUrl, $context, $this->allowLocalStreams());
 
 		// If the response headers contain any "icy-" headers, then this is an ICY stream and we can try to read the metadata from it.
 		if ($resolved['status_code'] >= 200 && $resolved['status_code'] < 300
@@ -209,14 +211,15 @@ class RadioService {
 	/**
 	 * Sometimes the URL given as stream URL points to a playlist which in turn contains the actual
 	 * URL to be streamed. This function resolves such indirections.
-	 * @return array{url: ?string, hls: bool}
+	 * @return array{url: ?string, hls: bool, is_private_ip: bool} The resolved stream URL, whether it is an HLS stream, and whether the URL points to a private IP address
 	 */
 	public function resolveStreamUrl(string $url) : array {
 		$isHls = false;
 
 		// resolve redirections and get the headers to see the content type
 		$context = HttpUtil::createContext();
-		$resolved = HttpUtil::resolveRedirections($url, $context);
+		$resolved = HttpUtil::resolveRedirections($url, $context, $this->allowLocalStreams());
+		$isPrivateIp = $resolved['is_private_ip'];
 
 		if ($resolved['status_code'] >= 200 && $resolved['status_code'] < 300) {
 			$url = $resolved['url'];
@@ -249,7 +252,7 @@ class RadioService {
 					$url = Util::urlToAbsolute($entryUrl, $url);
 
 					// make a recursive call, sometimes playlist may contain another playlist URL
-					['url' => $url, 'hls' => $isHls] = $this->resolveStreamUrl($url);
+					['url' => $url, 'hls' => $isHls, 'is_private_ip' => $isPrivateIp] = $this->resolveStreamUrl($url);
 				}
 			}
 		} else {
@@ -257,7 +260,7 @@ class RadioService {
 			$url = null;
 		}
 
-		return ['url' => $url, 'hls' => $isHls];
+		return ['url' => $url, 'hls' => $isHls, 'is_private_ip' => $isPrivateIp];
 	}
 
 	public function getHlsManifest(string $url) : array {
@@ -303,4 +306,8 @@ class RadioService {
 		return $result;
 	}
 
+	private function allowLocalStreams() : bool {
+		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
+		return $this->config->getSystemValue('music.allow_local_streams', $default);
+	}
 }
