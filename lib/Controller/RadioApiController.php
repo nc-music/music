@@ -248,26 +248,6 @@ class RadioApiController extends Controller {
 	}
 
 	/**
-	 * get audio stream for a radio station
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	public function stationStream(int $id) : Response {
-		try {
-			$station = $this->businessLayer->find($id, $this->user());
-			$streamUrl = $station->getStreamUrl();
-			$resolved = $this->service->resolveStreamUrl($streamUrl);
-			if ($this->streamRelayEnabled()) {
-				return new RelayStreamResponse($resolved['url']);
-			} else {
-				return new RedirectResponse($resolved['url']);
-			}
-		} catch (BusinessLayerException $ex) {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
-		}
-	}
-
-	/**
 	 * get the actual stream URL from the given public URL
 	 *
 	 * Available without login since no user data is handled and this may be used on link-shared folder.
