@@ -59,7 +59,7 @@ class HttpUtil {
 	 * Resolve redirections with a custom logic. The platform solution doesn't always work correctly, especially with
 	 * unusually long header lines, see https://github.com/nc-music/oc-music/issues/1209.
 	 * @param resource $context
-	 * @return array{url: string, status_code: int, status_msg: string, headers: array<string, string>}
+	 * @return array{url: string, status_code: int, status_msg: string, headers: array<string, string>, is_private_ip: bool}
 	 * 					The final URL and the headers from the URL, after any redirections. @see HttpUtil::parseHeaders
 	 */
 	public static function resolveRedirections(string $url, $context, bool $allowPrivateIp = false, int $maxRedirects = 20) : array {
@@ -85,12 +85,19 @@ class HttpUtil {
 
 	/**
 	 * @param resource $context
-	 * @return array{status_code: int, status_msg: string, headers: array<string, string>}
+	 * @return array{status_code: int, status_msg: string, headers: array<string, string>, is_private_ip: bool}
 	 * 					The headers from the URL, after any redirections. @see HttpUtil::parseHeaders
 	 */
 	private static function getUrlHeaders(string $url, $context, bool $allowPrivateIp) : array {
 		$result = null;
-		if (self::isUrlAllowed($url, $allowPrivateIp)) {
+		$parsedUrl = \parse_url($url);
+		$isPrivateIp = !self::isPublicHost($parsedUrl['host'] ?? '');
+
+		if (!self::isSchemeAllowed($parsedUrl['scheme'] ?? '')) {
+			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL scheme not allowed', 'headers' => ['Content-Length' => '0']];
+		} else if (!$allowPrivateIp && $isPrivateIp) {
+			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL resolves to a private IP address', 'headers' => ['Content-Length' => '0']];
+		} else {
 			$rawHeaders = @\get_headers($url, /* associative= */ false, $context);
 
 			if ($rawHeaders !== false) {
@@ -98,9 +105,9 @@ class HttpUtil {
 			} else {
 				$result = ['status_code' => Http::STATUS_SERVICE_UNAVAILABLE, 'status_msg' => 'Error connecting the URL', 'headers' => ['Content-Length' => '0']];
 			}
-		} else {
-			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL scheme or host not allowed', 'headers' => ['Content-Length' => '0']];
 		}
+		$result['is_private_ip'] = $isPrivateIp;
+
 		return $result;
 	}
 
@@ -166,15 +173,8 @@ class HttpUtil {
 		return $opts;
 	}
 
-	private static function isUrlAllowed(string $url, bool $allowPrivateIp) : bool {
-		$parsedUrl = \parse_url($url);
-		$scheme = $parsedUrl['scheme'] ?? '';
-		$validScheme = \in_array(\mb_strtolower($scheme), self::ALLOWED_SCHEMES);
-
-		return ($validScheme
-			&& !empty($parsedUrl['host'])
-			&& ($allowPrivateIp || self::isPublicHost($parsedUrl['host']))
-		);
+	private static function isSchemeAllowed(string $scheme) : bool {
+		return \in_array(\mb_strtolower($scheme), self::ALLOWED_SCHEMES);
 	}
 
 	private static function isPublicHost(string $host) : bool {
