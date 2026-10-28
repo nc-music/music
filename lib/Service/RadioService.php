@@ -260,6 +260,10 @@ class RadioService {
 			$url = null;
 		}
 
+		if ($isPrivateIp) {
+			$url = Util::localhostUrlToExternal($url);
+		}
+
 		return ['url' => $url, 'hls' => $isHls, 'is_private_ip' => $isPrivateIp];
 	}
 
@@ -310,4 +314,5 @@ class RadioService {
 		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
 		return $this->config->getSystemValue('music.allow_local_streams', $default);
 	}
+
 }
