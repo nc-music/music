@@ -171,7 +171,7 @@ class PodcastApiController extends Controller {
 				$resolved = $this->radioService->resolveStreamUrl($streamUrl);
 				if ($resolved['url'] === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
-				} else if ($this->config->getSystemValue('music.relay_podcast_stream', true) && !$resolved['is_private_ip']) {
+				} elseif ($this->config->getSystemValue('music.relay_podcast_stream', true) && !$resolved['is_private_ip']) {
 					return new RelayStreamResponse($resolved['url']);
 				} else {
 					return new RedirectResponse($resolved['url']);

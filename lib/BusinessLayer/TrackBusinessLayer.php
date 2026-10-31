@@ -344,7 +344,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
 			int $fileId, string $mimetype, string $userId, ?int $recordLabelId = null, ?int $length = null, ?int $bitrate = null,
-			?int $sampleRate = null, ?int $bpm = null, ?int $composerId = null, ?string $comment = null, ?string $mbid = null, 
+			?int $sampleRate = null, ?int $bpm = null, ?int $composerId = null, ?string $comment = null, ?string $mbid = null,
 			?string $mbidRelTrack = null, ?float $replaygainAlbumGain = null, ?float $replaygainAlbumPeak = null,
 			?float $replaygainTrackGain = null, ?float $replaygainTrackPeak = null, ?float $r128AlbumGain = null, ?float $r128TrackGain = null) : Track {
 		$track = new Track();

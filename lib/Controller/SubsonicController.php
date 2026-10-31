@@ -34,9 +34,9 @@ use OCA\Music\Db\PodcastEpisode;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\SubsonicAPI;
+use OCA\Music\Http\AudioTranscodeResponse;
 use OCA\Music\Http\FileResponse;
 use OCA\Music\Http\XmlResponse;
-use OCA\Music\Http\AudioTranscodeResponse;
 use OCA\Music\Middleware\SubsonicException;
 use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\AudioTranscodeService;
@@ -1118,26 +1118,26 @@ class SubsonicController extends ApiController {
 		?int $maxBitrate,
 	): Response {
 		if (
-			$format === AudioTranscodeResponse::FLAC &&
-			$maxBitrate !== null &&
-			$maxBitrate !== 0
+			$format === AudioTranscodeResponse::FLAC
+			&& $maxBitrate !== null
+			&& $maxBitrate !== 0
 		) {
 			return $this->subsonicErrorResponse(
 				0,
-				"Cannot limit bitrate when requesting a lossless format",
+				'Cannot limit bitrate when requesting a lossless format',
 			);
 		}
 		[$type, $entityId] = self::parseEntityId($id);
-		if ($type === "track") {
+		if ($type === 'track') {
 			$track = $this->trackBusinessLayer->find($entityId, $this->user());
 			$file = $this->getFilesystemNode($track->getFileId());
 
 			if ($file instanceof File) {
 				return $this->transcodeService->responseForTrack($track, $file, $format, $maxBitrate);
 			} else {
-				return $this->subsonicErrorResponse(70, "file not found");
+				return $this->subsonicErrorResponse(70, 'file not found');
 			}
-		} elseif ($type === "podcast_episode") {
+		} elseif ($type === 'podcast_episode') {
 			$episode = $this->podcastService->getEpisode(
 				$entityId,
 				$this->user(),
@@ -1145,7 +1145,7 @@ class SubsonicController extends ApiController {
 			if ($episode instanceof PodcastEpisode) {
 				return new RedirectResponse($episode->getStreamUrl());
 			} else {
-				return $this->subsonicErrorResponse(70, "episode not found");
+				return $this->subsonicErrorResponse(70, 'episode not found');
 			}
 		} else {
 			return $this->subsonicErrorResponse(

@@ -18,7 +18,6 @@ use OCA\Music\Db\MatchMode;
 use OCA\Music\Db\RecordLabel;
 use OCA\Music\Db\RecordLabelMapper;
 use OCA\Music\Db\SortBy;
-use OCA\Music\Db\TrackMapper;
 use OCA\Music\Utility\LocalCacheTrait;
 use OCA\Music\Utility\StringUtil;
 

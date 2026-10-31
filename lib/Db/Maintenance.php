@@ -240,7 +240,7 @@ class Maintenance {
 
 		return $scanFlagResult + \array_combine(
 			\array_column($handlers, 0),
-			\array_map(fn($cleanFunc) => self::timedExecute($cleanFunc), \array_column($handlers, 1))
+			\array_map(fn ($cleanFunc) => self::timedExecute($cleanFunc), \array_column($handlers, 1))
 		);
 	}
 

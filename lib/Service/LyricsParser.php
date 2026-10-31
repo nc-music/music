@@ -90,7 +90,7 @@ class LyricsParser {
 				// Add the line text to the result set on each found timestamp, adjusted by the offset if any.
 				// Note: Conflicting information about the shift direction of the offset tag can be found from the Internet and no authoritative
 				// specification exists for LRC. The rule "Positive means lyrics appear sooner, negative means later" can be found from the
-				// OpenSubsonic specification https://opensubsonic.netlify.app/docs/responses/structuredlyrics/ and the Wikipedia article 
+				// OpenSubsonic specification https://opensubsonic.netlify.app/docs/responses/structuredlyrics/ and the Wikipedia article
 				// https://en.wikipedia.org/wiki/LRC_(file_format). This is also what foobar2000 does and we follow the same.
 				foreach ($timestamps as $timestamp) {
 					$result[self::timestampToMs($timestamp) - $offset] = $text;

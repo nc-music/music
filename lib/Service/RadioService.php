@@ -169,29 +169,29 @@ class RadioService {
 		$result = null;
 
 		$reqHeaders = [
-			'Accept' => '*/*',
+			'Accept'       => '*/*',
 			'Icy-MetaData' => '1',
-			'Connection' => 'Close',
+			'Connection'   => 'Close',
 		];
 		$context = HttpUtil::createContext($timeout, $reqHeaders);
 		$resolved = HttpUtil::resolveRedirections($streamUrl, $context, $this->allowLocalStreams());
 
 		// If the response headers contain any "icy-" headers, then this is an ICY stream and we can try to read the metadata from it.
 		if ($resolved['status_code'] >= 200 && $resolved['status_code'] < 300
-			&& ArrayUtil::find($resolved['headers'], fn($v, $k) => StringUtil::startsWith($k, 'icy-')) !== null) {
+			&& ArrayUtil::find($resolved['headers'], fn ($v, $k) => StringUtil::startsWith($k, 'icy-')) !== null) {
 
 			$result = [
-				'type' => 'icy',
-				'title' => null, // fetched below
-				'station' => $resolved['headers']['icy-name'] ?? null,
+				'type'        => 'icy',
+				'title'       => null, // fetched below
+				'station'     => $resolved['headers']['icy-name'] ?? null,
 				'description' => $resolved['headers']['icy-description'] ?? null,
-				'homepage' => $resolved['headers']['icy-url'] ?? null,
-				'genre' => $resolved['headers']['icy-genre'] ?? null,
-				'bitrate' => $resolved['headers']['icy-br'] ?? null
+				'homepage'    => $resolved['headers']['icy-url'] ?? null,
+				'genre'       => $resolved['headers']['icy-genre'] ?? null,
+				'bitrate'     => $resolved['headers']['icy-br'] ?? null
 			];
 
 			$interval = (int)($resolved['headers']['icy-metaint'] ?? '0');
-			if ($interval > 0 && $interval <= 64*1024) {
+			if ($interval > 0 && $interval <= 64 * 1024) {
 				$fp = \fopen($resolved['url'], 'rb', false, $context);
 				if ($fp !== false) {
 					$attempts = 0;

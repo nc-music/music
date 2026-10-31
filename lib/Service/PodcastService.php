@@ -178,8 +178,8 @@ class PodcastService {
 
 		if ($channel !== null) {
 			$xmlTree = null;
-			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] =
-				HttpUtil::loadFromUrl($channel->getRssUrl(), $this->allowLocalSources());
+			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage]
+				= HttpUtil::loadFromUrl($channel->getRssUrl(), $this->allowLocalSources());
 			if ($content === false) {
 				$status = self::STATUS_INVALID_URL;
 				$message = "$statusCode $statusMessage";

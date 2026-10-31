@@ -299,7 +299,7 @@ class Scanner extends PublicEmitter {
 
 		// track number
 		$meta['track_number'] = self::normalizeOrdinal(
-			ExtractorGetID3::getFirstOfTags($fileInfo,['track_number', 'tracknumber', 'track'], $fieldsFromFileName['track_number'])
+			ExtractorGetID3::getFirstOfTags($fileInfo, ['track_number', 'tracknumber', 'track'], $fieldsFromFileName['track_number'])
 		);
 
 		// disc number

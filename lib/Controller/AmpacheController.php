@@ -1676,7 +1676,7 @@ class AmpacheController extends ApiController {
 					$resolved = $this->radioService->resolveStreamUrl($streamUrl);
 					if ($resolved['url'] === null) {
 						return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
-					} else if ($this->podcastRelayEnabled() && !$resolved['is_private_ip']) {
+					} elseif ($this->podcastRelayEnabled() && !$resolved['is_private_ip']) {
 						return new RelayStreamResponse($resolved['url']);
 					} else {
 						return new RedirectResponse($resolved['url']);
@@ -1692,14 +1692,14 @@ class AmpacheController extends ApiController {
 					if (!$resolved['hls']) {
 						// Relay a non-HLS stream
 						return new RelayStreamResponse($resolved['url']);
-					} else if ($this->config->getSystemValue('music.enable_radio_hls', true)) {
+					} elseif ($this->config->getSystemValue('music.enable_radio_hls', true)) {
 						// Relay a HLS stream.
 						// The manifest has to be rewritten so that the segments are also fetched through us, and that
 						// happens on a token-authenticated public route which is shared with the web UI.
 						$token = $this->streamTokenService->tokenForUrl($resolved['url']);
 						return new RedirectResponse($this->urlGenerator->linkToRouteAbsolute('music.radioApi.hlsManifest', [
-							'url'	=> \rawurlencode($resolved['url']),
-							'token'	=> \rawurlencode($token)
+							'url'   => \rawurlencode($resolved['url']),
+							'token' => \rawurlencode($token)
 						]));
 					} else {
 						// HLS stream while the HLS-relaying is disabled. Redirect to the resolved URL without relaying.

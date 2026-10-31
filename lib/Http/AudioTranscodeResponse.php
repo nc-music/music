@@ -20,19 +20,17 @@ use OCP\AppFramework\Http\Response;
 use OCP\Files\File;
 use RuntimeException;
 
-
 /**
  * A renderer for files with ffmpeg transcoding
  */
-final class AudioTranscodeResponse extends Response implements ICallbackResponse
-{
+final class AudioTranscodeResponse extends Response implements ICallbackResponse {
 	// Formats
-	public const MP3 = "mp3";
-	public const OGG = "ogg";
-	public const OPUS = "opus";
-	public const AAC = "aac";
-	public const M4A = "m4a";
-	public const FLAC = "flac";
+	public const MP3 = 'mp3';
+	public const OGG = 'ogg';
+	public const OPUS = 'opus';
+	public const AAC = 'aac';
+	public const M4A = 'm4a';
+	public const FLAC = 'flac';
 
 	private const ALLOWED_BITRATES = [
 		32,
@@ -48,33 +46,31 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		320,
 	];
 
-	private static function getValidFormat(?string $format): string
-	{
+	private static function getValidFormat(?string $format): string {
 		$defaultFormat = self::MP3;
 		if ($format === null) {
 			return $defaultFormat;
 		}
 		return match ($format) {
-			self::OGG => $format,
+			self::OGG  => $format,
 			self::OPUS => $format,
-			self::AAC => $format,
-			self::M4A => $format,
-			self::MP3 => $format,
+			self::AAC  => $format,
+			self::M4A  => $format,
+			self::MP3  => $format,
 			self::FLAC => $format,
-			default => $defaultFormat,
+			default    => $defaultFormat,
 		};
 	}
 
-	public static function getMimetype(string $format): ?string
-	{
+	public static function getMimetype(string $format): ?string {
 		return match ($format) {
-			self::OGG => "audio/ogg",
-			self::OPUS => "audio/ogg; codecs=opus",
-			self::AAC => "audio/aac",
-			self::M4A => "audio/mp4",
-			self::MP3 => "audio/mpeg",
-			self::FLAC => "audio/flac",
-			default => null,
+			self::OGG  => 'audio/ogg',
+			self::OPUS => 'audio/ogg; codecs=opus',
+			self::AAC  => 'audio/aac',
+			self::M4A  => 'audio/mp4',
+			self::MP3  => 'audio/mpeg',
+			self::FLAC => 'audio/flac',
+			default    => null,
 		};
 	}
 
@@ -90,21 +86,20 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		parent::__construct();
 		$this->outputFormat = self::getValidFormat($outputFormat);
 		if (
-			isset($_SERVER["HTTP_RANGE"]) &&
-			$_SERVER["HTTP_RANGE"] != "bytes=0-"
+			isset($_SERVER['HTTP_RANGE'])
+			&& $_SERVER['HTTP_RANGE'] != 'bytes=0-'
 		) {
 			$this->setStatus(Http::STATUS_REQUEST_RANGE_NOT_SATISFIABLE);
 		} else {
 			$contentType = self::getMimetype($this->outputFormat);
 			if ($contentType !== null) {
-				$this->addHeader("Content-Type", $contentType);
+				$this->addHeader('Content-Type', $contentType);
 			}
 			$this->setStatus(Http::STATUS_OK);
 		}
 	}
 
-	public function callback(IOutput $output): void
-	{
+	public function callback(IOutput $output): void {
 		$status = $this->getStatus();
 		if ($status != Http::STATUS_OK) {
 			return;
@@ -112,18 +107,18 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		$command = $this->buildCommand();
 
 		$descriptorSpec = [
-			0 => ["pipe", "r"],
-			1 => ["pipe", "w"],
-			2 => ["pipe", "w"],
+			0 => ['pipe', 'r'],
+			1 => ['pipe', 'w'],
+			2 => ['pipe', 'w'],
 		];
 
 		ignore_user_abort(true);
 		$process = proc_open($command, $descriptorSpec, $pipes, null, null, [
-			"bypass_shell" => true,
+			'bypass_shell' => true,
 		]);
 
 		if (!is_resource($process)) {
-			throw new RuntimeException("Unable to start ffmpeg process");
+			throw new RuntimeException('Unable to start ffmpeg process');
 		}
 
 		fclose($pipes[0]);
@@ -131,7 +126,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		stream_set_blocking($pipes[1], false);
 		stream_set_blocking($pipes[2], false);
 
-		$stderr = "";
+		$stderr = '';
 
 		try {
 			while (true) {
@@ -156,7 +151,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 
 				if ($selected === false) {
 					throw new RuntimeException(
-						"Error while reading FFmpeg output",
+						'Error while reading FFmpeg output',
 					);
 				}
 
@@ -171,7 +166,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 				foreach ($read as $stream) {
 					$data = fread($stream, 65536);
 
-					if ($data === false || $data === "") {
+					if ($data === false || $data === '') {
 						continue;
 					}
 
@@ -222,17 +217,16 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		}
 	}
 
-	private function getBitrateCommandArguments(): array
-	{
+	private function getBitrateCommandArguments(): array {
 		if (
-			$this->bitrate === null ||
-			$this->bitrate === 0 ||
-			$this->outputFormat === self::FLAC
+			$this->bitrate === null
+			|| $this->bitrate === 0
+			|| $this->outputFormat === self::FLAC
 		) {
 			return [];
 		}
 
-		$bitrate = (int) $this->bitrate;
+		$bitrate = (int)$this->bitrate;
 		$closest = self::ALLOWED_BITRATES[0];
 
 		foreach (self::ALLOWED_BITRATES as $allowedBitrate) {
@@ -241,23 +235,22 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			}
 		}
 
-		return ["-b:a", $closest . "k"];
+		return ['-b:a', $closest . 'k'];
 	}
 
-	private function buildCommand(): array
-	{
+	private function buildCommand(): array {
 		[$codec, $container, $extra] = match ($this->outputFormat) {
-			self::OGG => ["libvorbis", "ogg", []],
-			self::OPUS => ["libopus", "ogg", []],
-			self::AAC => ["aac", "adts", []],
-			self::M4A => [
-				"aac",
-				"mp4",
-				["-movflags", "frag_keyframe+empty_moov+default_base_moof"],
+			self::OGG  => ['libvorbis', 'ogg', []],
+			self::OPUS => ['libopus', 'ogg', []],
+			self::AAC  => ['aac', 'adts', []],
+			self::M4A  => [
+				'aac',
+				'mp4',
+				['-movflags', 'frag_keyframe+empty_moov+default_base_moof'],
 			],
-			self::FLAC => ["flac", "flac", ["-compression_level", "5"]],
-			self::MP3 => ["libmp3lame", "mp3", []],
-			default => throw new \LogicException(
+			self::FLAC => ['flac', 'flac', ['-compression_level', '5']],
+			self::MP3  => ['libmp3lame', 'mp3', []],
+			default    => throw new \LogicException(
 				"Unsupported output format: {$this->outputFormat}",
 			),
 		};
@@ -268,24 +261,24 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 
 		return [
 			$this->ffmpegPath,
-			"-nostdin",
-			"-hide_banner",
-			"-loglevel",
-			"error",
-			"-i",
+			'-nostdin',
+			'-hide_banner',
+			'-loglevel',
+			'error',
+			'-i',
 			$filePath,
-			"-vn",
-			"-map",
-			"0:a:0",
-			"-map_metadata",
-			"-1",
-			"-c:a",
+			'-vn',
+			'-map',
+			'0:a:0',
+			'-map_metadata',
+			'-1',
+			'-c:a',
 			$codec,
 			...$this->getBitrateCommandArguments(),
 			...$extra,
-			"-f",
+			'-f',
 			$container,
-			"pipe:1",
+			'pipe:1',
 		];
 	}
 }

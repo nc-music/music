@@ -114,7 +114,7 @@ class LibrarySettings {
 			$path = $this->getPath($userId);
 			try {
 				return FilesUtil::getFolderFromRelativePath($this->rootFolder->getUserFolder($userId), $path);
-			} catch (\OCP\Files\NotFoundException | \OCP\Files\NotPermittedException | \InvalidArgumentException $e) {
+			} catch (\OCP\Files\NotFoundException|\OCP\Files\NotPermittedException|\InvalidArgumentException $e) {
 				// Without this, the failure would surface as an HTTP 500 on every endpoint resolving the
 				// filesystem, giving the user no hint that it's their own path setting which is at fault.
 				$this->logger->warning("Music folder '$path' of user $userId could not be resolved: " . $e->getMessage());

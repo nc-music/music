@@ -188,10 +188,10 @@ class TrackMapper extends BaseMapper {
 	 * @return int[]
 	 */
 	public function findFileIdsScannedBeforeVersion(string $userId, int $version, ?array $parentIds = null) : array {
-		$sql = "SELECT `file_id`
+		$sql = 'SELECT `file_id`
 				FROM `*PREFIX*music_tracks`
 				WHERE `user_id` = ?
-				AND (`scan_version` IS NULL OR `scan_version` < ?)";
+				AND (`scan_version` IS NULL OR `scan_version` < ?)';
 		$params = [$userId, $version];
 
 		if (!empty($parentIds)) {
