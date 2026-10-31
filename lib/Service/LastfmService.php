@@ -252,7 +252,7 @@ class LastfmService {
 
 			// Sometimes passing an MBID to Last.fm makes it unable to find the artist/album/track even if it is present in the library.
 			// In such cases, we try again without the MBID.
-			if (isset($args['mbid']) && ($statusCode === 404 || ($info['error'] === 6))) {
+			if (isset($args['mbid']) && ($statusCode === 404 || (($info['error'] ?? 0) === 6))) {
 				$this->logger->info("Last.fm didn't find the item with MBID {$args['mbid']}. Retrying without MBID.");
 				unset($args['mbid']);
 				return $this->getInfoFromLastFm($args);
