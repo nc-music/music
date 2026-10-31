@@ -16,7 +16,7 @@
 
 ### Changed
 - Track details pane shows the replay gain data under the 'Technical' tab instead of the 'General' tab
-- Update the GetID3 library to the development version 1.9.27-202609271935
+- Update the GetID3 library to the release version 1.9.28-202610301738
 - Radio and podcast streams hosted on the same server with Nextcloud can again be played (blocked since v3.1.1) but this has to specifically
   enabled with the config key `music.allow_local_remote_servers`. These are never relayed via the Nextcloud server even when the relaying is
   enabled in the config, and the client must be able to access the original stream source directly.
