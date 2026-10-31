@@ -260,7 +260,7 @@ class RadioService {
 			$url = null;
 		}
 
-		if ($isPrivateIp) {
+		if ($url !== null && $isPrivateIp) {
 			$url = Util::localhostUrlToExternal($url);
 		}
 
