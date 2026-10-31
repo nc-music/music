@@ -39,6 +39,7 @@
   [#165](https://github.com/nc-music/music/issues/165)
 - A few benign javascript errors emitting errors to the browser console
   [#181](https://github.com/nc-music/music/issues/181)
+- Search not working in the playlist view when the list contains any broken track references
 
 ## 3.2.1 - 2026-08-31
 
