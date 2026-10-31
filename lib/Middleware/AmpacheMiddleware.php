@@ -207,7 +207,7 @@ class AmpacheMiddleware extends Middleware {
 		// The Authorization header cannot be obtained with $this->request->getHeader(). Hence, we
 		// use the native PHP API for this. Apparently, the getallheaders() function is not available
 		// on non-Apache servers (e.g. nginx) prior to PHP 7.3.
-		$authHeader = getallheaders()['Authorization'] ?? '';
+		$authHeader = \getallheaders()['Authorization'] ?? '';
 		$prefix = 'Bearer ';
 		if (StringUtil::startsWith($authHeader, $prefix)) {
 			return \substr($authHeader, \strlen($prefix));

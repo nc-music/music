@@ -112,19 +112,19 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			2 => ['pipe', 'w'],
 		];
 
-		ignore_user_abort(true);
-		$process = proc_open($command, $descriptorSpec, $pipes, null, null, [
+		\ignore_user_abort(true);
+		$process = \proc_open($command, $descriptorSpec, $pipes, null, null, [
 			'bypass_shell' => true,
 		]);
 
-		if (!is_resource($process)) {
+		if (!\is_resource($process)) {
 			throw new RuntimeException('Unable to start ffmpeg process');
 		}
 
-		fclose($pipes[0]);
+		\fclose($pipes[0]);
 
-		stream_set_blocking($pipes[1], false);
-		stream_set_blocking($pipes[2], false);
+		\stream_set_blocking($pipes[1], false);
+		\stream_set_blocking($pipes[2], false);
 
 		$stderr = '';
 
@@ -132,11 +132,11 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 			while (true) {
 				$read = [];
 
-				if (!feof($pipes[1])) {
+				if (!\feof($pipes[1])) {
 					$read[] = $pipes[1];
 				}
 
-				if (!feof($pipes[2])) {
+				if (!\feof($pipes[2])) {
 					$read[] = $pipes[2];
 				}
 
@@ -147,7 +147,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 				$write = null;
 				$except = null;
 
-				$selected = stream_select($read, $write, $except, 1, 0);
+				$selected = \stream_select($read, $write, $except, 1, 0);
 
 				if ($selected === false) {
 					throw new RuntimeException(
@@ -156,15 +156,15 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 				}
 
 				if ($selected === 0) {
-					if (connection_aborted()) {
-						proc_terminate($process);
+					if (\connection_aborted()) {
+						\proc_terminate($process);
 						break;
 					}
 					continue;
 				}
 
 				foreach ($read as $stream) {
-					$data = fread($stream, 65536);
+					$data = \fread($stream, 65536);
 
 					if ($data === false || $data === '') {
 						continue;
@@ -173,47 +173,47 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 					if ($stream === $pipes[1]) {
 						echo $data;
 
-						if (ob_get_level() > 0) {
-							ob_flush();
+						if (\ob_get_level() > 0) {
+							\ob_flush();
 						}
 
-						flush();
+						\flush();
 					} else {
 						$stderr .= $data;
 
-						if (strlen($stderr) > 65536) {
-							$stderr = substr($stderr, -65536);
+						if (\strlen($stderr) > 65536) {
+							$stderr = \substr($stderr, -65536);
 						}
 					}
 				}
 
-				if (connection_aborted()) {
-					proc_terminate($process);
+				if (\connection_aborted()) {
+					\proc_terminate($process);
 					break;
 				}
 			}
 		} finally {
-			if (is_resource($pipes[1])) {
-				fclose($pipes[1]);
+			if (\is_resource($pipes[1])) {
+				\fclose($pipes[1]);
 			}
 
-			if (is_resource($pipes[2])) {
-				$remainingStderr = stream_get_contents($pipes[2]);
+			if (\is_resource($pipes[2])) {
+				$remainingStderr = \stream_get_contents($pipes[2]);
 
-				if (is_string($remainingStderr)) {
+				if (\is_string($remainingStderr)) {
 					$stderr .= $remainingStderr;
 				}
-				fclose($pipes[2]);
+				\fclose($pipes[2]);
 			}
 
-			$exitCode = proc_close($process);
+			$exitCode = \proc_close($process);
 
-			if ($exitCode !== 0 && !connection_aborted()) {
+			if ($exitCode !== 0 && !\connection_aborted()) {
 				$this->logger->error(
 					"FFmpeg audio transcoding failed with code $exitCode",
 				);
 			}
-			ignore_user_abort(false);
+			\ignore_user_abort(false);
 		}
 	}
 
@@ -230,7 +230,7 @@ final class AudioTranscodeResponse extends Response implements ICallbackResponse
 		$closest = self::ALLOWED_BITRATES[0];
 
 		foreach (self::ALLOWED_BITRATES as $allowedBitrate) {
-			if (abs($bitrate - $allowedBitrate) < abs($bitrate - $closest)) {
+			if (\abs($bitrate - $allowedBitrate) < \abs($bitrate - $closest)) {
 				$closest = $allowedBitrate;
 			}
 		}

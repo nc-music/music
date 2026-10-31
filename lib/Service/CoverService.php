@@ -348,15 +348,15 @@ class CoverService {
 					$image['mimetype'] = $meta['mime']; // override the supplied mime with the auto-detected one
 					switch ($image['mimetype']) {
 						case 'image/jpeg':
-							imagejpeg($scaledImg, null, 75);
+							\imagejpeg($scaledImg, null, 75);
 							$image['content'] = \ob_get_contents();
 							break;
 						case 'image/png':
-							imagepng($scaledImg, null, 7, PNG_ALL_FILTERS);
+							\imagepng($scaledImg, null, 7, PNG_ALL_FILTERS);
 							$image['content'] = \ob_get_contents();
 							break;
 						case 'image/gif':
-							imagegif($scaledImg, null);
+							\imagegif($scaledImg, null);
 							$image['content'] = \ob_get_contents();
 							break;
 						default:
@@ -383,7 +383,7 @@ class CoverService {
 				$srcWidth = $meta[0];
 				$srcHeight = $meta[1];
 
-				$piece = imagecreatefromstring($pieceData['content']);
+				$piece = \imagecreatefromstring($pieceData['content']);
 
 				if ($piece === false) {
 					$this->logger->warning('Failed to open cover image to create a mosaic');
@@ -409,7 +409,7 @@ class CoverService {
 		$image = ['mimetype' => 'image/png'];
 		\ob_start();
 		\ob_clean();
-		imagepng($mosaicImg, null, 7, PNG_ALL_FILTERS);
+		\imagepng($mosaicImg, null, 7, PNG_ALL_FILTERS);
 		$image['content'] = \ob_get_contents();
 		\ob_end_clean();
 		\imagedestroy($mosaicImg);

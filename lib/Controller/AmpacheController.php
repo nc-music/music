@@ -1790,7 +1790,7 @@ class AmpacheController extends ApiController {
 	private function userId() : string {
 		// It would be an internal server logic error if the middleware would let
 		// an action needing the user session to be called without a valid session.
-		assert($this->session !== null);
+		\assert($this->session !== null);
 		return $this->session->getUserId();
 	}
 

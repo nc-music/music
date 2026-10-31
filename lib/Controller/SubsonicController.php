@@ -1536,7 +1536,7 @@ class SubsonicController extends ApiController {
 		];
 
 		/** @var array{'track': Track[], 'podcast_episode': PodcastEpisode[]} $apiEntriesLut */
-		$apiEntriesLut = \array_merge([], ...array_map(
+		$apiEntriesLut = \array_merge([], ...\array_map(
 			function ($handlers) use ($parsedEntries) {
 				[$type, $lookupFn, $toApiFn] = $handlers;
 				$typeEntryIds = \array_map(

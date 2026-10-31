@@ -17,6 +17,11 @@ class NcMusicConfig extends Nextcloud\CodingStandard\Config {
 				'=>' => 'align_single_space_minimal',
 			]
 		];
+		$rules['native_function_invocation'] = [
+			'include' => ['@all'],
+			'scope' => 'all',
+			'strict' => true
+		];
 		return $rules;
 	}
 }
