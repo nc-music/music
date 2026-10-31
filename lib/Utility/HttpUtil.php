@@ -26,9 +26,9 @@ class HttpUtil {
 	 * Use HTTP GET to load the requested URL
 	 * @return array{content: string|false, status_code: int, message: string, content_type: ?string}
 	 */
-	public static function loadFromUrl(string $url, ?int $maxLength = null, ?int $timeout_s = null) : array {
+	public static function loadFromUrl(string $url, bool $allowPrivateIp = false, ?int $maxLength = null, ?int $timeout_s = null) : array {
 		$context = self::createContext($timeout_s);
-		$resolved = self::resolveRedirections($url, $context); // handles also checking for allowed URL schemes and IP ranges
+		$resolved = self::resolveRedirections($url, $context, $allowPrivateIp); // handles also checking for allowed URL schemes and IP ranges
 
 		$status_code = $resolved['status_code'];
 		if ($status_code >= 200 && $status_code < 300) {

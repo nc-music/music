@@ -68,7 +68,7 @@ class RadioService {
 		$maxLength = 32 * 1024;
 		$timeout_s = 8;
 		['content' => $content, 'status_code' => $status_code, 'message' => $message]
-			= HttpUtil::loadFromUrl($metaUrl, $maxLength, $timeout_s);
+			= HttpUtil::loadFromUrl($metaUrl, $this->allowLocalStreams(), $maxLength, $timeout_s);
 
 		if ($status_code == 200) {
 			return $parseResult($content);
@@ -269,7 +269,7 @@ class RadioService {
 
 	public function getHlsManifest(string $url) : array {
 		$maxLength = 8 * 1024;
-		$result = HttpUtil::loadFromUrl($url, $maxLength);
+		$result = HttpUtil::loadFromUrl($url, false, $maxLength);
 
 		if ($result['status_code'] == 200) {
 			// read the manifest line-by-line, and create a modified copy where each fragment URL is relayed through this server
@@ -312,7 +312,7 @@ class RadioService {
 
 	private function allowLocalStreams() : bool {
 		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
-		return $this->config->getSystemValue('music.allow_local_streams', $default);
+		return $this->config->getSystemValue('music.allow_local_remote_servers', $default);
 	}
 
 }
