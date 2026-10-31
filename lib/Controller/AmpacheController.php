@@ -1672,10 +1672,15 @@ class AmpacheController extends ApiController {
 				$streamUrl = $episode->getStreamUrl();
 				if ($streamUrl === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-				} elseif ($this->podcastRelayEnabled()) {
-					return new RelayStreamResponse($streamUrl);
 				} else {
-					return new RedirectResponse($streamUrl);
+					$resolved = $this->radioService->resolveStreamUrl($streamUrl);
+					if ($resolved['url'] === null) {
+						return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
+					} else if ($this->podcastRelayEnabled() && !$resolved['is_private_ip']) {
+						return new RelayStreamResponse($resolved['url']);
+					} else {
+						return new RedirectResponse($resolved['url']);
+					}
 				}
 			} elseif ($type === 'live_stream') {
 				$station = $this->radioStationBusinessLayer->find($id, $userId);
@@ -1683,7 +1688,7 @@ class AmpacheController extends ApiController {
 
 				if ($resolved['url'] === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "Failed to resolve the stream URL of the live stream $id");
-				} elseif ($this->radioRelayEnabled()) {
+				} elseif ($this->radioRelayEnabled() && !$resolved['is_private_ip']) {
 					if (!$resolved['hls']) {
 						// Relay a non-HLS stream
 						return new RelayStreamResponse($resolved['url']);

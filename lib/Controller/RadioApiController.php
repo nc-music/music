@@ -248,26 +248,6 @@ class RadioApiController extends Controller {
 	}
 
 	/**
-	 * get audio stream for a radio station
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	public function stationStream(int $id) : Response {
-		try {
-			$station = $this->businessLayer->find($id, $this->user());
-			$streamUrl = $station->getStreamUrl();
-			$resolved = $this->service->resolveStreamUrl($streamUrl);
-			if ($this->streamRelayEnabled()) {
-				return new RelayStreamResponse($resolved['url']);
-			} else {
-				return new RedirectResponse($resolved['url']);
-			}
-		} catch (BusinessLayerException $ex) {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
-		}
-	}
-
-	/**
 	 * get the actual stream URL from the given public URL
 	 *
 	 * Available without login since no user data is handled and this may be used on link-shared folder.
@@ -291,7 +271,9 @@ class RadioApiController extends Controller {
 		$relayEnabled = $this->streamRelayEnabled();
 		if ($resolved['url'] === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'failed to read from the stream URL');
-		} else {
+		} else if (!$resolved['is_private_ip']) {
+			// For security reasons, we don't relay streams that resolve to private IP addresses. Instead, just return the resolved URL.
+			// The client may still be able to stream from the URL directly if it is accessible from the client.
 			$token = $this->tokenService->tokenForUrl($resolved['url']);
 			if ($resolved['hls']) {
 				$resolved['url'] = $this->urlGenerator->linkToRoute(

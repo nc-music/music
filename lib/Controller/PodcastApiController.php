@@ -17,6 +17,7 @@ use OCA\Music\AppFramework\Utility\FileExistsException;
 use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Service\PodcastService;
+use OCA\Music\Service\RadioService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -38,6 +39,7 @@ class PodcastApiController extends Controller {
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $rootFolder,
 		private PodcastService $podcastService,
+		private RadioService $radioService,
 		private ?string $userId,
 		private Logger $logger,
 	) {
@@ -165,10 +167,15 @@ class PodcastApiController extends Controller {
 			$streamUrl = $episode->getStreamUrl();
 			if ($streamUrl === null) {
 				return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-			} elseif ($this->config->getSystemValue('music.relay_podcast_stream', true)) {
-				return new RelayStreamResponse($streamUrl);
 			} else {
-				return new RedirectResponse($streamUrl);
+				$resolved = $this->radioService->resolveStreamUrl($streamUrl);
+				if ($resolved['url'] === null) {
+					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
+				} else if ($this->config->getSystemValue('music.relay_podcast_stream', true) && !$resolved['is_private_ip']) {
+					return new RelayStreamResponse($resolved['url']);
+				} else {
+					return new RedirectResponse($resolved['url']);
+				}
 			}
 		} else {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND);

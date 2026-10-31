@@ -110,7 +110,6 @@ return ['routes' => [
 	['name' => 'radioApi#update',			'url' => '/api/radio/{id}',				'verb' => 'PUT'],
 	['name' => 'radioApi#getChannelInfo',	'url' => '/api/radio/{id}/info',		'verb' => 'GET'],
 	['name' => 'radioApi#stationStreamUrl',	'url' => '/api/radio/{id}/streamurl',	'verb' => 'GET'],
-	['name' => 'radioApi#stationStream',	'url' => '/api/radio/{id}/stream',		'verb' => 'GET'],
 
 	// Podcast API
 	['name' => 'podcastApi#getAll',			'url' => '/api/podcasts',						'verb' => 'GET'],

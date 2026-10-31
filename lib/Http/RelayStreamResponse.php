@@ -36,7 +36,7 @@ class RelayStreamResponse extends Response implements ICallbackResponse {
 		}
 
 		$this->context = HttpUtil::createContext(null, $reqHeaders);
-		$resolved = HttpUtil::resolveRedirections($url, $this->context);
+		$resolved = HttpUtil::resolveRedirections($url, $this->context, false); // URLs resolving to private IPs are denied for security reasons
 
 		$this->url = $resolved['url'];
 		$this->setStatus($resolved['status_code']);

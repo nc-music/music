@@ -24,6 +24,7 @@ use OCA\Music\Utility\FilesUtil;
 use OCA\Music\Utility\HttpUtil;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\IConfig;
 
 class PodcastService {
 
@@ -37,6 +38,7 @@ class PodcastService {
 		private PodcastChannelBusinessLayer $channelBusinessLayer,
 		private PodcastEpisodeBusinessLayer $episodeBusinessLayer,
 		private Logger $logger,
+		private IConfig $config,
 	) {
 	}
 
@@ -115,7 +117,7 @@ class PodcastService {
 	 * @return array{status: int, channel: ?PodcastChannel, message: string}
 	 */
 	public function subscribe(string $url, string $userId) : array {
-		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($url);
+		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($url, $this->allowLocalSources());
 		if ($content === false) {
 			return ['status' => self::STATUS_INVALID_URL, 'channel' => null, 'message' => "Error loading the URL: $statusCode $statusMessage"];
 		}
@@ -176,7 +178,8 @@ class PodcastService {
 
 		if ($channel !== null) {
 			$xmlTree = null;
-			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($channel->getRssUrl());
+			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] =
+				HttpUtil::loadFromUrl($channel->getRssUrl(), $this->allowLocalSources());
 			if ($content === false) {
 				$status = self::STATUS_INVALID_URL;
 				$message = "$statusCode $statusMessage";
@@ -401,5 +404,10 @@ class PodcastService {
 			throw new \OCP\Files\NotFoundException();
 		}
 		return $node;
+	}
+
+	private function allowLocalSources() : bool {
+		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
+		return $this->config->getSystemValue('music.allow_local_remote_servers', $default);
 	}
 }
