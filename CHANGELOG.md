@@ -4,7 +4,7 @@
 - `TrackPlayedEvent` dispatched whenever a track play is recorded, allowing other apps to react to plays
   [#85](https://github.com/nc-music/music/issues/85) @potagerGit
   * The event tells which client reported the play: `nc-music` for the web UI, the client name for Subsonic and Ampache
-- Ampache API: Support the optional argument `client` of the method `record_play`
+- Ampache API: Support the optional argument `client` of the actions `record_play` and `scrobble`
 - Subsonic API: Transcoding support in the `stream` endpoint
   [#163](https://github.com/nc-music/music/pull/163) @ipoupaille
   * Enabled by default if `ffmpeg` is available in the path

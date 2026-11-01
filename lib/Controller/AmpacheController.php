@@ -1578,7 +1578,7 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function scrobble(string $song, string $artist, string $album, ?int $date) : array {
+	protected function scrobble(string $song, string $artist, string $album, ?int $date, ?string $client = null) : array {
 		// arguments songmbid, artistmbid, and albummbid not supported for now
 		$matching = $this->trackBusinessLayer->findAllByNameArtistOrAlbum($song, $artist, $album, $this->userId());
 		if (\count($matching) === 0) {
@@ -1586,7 +1586,7 @@ class AmpacheController extends ApiController {
 		} elseif (\count($matching) > 1) {
 			throw new AmpacheException('Multiple songs matched the criteria, nothing recorded', 400);
 		}
-		return $this->record_play($matching[0]->getId(), $date);
+		return $this->record_play($matching[0]->getId(), $date, $client);
 	}
 
 	#[AmpacheAPI]
