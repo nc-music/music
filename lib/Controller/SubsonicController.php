@@ -732,9 +732,9 @@ class SubsonicController extends ApiController {
 					}
 
 					if ($submission) {
-						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $timeOfPlay, $c);
+						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $c, $timeOfPlay);
 					} else {
-						$this->scrobbler->setNowPlaying($tracksById[$trackId], $timeOfPlay, $c);
+						$this->scrobbler->setNowPlaying($tracksById[$trackId], $c, $timeOfPlay);
 					}
 				}
 			}

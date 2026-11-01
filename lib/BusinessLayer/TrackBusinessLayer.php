@@ -230,7 +230,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	 * Update "last played" timestamp and increment the total play count of the track.
 	 * On success, dispatch TrackPlayedEvent to let other apps know about the play.
 	 */
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
+	public function recordTrackPlayed(Track $track, string $client,?\DateTime $timeOfPlay = null) : void {
 		$timeOfPlay = $timeOfPlay ?? new \DateTime();
 		$userId = $track->getUserId();
 
@@ -269,14 +269,14 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			}
 		}
 
-		$this->setNowPlaying($track, $timeOfPlay, $client);
+		$this->setNowPlaying($track, $client, $timeOfPlay);
 	}
 
 	/**
 	 * Save the track to config as the "now playing" track with the provided timestamp
-	 * @param ?string $client Name of the application reporting the play, when it is known
+	 * @param string $client Name of the application reporting the play
 	 */
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
+	public function setNowPlaying(Track $track, string $client, ?\DateTime $timeOfPlay = null) : void {
 		$data = [
 			'trackId'    => $track->getId(),
 			'timeOfPlay' => ($timeOfPlay ?? new \DateTime())->getTimestamp(),

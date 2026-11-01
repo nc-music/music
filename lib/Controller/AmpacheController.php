@@ -1488,7 +1488,7 @@ class AmpacheController extends ApiController {
 		$timeOfPlay = ($date === null) ? null : new \DateTime('@' . $date);
 		$track = $this->trackBusinessLayer->find($id, $this->userId());
 		// The client may identify itself with the optional argument `client`
-		$this->scrobbler->recordTrackPlayed($track, $timeOfPlay, $client ?? 'ampache-api');
+		$this->scrobbler->recordTrackPlayed($track, $client ?? 'ampache-api', $timeOfPlay);
 		return ['success' => 'play recorded'];
 	}
 
@@ -1526,7 +1526,7 @@ class AmpacheController extends ApiController {
 
 			// This reaches the external scrobbling services and the shared "now playing" state alike, as the
 			// TrackBusinessLayer is registered as one of the scrobblers.
-			$this->scrobbler->setNowPlaying($track, $timeOfPlay, $client);
+			$this->scrobbler->setNowPlaying($track, $client ?? 'ampache-api', $timeOfPlay);
 		} else {
 			$this->trackBusinessLayer->clearNowPlaying($this->userId());
 		}
