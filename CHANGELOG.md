@@ -1,10 +1,6 @@
-## [Unreleased]
+## 3.3.0 - 2026-11-01
 
 ### Added
-- `TrackPlayedEvent` dispatched whenever a track play is recorded, allowing other apps to react to plays
-  [#85](https://github.com/nc-music/music/issues/85) @potagerGit
-  * The event tells which client reported the play: `nc-music` for the web UI, the client name for Subsonic and Ampache
-- Ampache API: Support the optional argument `client` of the actions `record_play` and `scrobble`
 - Subsonic API: Transcoding support in the `stream` endpoint
   [#163](https://github.com/nc-music/music/pull/163) @ipoupaille
   * Enabled by default if `ffmpeg` is available in the path
@@ -13,6 +9,9 @@
 - Ampache API: Transcoding support on actions `stream` and `download` and a pile of small gap-fillers
   [#176](https://github.com/nc-music/music/pull/176) @lachlan-00
   * The gap-fillers include also the new actions `song_tags`, `get_lyrics`, and `url_to_song`
+- Ampache API: Support the optional argument `client` of the actions `record_play` and `scrobble`
+- `TrackPlayedEvent` dispatched whenever a track play is recorded, allowing other apps to react to plays
+  [#85](https://github.com/nc-music/music/issues/85) @potagerGit
 
 ### Changed
 - Track details pane shows the replay gain data under the 'Technical' tab instead of the 'General' tab
@@ -21,7 +20,7 @@
   enabled with the config key `music.allow_local_remote_servers`. These are never relayed via the Nextcloud server even when the relaying is
   enabled in the config, and the client must be able to access the original stream source directly.
   [#166](https://github.com/nc-music/music/issues/166)
-- Podcast feed hosted on the same server with Nextcloud can again be subscribed (blocked since v3.1.1) when enabled with `music.allow_local_remote_servers`
+- Podcast feeds hosted on the same server with Nextcloud can again be subscribed (blocked since v3.1.1) when enabled with `music.allow_local_remote_servers`
   [#177](https://github.com/nc-music/music/issues/177)
 
 ### Fixed
