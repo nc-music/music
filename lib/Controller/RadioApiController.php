@@ -268,7 +268,6 @@ class RadioApiController extends Controller {
 
 	private function doResolveStreamUrl(string $url) : JSONResponse {
 		$resolved = $this->service->resolveStreamUrl($url);
-		$relayEnabled = $this->streamRelayEnabled();
 		if ($resolved['url'] === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'failed to read from the stream URL');
 		} elseif (!$resolved['is_private_ip']) {
@@ -280,7 +279,7 @@ class RadioApiController extends Controller {
 					'music.radioApi.hlsManifest',
 					['url' => \rawurlencode($resolved['url']), 'token' => \rawurlencode($token)]
 				);
-			} elseif ($relayEnabled) {
+			} elseif ($this->streamRelayEnabled()) {
 				$resolved['url'] = $this->urlGenerator->linkToRoute(
 					'music.radioApi.streamFromUrl',
 					['url' => \rawurlencode($resolved['url']), 'token' => \rawurlencode($token)]
