@@ -20,6 +20,8 @@ use OCP\IURLGenerator;
 /**
  * @method ?string getName()
  * @method void setName(?string $name)
+ * @method ?string getSortName()
+ * @method void setSortName(?string $sortName)
  * @method ?int getCoverFileId()
  * @method void setCoverFileId(?int $coverFileId)
  * @method ?string getMbid()
@@ -37,6 +39,7 @@ use OCP\IURLGenerator;
  */
 class Artist extends Entity {
 	public ?string $name = null;
+	public ?string $sortName = null;
 	public ?int $coverFileId = null;
 	public ?string $mbid = null;
 	public string $hash = '';

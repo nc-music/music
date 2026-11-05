@@ -166,11 +166,13 @@ class Scanner extends PublicEmitter {
 		$time2 = \hrtime(true);
 
 		// add/update artist and get artist entity
-		$artist = $this->artistBusinessLayer->addOrUpdateArtist($meta['artist'], $meta['mb_artist_id'], $userId);
+		$artist = $this->artistBusinessLayer->addOrUpdateArtist(
+			$meta['artist'], $meta['mb_artist_id'], $userId, $meta['artist_sort']);
 		$artistId = $artist->getId();
 
 		// add/update albumArtist and get artist entity
-		$albumArtist = $this->artistBusinessLayer->addOrUpdateArtist($meta['album_artist'], $meta['mb_release_artist_id'], $userId);
+		$albumArtist = $this->artistBusinessLayer->addOrUpdateArtist(
+			$meta['album_artist'], $meta['mb_release_artist_id'], $userId, $meta['album_artist_sort']);
 		$albumArtistId = $albumArtist->getId();
 
 		// add/update album and get album entity
@@ -246,6 +248,14 @@ class Scanner extends PublicEmitter {
 		// Track artist and album artist
 		$meta['artist'] = ExtractorGetID3::getTag($fileInfo, 'artist');
 		$meta['album_artist'] = ExtractorGetID3::getFirstOfTags($fileInfo, ['band', 'albumartist', 'album artist', 'album_artist']);
+
+		// ID3 TSOP/TSO2 are exported by getID3 as *_sort_order; TXXX and Vorbis tags may use other names.
+		$artistSort = ExtractorGetID3::getFirstOfTags($fileInfo,
+			['performer_sort_order', 'artistsort', 'artist_sort', 'artist sort'], null, true);
+		$albumArtistSort = ExtractorGetID3::getFirstOfTags($fileInfo,
+			['album_artist_sort_order', 'albumartistsort', 'albumartist_sort', 'album artist sort'], null, true);
+		$meta['artist_sort'] = \is_string($artistSort) ? $artistSort : null;
+		$meta['album_artist_sort'] = \is_string($albumArtistSort) ? $albumArtistSort : null;
 
 		// use artist and albumArtist as fallbacks for each other (album tagged as compilation is a special case)
 		if (!StringUtil::isNonEmptyString($meta['album_artist'])) {

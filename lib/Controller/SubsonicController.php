@@ -1348,7 +1348,7 @@ class SubsonicController extends ApiController {
 
 		$indexes = [];
 		foreach ($artists as $artist) {
-			$sortName = $this->nameWithoutArticle($artist->getName());
+			$sortName = $artist->getSortName() ?: $this->nameWithoutArticle($artist->getName());
 			$indexes[self::getIndexingChar($sortName)][] = ['sortName' => $sortName, 'artist' => $this->artistToApi($artist)];
 		}
 		\ksort($indexes, SORT_LOCALE_STRING);
@@ -1432,7 +1432,7 @@ class SubsonicController extends ApiController {
 			'starred'       => Util::formatZuluDateTime($artist->getStarred()),
 			'userRating'    => $artist->getRating() ?: null,
 			'averageRating' => $artist->getRating() ?: null,
-			'sortName'      => $this->nameWithoutArticle($artist->getName()) ?? '', // OpenSubsonic
+			'sortName'      => $artist->getSortName() ?: ($this->nameWithoutArticle($artist->getName()) ?? ''), // OpenSubsonic
 			'mediaType'     => 'artist', // OpenSubsonic, only specified for the "old" API but we don't separate the APIs here
 			'roles'         => $artist->getRoles(), // OpenSubsonic
 			'musicBrainzId' => $artist->getMbid(), // OpenSubsonic
