@@ -75,4 +75,28 @@ class ArtistBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, null, $this->userId);
 		$this->assertEquals($artist, $result);
 	}
+
+	public function testAddOrUpdateArtistPrefersExactMbidMatchOverNull() {
+		$name = 'Various Artists';
+		$targetMbid = '89ad4ac3-39f7-470e-963a-56509c546377';
+
+		$existing = [
+			['id' => 10, 'mbid' => null],
+			['id' => 20, 'mbid' => $targetMbid],
+		];
+
+		$this->mapper->expects($this->once())
+			->method('findIdsAndMbidsByHash')
+			->will($this->returnValue($existing));
+
+		$this->mapper->expects($this->once())
+			->method('update')
+			->with($this->callback(function (Artist $artist) {
+				return $artist->getId() === 20;
+			}))
+			->will($this->returnArgument(0));
+
+		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, $targetMbid, $this->userId);
+		$this->assertEquals(20, $result->getId());
+	}
 }

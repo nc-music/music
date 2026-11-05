@@ -149,7 +149,7 @@ class ArtistBusinessLayer extends BusinessLayer {
 			$existingIdsForName = $this->mapper->findIdsAndMbidsByHash($hash, $userId);
 
 			if ($mbid !== null) {
-				if ($mbidMatch = ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid || $row['mbid'] === null)) {
+				if ($mbidMatch = (ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid) ?? ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === null))) {
 					// DB already has artist with this MBID or no MBID, update it
 					$artist->setId($mbidMatch['id']);
 					return $this->mapper->update($artist);
