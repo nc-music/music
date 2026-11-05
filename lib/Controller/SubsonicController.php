@@ -1684,11 +1684,11 @@ class SubsonicController extends ApiController {
 				$content['biography'] = $external['biography'];
 			}
 			if ($artist->getCoverFileId() !== null) {
-				$content['largeImageUrl'] = [$this->artistImageUrl($artistId)];
+				$content['largeImageUrl'] = $this->artistImageUrl($artistId);
 			} elseif (!empty($external['image_url'])) {
-				$content['largeImageUrl'] = [$external['image_url']];
-				$content['mediumImageUrl'] = [$external['image_url']];
-				$content['smallImageUrl'] = [$external['image_url']];
+				$content['largeImageUrl'] = $external['image_url'];
+				$content['mediumImageUrl'] = $external['image_url'];
+				$content['smallImageUrl'] = $external['image_url'];
 			}
 		}
 
