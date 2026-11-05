@@ -44,6 +44,7 @@ use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
 use OCA\Music\Service\LastfmService;
+use OCA\Music\Service\ArtistMetadataService;
 use OCA\Music\Service\LibrarySettings;
 use OCA\Music\Service\PodcastService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
@@ -104,6 +105,7 @@ class SubsonicController extends ApiController {
 		private FileSystemService $fileSystemService,
 		private DetailsService $detailsService,
 		private LastfmService $lastfmService,
+		private ArtistMetadataService $artistMetadataService,
 		private PodcastService $podcastService,
 		private AmpacheImageService $imageService,
 		private AudioTranscodeService $transcodeService,
@@ -281,6 +283,10 @@ class SubsonicController extends ApiController {
 		$artist = $this->artistBusinessLayer->find($artistId, $this->user());
 		$albums = $this->albumBusinessLayer->findAllByArtist($artistId, $this->user());
 
+		// A single-artist view can opportunistically populate the cache; bulk artist lists never do.
+		if ($artist->getCoverFileId() === null) {
+			$this->artistMetadataService->getInfo($artist->getMbid(), $artist->getName());
+		}
 		$artistNode = $this->artistToApi($artist);
 		$artistNode['album'] = \array_map([$this, 'albumToNewApi'], $albums);
 
@@ -1342,7 +1348,7 @@ class SubsonicController extends ApiController {
 
 		$indexes = [];
 		foreach ($artists as $artist) {
-			$sortName = $this->nameWithoutArticle($artist->getName());
+			$sortName = $artist->getSortName() ?: $this->nameWithoutArticle($artist->getName());
 			$indexes[self::getIndexingChar($sortName)][] = ['sortName' => $sortName, 'artist' => $this->artistToApi($artist)];
 		}
 		\ksort($indexes, SORT_LOCALE_STRING);
@@ -1426,7 +1432,7 @@ class SubsonicController extends ApiController {
 			'starred'       => Util::formatZuluDateTime($artist->getStarred()),
 			'userRating'    => $artist->getRating() ?: null,
 			'averageRating' => $artist->getRating() ?: null,
-			'sortName'      => $this->nameWithoutArticle($artist->getName()) ?? '', // OpenSubsonic
+			'sortName'      => $artist->getSortName() ?: ($this->nameWithoutArticle($artist->getName()) ?? ''), // OpenSubsonic
 			'mediaType'     => 'artist', // OpenSubsonic, only specified for the "old" API but we don't separate the APIs here
 			'roles'         => $artist->getRoles(), // OpenSubsonic
 			'musicBrainzId' => $artist->getMbid(), // OpenSubsonic
@@ -1435,6 +1441,8 @@ class SubsonicController extends ApiController {
 		if (!empty($artist->getCoverFileId())) {
 			$result['coverArt'] = $result['id'];
 			$result['artistImageUrl'] = $this->artistImageUrl($id);
+		} elseif ($imageUrl = $this->artistMetadataService->getCachedImageUrl($artist->getMbid())) {
+			$result['artistImageUrl'] = $imageUrl;
 		}
 
 		return $result;
@@ -1660,8 +1668,8 @@ class SubsonicController extends ApiController {
 
 			if (isset($info['artist'])) {
 				$content = [
-					'biography'     => $info['artist']['bio']['summary'],
-					'lastFmUrl'     => $info['artist']['url'],
+					'biography'     => $info['artist']['bio']['summary'] ?? null,
+					'lastFmUrl'     => $info['artist']['url'] ?? null,
 					'musicBrainzId' => $info['artist']['mbid'] ?? null
 				];
 
@@ -1670,8 +1678,17 @@ class SubsonicController extends ApiController {
 			}
 
 			$artist = $this->artistBusinessLayer->find($artistId, $userId);
+			$external = $this->artistMetadataService->getInfo($artist->getMbid(), $artist->getName());
+			$content['musicBrainzId'] = $content['musicBrainzId'] ?? $artist->getMbid();
+			if (empty($content['biography']) && !empty($external['biography'])) {
+				$content['biography'] = $external['biography'];
+			}
 			if ($artist->getCoverFileId() !== null) {
-				$content['largeImageUrl'] = [$this->artistImageUrl($artistId)];
+				$content['largeImageUrl'] = $this->artistImageUrl($artistId);
+			} elseif (!empty($external['image_url'])) {
+				$content['largeImageUrl'] = $external['image_url'];
+				$content['mediumImageUrl'] = $external['image_url'];
+				$content['smallImageUrl'] = $external['image_url'];
 			}
 		}
 

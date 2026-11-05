@@ -129,22 +129,26 @@ class ArtistBusinessLayer extends BusinessLayer {
 	}
 
 	/**
-	 * Adds an artist if it does not exist already or updates an existing artist
+	 * Adds an artist if it does not exist already or updates an existing artist.
 	 * @param ?string $name the name of the artist
 	 * @param ?string $mbid the MusicBrainz Id of the artist (non-null values must be normalized to all lowercase, 1..36 ASCII chars)
 	 * @param string $userId the name of the user
+	 * @param ?string $sortName the artist's explicit sort name from file tags, if available
 	 * @return Artist The added/updated artist
 	 */
-	public function addOrUpdateArtist(?string $name, ?string $mbid, string $userId) : Artist {
+	public function addOrUpdateArtist(?string $name, ?string $mbid, string $userId, ?string $sortName = null) : Artist {
 		$name = StringUtil::truncate($name, 256); // some DB setups can't truncate automatically to column max size
 		$hash = \hash('md5', \mb_strtolower($name ?? ''));
+		$sortName = $sortName !== null ? \trim($sortName) : null;
+		$sortName = $sortName === '' ? null : StringUtil::truncate($sortName, 256, '');
 
-		return $this->cachedGet($userId, $mbid ?? $hash, function () use ($name, $mbid, $hash, $userId) {
+		$artist = $this->cachedGet($userId, $mbid ?? $hash, function () use ($name, $mbid, $hash, $userId, $sortName) {
 			$artist = new Artist();
 			$artist->setName($name);
 			$artist->setMbid($mbid);
 			$artist->setUserId($userId);
 			$artist->setHash($hash);
+			$artist->setSortName($sortName);
 
 			$existingIdsForName = $this->mapper->findIdsAndMbidsByHash($hash, $userId);
 
@@ -152,12 +156,14 @@ class ArtistBusinessLayer extends BusinessLayer {
 				if ($mbidMatch = ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid || $row['mbid'] === null)) {
 					// DB already has artist with this MBID or no MBID, update it
 					$artist->setId($mbidMatch['id']);
+					$artist->setSortName($sortName ?? $mbidMatch['sort_name']);
 					return $this->mapper->update($artist);
 				}
 			} elseif (!empty($existingIdsForName)) {
 				// the input has no MBID but the DB has at least one artist with matching name (which may or may not have MBID),
 				// merge the input with the first such artist
 				$artist->setId($existingIdsForName[0]['id']);
+				$artist->setSortName($sortName ?? $existingIdsForName[0]['sort_name']);
 				return $this->mapper->update($artist);
 			}
 			// TODO: Should we combine artists who have different name but same MBID (likely an artist whose credited name varies between works)
@@ -165,6 +171,13 @@ class ArtistBusinessLayer extends BusinessLayer {
 			// no existing artist with the same MBID or name
 			return $this->mapper->insertOrUpdate($artist);
 		});
+
+		// cachedGet skips the callback for previously seen artists; still accept a later explicit sort tag.
+		if ($sortName !== null && $artist->getSortName() !== $sortName) {
+			$artist->setSortName($sortName);
+			$this->mapper->update($artist);
+		}
+		return $artist;
 	}
 
 	/**

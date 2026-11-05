@@ -285,9 +285,9 @@ class ArtistMapper extends BaseMapper {
 		return $condForRule[$rule] ?? parent::advFormatSqlCondition($rule, $sqlOp, $conv);
 	}
 
-	/** @return array<array{id: int, mbid: ?int}> */
+	/** @return array<array{id: int, mbid: ?string, sort_name: ?string}> */
 	public function findIdsAndMbidsByHash(string $hash, string $userId) : array {
-		$sql = 'SELECT `id`, `mbid` FROM `*PREFIX*music_artists` WHERE `hash` = ? AND `user_id` = ?';
+		$sql = 'SELECT `id`, `mbid`, `sort_name` FROM `*PREFIX*music_artists` WHERE `hash` = ? AND `user_id` = ?';
 		$result = $this->execute($sql, [$hash, $userId]);
 		$rows = $result->fetchAll();
 		$result->closeCursor();
@@ -319,6 +319,7 @@ class ArtistMapper extends BaseMapper {
 			if ($nullMbidMatch = ArrayUtil::find($nameMatches, fn ($row) => $row['mbid'] === null)) {
 				// found an artist with the same name but no MBID; update it to have the correct MBID
 				$artist->setId($nullMbidMatch['id']);
+				$artist->setSortName($nullMbidMatch['sort_name']);
 				$artist = $this->update($artist);
 			} else {
 				// no artist with the same name; insert a new one
