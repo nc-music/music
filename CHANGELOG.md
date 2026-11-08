@@ -1,4 +1,4 @@
-## [Unreleased]
+## 3.3.1 - 2026-11-08
 
 ### Fixed
 - Incorrect artist MBID handling breaking the scan process in certain scenarios
