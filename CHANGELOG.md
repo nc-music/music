@@ -3,6 +3,7 @@
 ### Fixed
 - Incorrect artist MBID handling breaking the scan process in certain scenarios
   [#189](https://github.com/nc-music/music/pull/189) @LubosKolouch
+- Subsonic API: XML format of `getArtistInfo` and `getArtistInfo2` using child elements for OpenSubsonic fields while attributes made more sense
 
 ## 3.3.0 - 2026-11-01
 
