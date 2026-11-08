@@ -76,6 +76,65 @@ class ArtistBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 		$this->assertEquals($artist, $result);
 	}
 
+	/** Non-null mbid is provided, but the existing artist has a null mbid. The existing artist should be updated with the new mbid. */
+	public function testAddOrUpdateArtistMergeNonNullMbidToExisting() {
+		$name = 'Some Artist';
+
+		$this->mapper->expects($this->once())
+			->method('findIdsAndMbidsByHash')
+			->will($this->returnValue([['id' => 10, 'mbid' => null]]));
+
+		$this->mapper->expects($this->once())
+			->method('update')
+			->with($this->callback(fn (Artist $artist) => ($artist->getId() === 10 && $artist->getMbid() === 'mbid1')))
+			->will($this->returnArgument(0));
+
+		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, 'mbid1', $this->userId);
+		$this->assertEquals(10, $result->getId());
+		$this->assertEquals('mbid1', $result->getMbid());
+	}
+
+	/** Null mbid is provided, but the existing artist has a non-null mbid. The existing artist should be updated but retain its mbid. */
+	public function testAddOrUpdateArtistMergeNullMbidToExisting() {
+		$name = 'Some Artist';
+
+		$this->mapper->expects($this->once())
+			->method('findIdsAndMbidsByHash')
+			->will($this->returnValue([['id' => 10, 'mbid' => 'mbid1']]));
+
+		$this->mapper->expects($this->once())
+			->method('update')
+			->with($this->callback(fn (Artist $artist) => ($artist->getId() === 10 && $artist->getMbid() === 'mbid1')))
+			->will($this->returnArgument(0));
+
+		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, null, $this->userId);
+		$this->assertEquals(10, $result->getId());
+		$this->assertEquals('mbid1', $result->getMbid());
+	}
+
+	/** Non-null mbid is provided, and the existing artist has a different non-null mbid. A new artist should be created. */
+	public function testAddOrUpdateArtistSameNameWithDifferentMbid() {
+		$name = 'Some Artist';
+
+		$this->mapper->expects($this->once())
+			->method('findIdsAndMbidsByHash')
+			->will($this->returnValue([['id' => 10, 'mbid' => 'mbid1']]));
+
+		$createdArtist = new Artist();
+		$createdArtist->setId(20);
+		$createdArtist->setMbid('mbid2');
+		$this->mapper->expects($this->once())
+			->method('insertOrUpdate')
+			->will($this->returnValue($createdArtist));
+
+		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, 'mbid2', $this->userId);
+		$this->assertEquals(20, $result->getId());
+		$this->assertEquals('mbid2', $result->getMbid());
+	}
+
+	/** Non-null mbid is provided, and there exists two artists with the same name. One of these has a matching mbid and the other has a null mbid.
+	 *  The DB shouldn't normally be in a state like this; something has already gone wrong if this happens. In this unexpected case, the existing
+	 *  artist with the matching mbid should be updated. */
 	public function testAddOrUpdateArtistPrefersExactMbidMatchOverNull() {
 		$name = 'Various Artists';
 		$targetMbid = '89ad4ac3-39f7-470e-963a-56509c546377';
@@ -91,12 +150,11 @@ class ArtistBusinessLayerTest extends \PHPUnit\Framework\TestCase {
 
 		$this->mapper->expects($this->once())
 			->method('update')
-			->with($this->callback(function (Artist $artist) {
-				return $artist->getId() === 20;
-			}))
+			->with($this->callback(fn (Artist $artist) => ($artist->getId() === 20 && $artist->getMbid() === $targetMbid)))
 			->will($this->returnArgument(0));
 
 		$result = $this->artistBusinessLayer->addOrUpdateArtist($name, $targetMbid, $this->userId);
 		$this->assertEquals(20, $result->getId());
 	}
+
 }

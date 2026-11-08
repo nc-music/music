@@ -285,7 +285,7 @@ class ArtistMapper extends BaseMapper {
 		return $condForRule[$rule] ?? parent::advFormatSqlCondition($rule, $sqlOp, $conv);
 	}
 
-	/** @return array<array{id: int, mbid: ?int}> */
+	/** @return array<array{id: int, mbid: ?string}> */
 	public function findIdsAndMbidsByHash(string $hash, string $userId) : array {
 		$sql = 'SELECT `id`, `mbid` FROM `*PREFIX*music_artists` WHERE `hash` = ? AND `user_id` = ?';
 		$result = $this->execute($sql, [$hash, $userId]);
