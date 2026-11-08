@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+- Incorrect artist MBID handling breaking the scan process in certain scenarios
+  [#189](https://github.com/nc-music/music/pull/189) @LubosKolouch
+
 ## 3.3.0 - 2026-11-01
 
 ### Added
