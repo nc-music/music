@@ -507,6 +507,57 @@ class SubsonicController extends ApiController {
 		]];
 	}
 
+	/**
+	 * OpenSubsonic extension for track-level song lists, analogous to getAlbumList2.
+	 * The supported list types mirror getAlbumList2 except for `byYear`; `byGenre`
+	 * requires the `genre` parameter.
+	 */
+	#[SubsonicAPI]
+	protected function getSongList(
+			string $type, ?string $genre = null, int $size = 10, int $offset = 0) : array {
+		$size = \min($size, 500); // the API spec limits the maximum amount to 500
+		$userId = $this->user();
+
+		switch ($type) {
+			case 'random':
+				$allTracks = $this->trackBusinessLayer->findAll($userId);
+				$indices = $this->random->getIndices(\count($allTracks), $offset, $size, $userId, 'subsonic_songs');
+				$tracks = ArrayUtil::multiGet($allTracks, $indices);
+				break;
+			case 'starred':
+				$tracks = $this->trackBusinessLayer->findAllStarred($userId, $size, $offset);
+				break;
+			case 'alphabeticalByName':
+				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Name, $size, $offset);
+				break;
+			case 'alphabeticalByArtist':
+				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Parent, $size, $offset);
+				break;
+			case 'byGenre':
+				self::ensureParamHasValue('genre', $genre);
+				$tracks = $this->findTracksByGenre($genre, $size, $offset);
+				break;
+			case 'newest':
+				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
+				break;
+			case 'recent':
+				$tracks = $this->trackBusinessLayer->findRecentPlay($userId, $size, $offset);
+				break;
+			case 'frequent':
+				$tracks = $this->trackBusinessLayer->findFrequentPlay($userId, $size, $offset);
+				break;
+			case 'highest':
+				$tracks = $this->trackBusinessLayer->findAllRated($userId, $size, $offset);
+				break;
+			default:
+				throw new SubsonicException("Song list type '$type' is not supported", 0);
+		}
+
+		return ['songList' => [
+			'song' => $this->tracksToApi($tracks)
+		]];
+	}
+
 	#[SubsonicAPI]
 	protected function getPlaylists() : array {
 		$userId = $this->user();
@@ -1104,7 +1155,8 @@ class SubsonicController extends ApiController {
 			[ 'name' => 'formPost', 'versions' => [1] ],
 			[ 'name' => 'getPodcastEpisode', 'versions' => [1] ],
 			[ 'name' => 'songLyrics', 'versions' => [1] ],
-			[ 'name' => 'indexBasedQueue', 'versions' => [1] ]
+			[ 'name' => 'indexBasedQueue', 'versions' => [1] ],
+			[ 'name' => 'songListsNCM', 'versions' => [1] ]
 		]];
 	}
 
