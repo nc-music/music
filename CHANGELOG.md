@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+- Subsonic API: Proprietary extension `songListsNCM` providing the method `getSongList`
+  [#192](https://github.com/nc-music/music/pull/192) @paroj
+
 ## 3.3.1 - 2026-11-08
 
 ### Fixed
