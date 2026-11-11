@@ -153,12 +153,15 @@ class AlbumBusinessLayer extends BusinessLayer {
 			Util::swap($fromYear, $toYear);
 		}
 
-		// Implement all the custom logic of this function here, without special Mapper function
-		$albums = \array_filter($this->findAll($userId), function ($album) use ($fromYear, $toYear) {
-			$years = $album->getYears();
-			return (!empty($years) && \min($years) <= $toYear && \max($years) >= $fromYear);
-		});
+		$albums = $this->findAllAdvanced(
+			'and', [
+				['rule' => 'year', 'operator' => '>=', 'input' => $fromYear],
+				['rule' => 'year', 'operator' => '<=', 'input' => $toYear]
+			],
+			$userId
+		);
 
+		// Our Mapper interface does not support sorting by year, so we sort and slice the result here in PHP.
 		\usort($albums, function ($album1, $album2) use ($reverseOrder) {
 			return $reverseOrder
 				? $album2->yearToAPI() - $album1->yearToAPI()
