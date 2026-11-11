@@ -514,7 +514,7 @@ class SubsonicController extends ApiController {
 	 */
 	#[SubsonicAPI]
 	protected function getSongList(
-			string $type, ?string $genre = null, int $size = 10, int $offset = 0) : array {
+			string $type, ?string $genre = null, ?int $fromYear = null, ?int $toYear = null, ?int $size = 10, int $offset = 0) : array {
 		$size = \min($size, 500); // the API spec limits the maximum amount to 500
 		$userId = $this->user();
 
@@ -536,6 +536,11 @@ class SubsonicController extends ApiController {
 			case 'byGenre':
 				self::ensureParamHasValue('genre', $genre);
 				$tracks = $this->findTracksByGenre($genre, $size, $offset);
+				break;
+			case 'byYear':
+				self::ensureParamHasValue('fromYear', $fromYear);
+				self::ensureParamHasValue('toYear', $toYear);
+				$tracks = $this->findByYearRange($this->trackBusinessLayer, $fromYear, $toYear, $userId, $size, $offset);
 				break;
 			case 'newest':
 				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
@@ -1536,7 +1541,7 @@ class SubsonicController extends ApiController {
 			'starred'       => Util::formatZuluDateTime($album->getStarred()),
 			'userRating'    => $album->getRating() ?: null,
 			'averageRating' => $album->getRating() ?: null,
-			'year'          => $album->yearToAPI(),
+			'year'          => $album->getYear(),
 			'genre'         => \implode(', ', $genres) ?: null,
 			'genres'        => \array_map(fn ($name) => ['name' => $name], $genres), // OpenSubsonic
 			'sortName'      => $this->nameWithoutArticle($album->getName()) ?? '', // OpenSubsonic
@@ -1647,7 +1652,7 @@ class SubsonicController extends ApiController {
 			case 'byYear':
 				self::ensureParamHasValue('fromYear', $fromYear);
 				self::ensureParamHasValue('toYear', $toYear);
-				$albums = $this->albumBusinessLayer->findAllByYearRange($fromYear, $toYear, $userId, $size, $offset);
+				$albums = $this->findByYearRange($this->albumBusinessLayer, $fromYear, $toYear, $userId, $size, $offset);
 				break;
 			case 'newest':
 				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
@@ -1915,6 +1920,36 @@ class SubsonicController extends ApiController {
 			$genreArr = $this->genreBusinessLayer->findAllByName('', $this->user());
 		}
 		return \count($genreArr) ? $genreArr[0] : null;
+	}
+
+	private function findByYearRange(
+			AlbumBusinessLayer|TrackBusinessLayer $businessLayer, int $fromYear, int $toYear, string $userId, ?int $limit, ?int $offset) : array {
+		$reverseOrder = false;
+		if ($fromYear > $toYear) {
+			$reverseOrder = true;
+			Util::swap($fromYear, $toYear);
+		}
+
+		$entities = $businessLayer->findAllAdvanced(
+			'and', [
+				['rule' => 'year', 'operator' => '>=', 'input' => $fromYear],
+				['rule' => 'year', 'operator' => '<=', 'input' => $toYear]
+			],
+			$userId
+		);
+
+		// Our Mapper interface does not support sorting by year, so we sort and slice the result here in PHP.
+		\usort($entities, function ($entity1, $entity2) use ($reverseOrder) {
+			return $reverseOrder
+				? $entity2->getYear() - $entity1->getYear()
+				: $entity1->getYear() - $entity2->getYear();
+		});
+
+		if ($limit !== null || $offset !== null) {
+			$entities = \array_slice($entities, $offset ?: 0, $limit);
+		}
+
+		return $entities;
 	}
 
 	private function artistImageUrl(int $id) : string {

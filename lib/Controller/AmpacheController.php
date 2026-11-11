@@ -2113,7 +2113,7 @@ class AmpacheController extends ApiController {
 					'time'          => $this->trackBusinessLayer->totalDurationOfAlbum($album->getId()),
 					'rating'        => $album->getRating(),
 					'preciserating' => $album->getRating(),
-					'year'          => $album->yearToAPI(),
+					'year'          => $album->getYear(),
 					'art'           => $this->createCoverUrl($album),
 					'has_art'       => $album->getCoverFileId() !== null,
 					'flag'          => !empty($album->getStarred()),
