@@ -510,7 +510,7 @@ class SubsonicController extends ApiController {
 	 * The supported list types mirror getAlbumList2.
 	 */
 	#[SubsonicAPI]
-	protected function getSongList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, ?int $size = 10, int $offset = 0) : array {
+	protected function getSongList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
 		$tracks = $this->getListByCriteria('songList', $this->trackBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['songList' => [
 			'song' => $this->tracksToApi($tracks)
