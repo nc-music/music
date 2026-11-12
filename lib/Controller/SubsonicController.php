@@ -244,25 +244,23 @@ class SubsonicController extends ApiController {
 	}
 
 	#[SubsonicAPI]
-	protected function getAlbumList(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
-		$albums = $this->albumsForGetAlbumList($type, $genre, $fromYear, $toYear, $size, $offset);
+	protected function getAlbumList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
+		$albums = $this->getListByCriteria('albumList', $this->albumBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['albumList' => [
 			'album' => \array_map([$this, 'albumToOldApi'], $albums)
 		]];
 	}
 
 	#[SubsonicAPI]
-	protected function getAlbumList2(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
+	protected function getAlbumList2(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
 		/*
 		 * According to the API specification, the difference between this and getAlbumList
 		 * should be that this function would organize albums according the metadata while
 		 * getAlbumList would organize them by folders. However, we organize by metadata
-		 * also in getAlbumList, because that's more natural for the Music app and many/most
+		 * also in getAlbumList, because that's more natural for the Music app and many older
 		 * clients do not support getAlbumList2.
 		 */
-		$albums = $this->albumsForGetAlbumList($type, $genre, $fromYear, $toYear, $size, $offset);
+		$albums = $this->getListByCriteria('albumList2', $this->albumBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['albumList2' => [
 			'album' => \array_map([$this, 'albumToNewApi'], $albums)
 		]];
@@ -349,7 +347,7 @@ class SubsonicController extends ApiController {
 		$size = \min($size, 500); // the API spec limits the maximum amount to 500
 
 		if ($genre !== null) {
-			$trackPool = $this->findTracksByGenre($genre);
+			$trackPool = $this->findByGenreName($this->trackBusinessLayer, $genre);
 		} else {
 			$trackPool = $this->trackBusinessLayer->findAll($this->user());
 		}
@@ -500,7 +498,7 @@ class SubsonicController extends ApiController {
 
 	#[SubsonicAPI]
 	protected function getSongsByGenre(string $genre, int $count = 10, int $offset = 0) : array {
-		$tracks = $this->findTracksByGenre($genre, $count, $offset);
+		$tracks = $this->findByGenreName($this->trackBusinessLayer, $genre, $count, $offset);
 
 		return ['songsByGenre' => [
 			'song' => $this->tracksToApi($tracks)
@@ -508,56 +506,12 @@ class SubsonicController extends ApiController {
 	}
 
 	/**
-	 * OpenSubsonic extension for track-level song lists, analogous to getAlbumList2.
-	 * The supported list types mirror getAlbumList2 except for `byYear`; `byGenre`
-	 * requires the `genre` parameter.
+	 * Proprietary OpenSubsonic extension for track-level song lists, analogous to getAlbumList2.
+	 * The supported list types mirror getAlbumList2.
 	 */
 	#[SubsonicAPI]
-	protected function getSongList(
-			string $type, ?string $genre = null, ?int $fromYear = null, ?int $toYear = null, ?int $size = 10, int $offset = 0) : array {
-		$size = \min($size, 500); // the API spec limits the maximum amount to 500
-		$userId = $this->user();
-
-		switch ($type) {
-			case 'random':
-				$allTracks = $this->trackBusinessLayer->findAll($userId);
-				$indices = $this->random->getIndices(\count($allTracks), $offset, $size, $userId, 'subsonic_songs');
-				$tracks = ArrayUtil::multiGet($allTracks, $indices);
-				break;
-			case 'starred':
-				$tracks = $this->trackBusinessLayer->findAllStarred($userId, $size, $offset);
-				break;
-			case 'alphabeticalByName':
-				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Name, $size, $offset);
-				break;
-			case 'alphabeticalByArtist':
-				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Parent, $size, $offset);
-				break;
-			case 'byGenre':
-				self::ensureParamHasValue('genre', $genre);
-				$tracks = $this->findTracksByGenre($genre, $size, $offset);
-				break;
-			case 'byYear':
-				self::ensureParamHasValue('fromYear', $fromYear);
-				self::ensureParamHasValue('toYear', $toYear);
-				$tracks = $this->findByYearRange($this->trackBusinessLayer, $fromYear, $toYear, $userId, $size, $offset);
-				break;
-			case 'newest':
-				$tracks = $this->trackBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
-				break;
-			case 'recent':
-				$tracks = $this->trackBusinessLayer->findRecentPlay($userId, $size, $offset);
-				break;
-			case 'frequent':
-				$tracks = $this->trackBusinessLayer->findFrequentPlay($userId, $size, $offset);
-				break;
-			case 'highest':
-				$tracks = $this->trackBusinessLayer->findAllRated($userId, $size, $offset);
-				break;
-			default:
-				throw new SubsonicException("Song list type '$type' is not supported", 0);
-		}
-
+	protected function getSongList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, ?int $size = 10, int $offset = 0) : array {
+		$tracks = $this->getListByCriteria('songList', $this->trackBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['songList' => [
 			'song' => $this->tracksToApi($tracks)
 		]];
@@ -1161,7 +1115,7 @@ class SubsonicController extends ApiController {
 			[ 'name' => 'getPodcastEpisode', 'versions' => [1] ],
 			[ 'name' => 'songLyrics', 'versions' => [1] ],
 			[ 'name' => 'indexBasedQueue', 'versions' => [1] ],
-			[ 'name' => 'songListsNCM', 'versions' => [1] ]
+			[ 'name' => 'songListsNCM', 'versions' => [1] ], // proprietary
 		]];
 	}
 
@@ -1620,58 +1574,43 @@ class SubsonicController extends ApiController {
 	}
 
 	/**
-	 * Common logic for getAlbumList and getAlbumList2
-	 * @return Album[]
+	 * Common logic for getAlbumList, getAlbumList2, and getSongList.
+	 * @return Album[]|Track[]
 	 */
-	private function albumsForGetAlbumList(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size, int $offset) : array {
+	private function getListByCriteria(
+			string $listName, AlbumBusinessLayer|TrackBusinessLayer $businessLayer, string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size, int $offset) : array {
 		$size = \min($size, 500); // the API spec limits the maximum amount to 500
 		$userId = $this->user();
 
-		$albums = [];
-
 		switch ($type) {
 			case 'random':
-				$allAlbums = $this->albumBusinessLayer->findAll($userId);
-				$indices = $this->random->getIndices(\count($allAlbums), $offset, $size, $userId, 'subsonic_albums');
-				$albums = ArrayUtil::multiGet($allAlbums, $indices);
-				break;
+				$allEntities = $businessLayer->findAll($userId);
+				$indices = $this->random->getIndices(\count($allEntities), $offset, $size, $userId, "subsonic_$listName");
+				return ArrayUtil::multiGet($allEntities, $indices);
 			case 'starred':
-				$albums = $this->albumBusinessLayer->findAllStarred($userId, $size, $offset);
-				break;
+				return $businessLayer->findAllStarred($userId, $size, $offset);
 			case 'alphabeticalByName':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Name, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Name, $size, $offset);
 			case 'alphabeticalByArtist':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Parent, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Parent, $size, $offset);
 			case 'byGenre':
 				self::ensureParamHasValue('genre', $genre);
-				$albums = $this->findAlbumsByGenre($genre, $size, $offset);
-				break;
+				return $this->findByGenreName($businessLayer, $genre, $size, $offset);
 			case 'byYear':
 				self::ensureParamHasValue('fromYear', $fromYear);
 				self::ensureParamHasValue('toYear', $toYear);
-				$albums = $this->findByYearRange($this->albumBusinessLayer, $fromYear, $toYear, $userId, $size, $offset);
-				break;
+				return $this->findByYearRange($businessLayer, $fromYear, $toYear, $userId, $size, $offset);
 			case 'newest':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Newest, $size, $offset);
 			case 'frequent':
-				$albums = $this->albumBusinessLayer->findFrequentPlay($userId, $size, $offset);
-				break;
+				return $businessLayer->findFrequentPlay($userId, $size, $offset);
 			case 'recent':
-				$albums = $this->albumBusinessLayer->findRecentPlay($userId, $size, $offset);
-				break;
+				return $businessLayer->findRecentPlay($userId, $size, $offset);
 			case 'highest':
-				$albums = $this->albumBusinessLayer->findAllRated($userId, $size, $offset);
-				break;
+				return $businessLayer->findAllRated($userId, $size, $offset);
 			default:
-				$this->logger->debug("Album list type '$type' is not supported");
-				break;
+				throw new SubsonicException("List type '$type' is not supported", 0);
 		}
-
-		return $albums;
 	}
 
 	/**
@@ -1887,31 +1826,12 @@ class SubsonicController extends ApiController {
 	}
 
 	/**
-	 * Find tracks by genre name
-	 * @return Track[]
+	 * Find albums or tracks by genre name
+	 * @return Album[]|Track[]
 	 */
-	private function findTracksByGenre(string $genreName, ?int $limit = null, ?int $offset = null) : array {
+	private function findByGenreName(AlbumBusinessLayer|TrackBusinessLayer $businessLayer, string $genreName, ?int $limit = null, ?int $offset = null) : array {
 		$genre = $this->findGenreByName($genreName);
-
-		if ($genre) {
-			return $this->trackBusinessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset);
-		} else {
-			return [];
-		}
-	}
-
-	/**
-	 * Find albums by genre name
-	 * @return Album[]
-	 */
-	private function findAlbumsByGenre(string $genreName, ?int $limit = null, ?int $offset = null) : array {
-		$genre = $this->findGenreByName($genreName);
-
-		if ($genre) {
-			return $this->albumBusinessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset);
-		} else {
-			return [];
-		}
+		return $genre ? $businessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset) : [];
 	}
 
 	private function findGenreByName(string $name) : ?Genre {
