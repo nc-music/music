@@ -338,10 +338,8 @@ class CoverService {
 
 				if ($scaledImg === false) {
 					$this->logger->warning("Failed to create scaled image of size $dstSize x $dstSize");
-					\imagedestroy($img);
 				} else {
 					\imagecopyresampled($scaledImg, $img, 0, 0, $srcX, $srcY, $dstSize, $dstSize, $srcCropSize, $srcCropSize);
-					\imagedestroy($img);
 
 					\ob_start();
 					\ob_clean();
@@ -364,7 +362,6 @@ class CoverService {
 							break;
 					}
 					\ob_end_clean();
-					\imagedestroy($scaledImg);
 				}
 			}
 		}
@@ -389,7 +386,6 @@ class CoverService {
 					$this->logger->warning('Failed to open cover image to create a mosaic');
 				} else {
 					\imagecopyresampled($dstImage, $piece, $dstX, $dstY, 0, 0, $dstSize, $dstSize, $srcWidth, $srcHeight);
-					\imagedestroy($piece);
 				}
 			};
 
@@ -412,7 +408,6 @@ class CoverService {
 		\imagepng($mosaicImg, null, 7, PNG_ALL_FILTERS);
 		$image['content'] = \ob_get_contents();
 		\ob_end_clean();
-		\imagedestroy($mosaicImg);
 
 		return $image;
 	}
