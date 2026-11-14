@@ -126,7 +126,8 @@ class FileSystemService {
 	}
 
 	/**
-	 * Add externally mounted folders and shared files and folders to the folder LUT if there are any under the $musicFolder
+	 * Add externally mounted folders and shared files and folders to the folder LUT if there are any under the $musicFolder.
+	 * The library root folder must be included in the LUT before calling this function.
 	 *
 	 * @param array<int, array{name: string, parent: ?int, trackIds: int[]}> $lut (in|out) where keys are folder IDs
 	 */
@@ -155,6 +156,7 @@ class FileSystemService {
 							if ($trackIdIdx !== false) {
 								// move the track from it's actual parent (in other user's storage) to our root
 								unset($entry['trackIds'][$trackIdIdx]);
+								\assert(isset($lut[$rootFolderId])); // this is needed to help PHPStan
 								$lut[$rootFolderId]['trackIds'][] = $trackId;
 
 								// remove the former parent folder if it has no more tracks and it's not one of the mount point folders
