@@ -75,7 +75,7 @@ class AmpacheUserMapper {
 	}
 
 	/**
-	 * @return array of rows like ['user_id' => string, 'hash' => string] with row IDs as keys
+	 * @return array<int, array{user_id: string, hash: string}> with row IDs as keys
 	 */
 	public function getUsersAndPasswordHashes() : array {
 		$sql = 'SELECT `id`, `user_id`, `hash` FROM `*PREFIX*music_ampache_users`';

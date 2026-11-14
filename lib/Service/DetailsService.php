@@ -143,7 +143,7 @@ class DetailsService {
 	 * Get all lyrics from the file metadata, both synced and unsynced. For both lyrics types, a single instance
 	 * of lyrics contains an array of lyrics lines. In case of synced lyrics, the key of this array is the offset
 	 * in milliseconds.
-	 * @return array of items like ['synced' => boolean, 'lines' => array]
+	 * @return array<array{synced: bool, lines: string[]}> - empty array if no lyrics found
 	 */
 	public function getLyricsAsStructured(int $fileId, Folder $userFolder) : array {
 		$result = [];

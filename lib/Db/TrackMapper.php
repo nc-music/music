@@ -290,7 +290,7 @@ class TrackMapper extends BaseMapper {
 	/**
 	 * Get durations of the given tracks.
 	 * @param integer[] $trackIds
-	 * @return array {int => int} where keys are track IDs and values are corresponding durations
+	 * @return array<int, int> where keys are track IDs and values are corresponding durations
 	 */
 	public function getDurations(array $trackIds) : array {
 		$return = [];
@@ -452,7 +452,7 @@ class TrackMapper extends BaseMapper {
 
 	/**
 	 * Finds all track IDs of the user along with the parent folder ID of each track
-	 * @return array where keys are folder IDs and values are arrays of track IDs
+	 * @return array<int, int[]> where keys are folder IDs and values are arrays of track IDs
 	 */
 	public function findTrackAndFolderIds(string $userId) : array {
 		$sql = 'SELECT `track`.`id` AS id, `file`.`name` AS `filename`, `file`.`parent` AS `parent`
@@ -481,7 +481,7 @@ class TrackMapper extends BaseMapper {
 	/**
 	 * Find names and parents of the file system nodes with given IDs
 	 * @param int[] $nodeIds
-	 * @return array where keys are the node IDs and values are associative arrays like { 'name' => string, 'parent' => int };
+	 * @return array<int, array{name: string, parent: int}> where keys are the node IDs
 	 */
 	public function findNodeNamesAndParents(array $nodeIds) : array {
 		$return = [];
@@ -545,7 +545,7 @@ class TrackMapper extends BaseMapper {
 
 	/**
 	 * Returns all tracks IDs of the user, organized by the genre_id.
-	 * @return array where keys are genre IDs and values are arrays of track IDs
+	 * @return array<int, int[]> where keys are genre IDs and values are arrays of track IDs
 	 */
 	public function mapGenreIdsToTrackIds(string $userId) : array {
 		$sql = 'SELECT `id`, `genre_id` FROM `*PREFIX*music_tracks`

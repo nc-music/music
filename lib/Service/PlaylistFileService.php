@@ -129,13 +129,13 @@ class PlaylistFileService {
 	 * @param string $userId owner of the playlist
 	 * @param Folder $userFolder user home dir
 	 * @param string $filePath path of the file to import
-	 * @parma string $mode one of the following:
-	 * 						- 'append' (default) Append the imported tracks after the existing tracks on the list
-	 * 						- 'overwrite' Replace any previous tracks on the list with the imported tracks
-	 * @return array with three keys:
-	 *               - 'playlist': The Playlist entity after the modification
-	 *               - 'imported_count': An integer showing the number of tracks imported
-	 *               - 'failed_count': An integer showing the number of tracks in the file which could not be imported
+	 * @param 'append'|'overwrite' $mode
+	 *         - 'append' (default) Append the imported tracks after the existing tracks on the list
+	 *         - 'overwrite' Replace any previous tracks on the list with the imported tracks
+	 * @return array{playlist: \OCA\Music\Db\Playlist, imported_count: int, failed_count: int}
+	 *         - 'playlist': The Playlist entity after the modification
+	 *         - 'imported_count': The number of tracks imported
+	 *         - 'failed_count': The number of tracks in the file which could not be imported
 	 * @throws BusinessLayerException if playlist with ID not found
 	 * @throws \OCP\Files\NotFoundException if the $filePath is not a valid file
 	 * @throws \UnexpectedValueException if the $filePath points to a file of unsupported type
@@ -177,9 +177,9 @@ class PlaylistFileService {
 	 * @param string $userId user
 	 * @param Folder $userFolder user home dir
 	 * @param string $filePath path of the file to import
-	 * @return array with two keys:
-	 *               - 'stations': Array of RadioStation objects imported from the file
-	 *               - 'failed_count': An integer showing the number of entries in the file which were not valid URLs
+	 * @return array{stations: \OCA\Music\Db\RadioStation[], failed_count: int}
+	 *         - 'stations': Array of RadioStation objects imported from the file
+	 *         - 'failed_count': The number of entries in the file which were not valid URLs
 	 * @throws \OCP\Files\NotFoundException if the $filePath is not a valid file
 	 * @throws \UnexpectedValueException if the $filePath points to a file of unsupported type
 	 */
@@ -211,7 +211,7 @@ class PlaylistFileService {
 	 * @param Folder $baseFolder ancestor folder of the playlist and the track files (e.g. user folder)
 	 * @throws \OCP\Files\NotFoundException if the $fileId is not a valid file under the $baseFolder
 	 * @throws \UnexpectedValueException if the $filePath points to a file of unsupported type
-	 * @return array ['files' => array, 'invalid_paths' => string[]]
+	 * @return array{files: array<array{url: string, caption: string}|array{file: File, caption: string}>, invalid_paths: string[]}
 	 */
 	public function parseFile(int $fileId, Folder $baseFolder) : array {
 		$node = $baseFolder->getById($fileId)[0] ?? null;
@@ -234,7 +234,7 @@ class PlaylistFileService {
 	 * @param Folder $baseFolder Base folder for the local files
 	 * @param int $mode One of self::[PARSE_LOCAL_FILES_ONLY, PARSE_URLS_ONLY, PARSE_LOCAL_FILES_AND_URLS]
 	 * @throws \UnexpectedValueException
-	 * @return array ['files' => array, 'invalid_paths' => string[]]
+	 * @return array{files: array<array{url: string, caption: string}|array{file: File, caption: string}>, invalid_paths: string[]}
 	 */
 	private static function doParseFile(File $file, Folder $baseFolder, int $mode) : array {
 		$mime = $file->getMimeType();
@@ -290,6 +290,7 @@ class PlaylistFileService {
 		];
 	}
 
+	/** @return array<array{path: string, caption: string|null}> */
 	private static function parseM3uFile(File $file) : array {
 		/* Files with extension .m3u8 are always treated as UTF-8.
 		 * Files with extension .m3u are analyzed and treated as UTF-8 if they seem to be valid UTF-8;
@@ -307,6 +308,7 @@ class PlaylistFileService {
 		return $entries;
 	}
 
+	/** @return array<array{path: string, caption: string|null}> */
 	public static function parseM3uContent(string $content) : array {
 		$fp = \fopen('php://temp', 'r+');
 		\assert($fp !== false, 'Unexpected error: opening temporary stream failed');
@@ -325,6 +327,7 @@ class PlaylistFileService {
 
 	/**
 	 * @param resource $fp File handle
+	 * @return array<array{path: string, caption: string|null}>
 	 */
 	private static function parseM3uFilePointer($fp, string $encoding) : array {
 		$entries = [];
@@ -362,10 +365,12 @@ class PlaylistFileService {
 		return $entries;
 	}
 
+	/** @return array<array{path: string, caption: string|null}> */
 	private static function parsePlsFile(File $file) : array {
 		return self::parsePlsContent($file->getContent());
 	}
 
+	/** @return array<array{path: string, caption: string|null}> */
 	public static function parsePlsContent(string $content) : array {
 		$files = [];
 		$titles = [];
@@ -416,6 +421,7 @@ class PlaylistFileService {
 		return $entries;
 	}
 
+	/** @return array<array{path: string, caption: string|null}> */
 	public static function parseWplFile(File $file) : array {
 		$entries = [];
 

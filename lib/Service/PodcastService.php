@@ -337,10 +337,10 @@ class PodcastService {
 	 * @param string $userId user
 	 * @param Folder $userFolder user home dir
 	 * @param string $filePath path of the file to import
-	 * @return array with three keys:
-	 *               - 'channels': Array of PodcastChannel objects imported from the file
-	 *               - 'not_changed_count': An integer showing the number of channels in the file which were already subscribed by the user
-	 *               - 'failed_count': An integer showing the number of entries in the file which were not valid URLs
+	 * @return array{channels: PodcastChannel[], not_changed_count: int, failed_count: int}
+	 *         - 'channels': Channels imported from the file
+	 *         - 'not_changed_count': The number of channels in the file which were already subscribed by the user
+	 *         - 'failed_count': The number of entries in the file which were not valid URLs
 	 * @throws \OCP\Files\NotFoundException if the $filePath is not a valid file
 	 * @throws \UnexpectedValueException if the $filePath points to a file of unsupported type
 	 */

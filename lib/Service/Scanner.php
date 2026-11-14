@@ -154,7 +154,7 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array Information about consumed time: ['analyze' => int|float, 'db update' => int|float]
+	 * @return array{analyze: int|float, 'db update': int|float} Information about consumed time in nanoseconds
 	 */
 	private function updateAudio(File $file, string $userId, Folder $libraryRoot, string $filePath, string $mimetype, bool $partOfScan) : array {
 		$this->emit(self::class, 'update', [$filePath]);

@@ -1779,7 +1779,7 @@ class SubsonicController extends ApiController {
 
 	/**
 	 * Common logic for search2 and search3
-	 * @return array with keys 'artists', 'albums', and 'tracks'
+	 * @return array{artists: Artist[], albums: Album[], tracks: Track[]}
 	 */
 	private function doSearch(string $query, int $artistCount, int $artistOffset,
 			int $albumCount, int $albumOffset, int $songCount, int $songOffset) : array {

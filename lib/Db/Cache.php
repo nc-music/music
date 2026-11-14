@@ -121,7 +121,7 @@ class Cache {
 	 * Get all key-value pairs of one user, optionally limiting to keys with a given prefix.
 	 * @param string $userId
 	 * @param string|null $prefix
-	 * @return array of arrays with keys 'key', 'data'
+	 * @return array<array{key: string, data: string}>
 	 */
 	public function getAll(string $userId, ?string $prefix = null) : array {
 		$sql = 'SELECT `key`, `data` FROM `*PREFIX*music_cache`

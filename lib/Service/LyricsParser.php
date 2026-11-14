@@ -30,8 +30,8 @@ class LyricsParser {
 	 * Parse timestamped lyrics from the given string, and return the parsed data.
 	 * Return null if the string does not appear to be timestamped lyric in the LRC format.
 	 *
-	 * @return array|null The keys of the array are timestamps in milliseconds and values are
-	 *                    corresponding lines of lyrics.
+	 * @return array<int, string>|null The keys of the array are timestamps in milliseconds
+	 *                                 and values are corresponding lines of lyrics.
 	 */
 	public static function parseSyncedLyrics(?string $data) : ?array {
 		$parsedLyrics = [];

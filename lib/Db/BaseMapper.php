@@ -286,7 +286,7 @@ abstract class BaseMapper extends Mapper {
 	 * Find all IDs and names of user's entities of this kind.
 	 * Optionally, limit results based on a parent entity (not applicable for all entity types) or update/insert times or name
 	 * @param bool $excludeChildless Exclude entities having no child-entities if applicable for this business layer (eg. artists without albums)
-	 * @return array of arrays like ['id' => string, 'name' => ?string]
+	 * @return array<array{id: string, name: ?string}>
 	 */
 	public function findAllIdsAndNames(string $userId, ?int $parentId, ?int $limit = null, ?int $offset = null,
 			?string $createdMin = null, ?string $createdMax = null, ?string $updatedMin = null, ?string $updatedMax = null,
@@ -543,10 +543,10 @@ abstract class BaseMapper extends Mapper {
 	public function latestUpdateTime(string $userId) : ?\DateTime {
 		$sql = "SELECT MAX(`{$this->getTableName()}`.`updated`) FROM `{$this->getTableName()}` WHERE `user_id` = ?";
 		$result = $this->execute($sql, [$userId]);
-		$createdTime = $result->fetch(\PDO::FETCH_COLUMN);
+		$updatedTime = $result->fetch(\PDO::FETCH_COLUMN);
 		$result->closeCursor();
 
-		return ($createdTime === null) ? null : new \DateTime($createdTime);
+		return ($updatedTime === null) ? null : new \DateTime($updatedTime);
 	}
 
 	/**
@@ -591,7 +591,7 @@ abstract class BaseMapper extends Mapper {
 	}
 
 	/**
-	 * @return array with two values: The SQL condition as string and the SQL parameters as string[]
+	 * @return array{0: string, 1: string[]} 0: The SQL condition; 1: SQL parameters
 	 */
 	protected function formatNameConditions(?string $name, int $matchMode) : array {
 		$params = [];
@@ -614,7 +614,7 @@ abstract class BaseMapper extends Mapper {
 	}
 
 	/**
-	 * @return array with two values: The SQL condition as string and the SQL parameters as string[]
+	 * @return array{0: string, 1: string[]} 0: The SQL condition; 1: SQL parameters
 	 */
 	protected function formatTimestampConditions(?string $createdMin, ?string $createdMax, ?string $updatedMin, ?string $updatedMax) : array {
 		$conditions = [];
