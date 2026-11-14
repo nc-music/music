@@ -129,9 +129,10 @@ class PlaylistFileService {
 	 * @param string $userId owner of the playlist
 	 * @param Folder $userFolder user home dir
 	 * @param string $filePath path of the file to import
-	 * @param 'append'|'overwrite' $mode
+	 * @param string $mode
 	 *         - 'append' (default) Append the imported tracks after the existing tracks on the list
 	 *         - 'overwrite' Replace any previous tracks on the list with the imported tracks
+	 * @phpstan-param 'append'|'overwrite' $mode
 	 * @return array{playlist: \OCA\Music\Db\Playlist, imported_count: int, failed_count: int}
 	 *         - 'playlist': The Playlist entity after the modification
 	 *         - 'imported_count': The number of tracks imported

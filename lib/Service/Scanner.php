@@ -154,7 +154,7 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array{analyze: int|float, 'db update': int|float} Information about consumed time in nanoseconds
+	 * @return array{analyze: int|float, db_update: int|float} Information about consumed time in nanoseconds
 	 */
 	private function updateAudio(File $file, string $userId, Folder $libraryRoot, string $filePath, string $mimetype, bool $partOfScan) : array {
 		$this->emit(self::class, 'update', [$filePath]);
@@ -231,7 +231,7 @@ class Scanner extends PublicEmitter {
 
 		return [
 			'analyze'   => $time2 - $time1,
-			'db update' => $time3 - $time2
+			'db_update' => $time3 - $time2
 		];
 	}
 
@@ -686,7 +686,7 @@ class Scanner extends PublicEmitter {
 			}
 			if ($file instanceof File) {
 				$memBefore = $debugOutput ? \memory_get_usage(true) : 0;
-				['analyze' => $analyzeTime, 'db update' => $dbTime]
+				['analyze' => $analyzeTime, 'db_update' => $dbTime]
 					= $this->updateAudio($file, $userId, $libraryRoot, $file->getPath(), $file->getMimetype(), /*partOfScan=*/true);
 				if ($debugOutput) {
 					$memAfter = \memory_get_usage(true);
