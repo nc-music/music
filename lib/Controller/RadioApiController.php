@@ -22,6 +22,7 @@ use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Service\PlaylistFileService;
 use OCA\Music\Service\RadioService;
 use OCA\Music\Service\StreamTokenService;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\HttpUtil;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -32,7 +33,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 
@@ -41,10 +41,10 @@ class RadioApiController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
 		private IURLGenerator $urlGenerator,
 		private RadioStationBusinessLayer $businessLayer,
 		private RadioService $service,
+		private SettingsStore $settings,
 		private StreamTokenService $tokenService,
 		private PlaylistFileService $playlistFileService,
 		private ?string $userId,
@@ -369,18 +369,14 @@ class RadioApiController extends Controller {
 	}
 
 	private function hlsEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.enable_radio_hls', true);
-		if ($this->userId === null) {
-			$enabled = (bool)$this->config->getSystemValue('music.enable_radio_hls_on_share', $enabled);
-		}
-		return $enabled;
+		return ($this->userId === null)
+			? $this->settings->radioHlsOnShareEnabled()
+			: $this->settings->radioHlsEnabled();
 	}
 
 	private function streamRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
-		if ($this->userId === null) {
-			$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream_on_share', $enabled);
-		}
-		return $enabled;
+		return ($this->userId === null)
+			? $this->settings->radioStreamRelayOnShareEnabled()
+			: $this->settings->radioStreamRelayEnabled();
 	}
 }

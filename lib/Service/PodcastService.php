@@ -19,6 +19,7 @@ use OCA\Music\BusinessLayer\PodcastEpisodeBusinessLayer;
 use OCA\Music\Db\PodcastChannel;
 use OCA\Music\Db\PodcastEpisode;
 use OCA\Music\Db\SortBy;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\FilesUtil;
 use OCA\Music\Utility\HttpUtil;
@@ -38,7 +39,7 @@ class PodcastService {
 		private PodcastChannelBusinessLayer $channelBusinessLayer,
 		private PodcastEpisodeBusinessLayer $episodeBusinessLayer,
 		private Logger $logger,
-		private IConfig $config,
+		private SettingsStore $settings,
 	) {
 	}
 
@@ -117,7 +118,8 @@ class PodcastService {
 	 * @return array{status: int, channel: ?PodcastChannel, message: string}
 	 */
 	public function subscribe(string $url, string $userId) : array {
-		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($url, $this->allowLocalSources());
+		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage]
+			= HttpUtil::loadFromUrl($url, $this->settings->localRemoteServersAllowed());
 		if ($content === false) {
 			return ['status' => self::STATUS_INVALID_URL, 'channel' => null, 'message' => "Error loading the URL: $statusCode $statusMessage"];
 		}
@@ -179,7 +181,7 @@ class PodcastService {
 		if ($channel !== null) {
 			$xmlTree = null;
 			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage]
-				= HttpUtil::loadFromUrl($channel->getRssUrl(), $this->allowLocalSources());
+				= HttpUtil::loadFromUrl($channel->getRssUrl(), $this->settings->localRemoteServersAllowed());
 			if ($content === false) {
 				$status = self::STATUS_INVALID_URL;
 				$message = "$statusCode $statusMessage";
@@ -404,10 +406,5 @@ class PodcastService {
 			throw new \OCP\Files\NotFoundException();
 		}
 		return $node;
-	}
-
-	private function allowLocalSources() : bool {
-		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
-		return $this->config->getSystemValue('music.allow_local_remote_servers', $default);
 	}
 }

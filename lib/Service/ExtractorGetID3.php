@@ -15,8 +15,8 @@
 namespace OCA\Music\Service;
 
 use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\Settings\SettingsStore;
 use OCP\Files\File;
-use OCP\IConfig;
 
 /**
  * an extractor class for getID3
@@ -26,7 +26,7 @@ class ExtractorGetID3 {
 	private ?\getID3 $getID3 = null; // lazy-loaded
 
 	public function __construct(
-		private IConfig $config,
+		private SettingsStore $settings,
 		private Logger $logger,
 	) {
 	}
@@ -53,19 +53,11 @@ class ExtractorGetID3 {
 			// they are ancient and often produces incorrect results, especially with non-Latin scripts (because these
 			// tags are supposed to be always in ISO-8859-1 but they have often been abused). Also, it may be cumbersome
 			// to remove incorrect Lyrics3 tags from files because they are not supported by most tag editors.
-			$this->getID3->option_tag_id3v1 = $this->getBooleanConfig('music.tag_enabled_id3v1', false);
-			$this->getID3->option_tag_id3v2 = $this->getBooleanConfig('music.tag_enabled_id3v2', true);
-			$this->getID3->option_tag_lyrics3 = $this->getBooleanConfig('music.tag_enabled_lyrics3', false);
-			$this->getID3->option_tag_apetag = $this->getBooleanConfig('music.tag_enabled_ape', true);
+			$this->getID3->option_tag_id3v1 = $this->settings->tagEnabledId3v1();
+			$this->getID3->option_tag_id3v2 = $this->settings->tagEnabledId3v2();
+			$this->getID3->option_tag_lyrics3 = $this->settings->tagEnabledLyrics3();
+			$this->getID3->option_tag_apetag = $this->settings->tagEnabledApe();
 		}
-	}
-
-	private function getBooleanConfig(string $key, bool $default) : bool {
-		$value = $this->config->getSystemValue($key, $default);
-		if (\is_string($value)) {
-			return \filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
-		}
-		return (bool)$value;
 	}
 
 	/**

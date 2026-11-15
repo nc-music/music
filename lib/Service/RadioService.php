@@ -15,11 +15,11 @@
 namespace OCA\Music\Service;
 
 use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\HttpUtil;
 use OCA\Music\Utility\StringUtil;
 use OCA\Music\Utility\Util;
-use OCP\IConfig;
 use OCP\IURLGenerator;
 
 /**
@@ -30,7 +30,7 @@ class RadioService {
 	public function __construct(
 		private IURLGenerator $urlGenerator,
 		private StreamTokenService $tokenService,
-		private IConfig $config,
+		private SettingsStore $settings,
 		private Logger $logger,
 	) {
 	}
@@ -311,8 +311,7 @@ class RadioService {
 	}
 
 	private function allowLocalStreams() : bool {
-		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
-		return $this->config->getSystemValue('music.allow_local_remote_servers', $default);
+		return $this->settings->localRemoteServersAllowed();
 	}
 
 }

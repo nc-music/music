@@ -14,8 +14,8 @@ namespace OCA\Music\Command;
 
 use OCA\Music\BusinessLayer\PodcastChannelBusinessLayer;
 use OCA\Music\BusinessLayer\PodcastEpisodeBusinessLayer;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\HttpUtil;
-use OCP\IConfig;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,7 +27,7 @@ class PodcastAdd extends BaseCommand {
 		\OCP\IGroupManager $groupManager,
 		private PodcastChannelBusinessLayer $channelBusinessLayer,
 		private PodcastEpisodeBusinessLayer $episodeBusinessLayer,
-		private IConfig $config,
+		private SettingsStore $settings,
 	) {
 		parent::__construct($userManager, $groupManager);
 	}
@@ -59,7 +59,7 @@ class PodcastAdd extends BaseCommand {
 	}
 
 	private function addPodcast(string $rss, InputInterface $input, OutputInterface $output, array $users) : void {
-		$rssData = HttpUtil::loadFromUrl($rss, $this->allowLocalSources());
+		$rssData = HttpUtil::loadFromUrl($rss, $this->settings->localRemoteServersAllowed());
 		$content = $rssData['content'];
 		if ($content === false) {
 			throw new \InvalidArgumentException("Invalid URL <error>$rss</error>! {$rssData['status_code']} {$rssData['message']}");
@@ -98,9 +98,4 @@ class PodcastAdd extends BaseCommand {
 		}
 	}
 
-	private function allowLocalSources() : bool {
-		// TODO: We need an own shared config class to avoid code duplication.
-		$default = $this->config->getSystemValue('allow_local_remote_servers', false); // generic setting from Nextcloud core
-		return $this->config->getSystemValue('music.allow_local_remote_servers', $default);
-	}
 }

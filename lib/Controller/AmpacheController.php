@@ -63,6 +63,7 @@ use OCA\Music\Service\PodcastService;
 use OCA\Music\Service\RadioService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
 use OCA\Music\Service\StreamTokenService;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\AppInfo;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\Random;
@@ -143,7 +144,6 @@ class AmpacheController extends ApiController {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
 		private IUserManager $userManager,
@@ -167,6 +167,7 @@ class AmpacheController extends ApiController {
 		private LastfmService $lastfmService,
 		private LibrarySettings $librarySettings,
 		private RadioService $radioService,
+		private SettingsStore $settings,
 		private StreamTokenService $streamTokenService,
 		private AudioTranscodeService $transcodeService,
 		private Random $random,
@@ -1677,7 +1678,7 @@ class AmpacheController extends ApiController {
 					$resolved = $this->radioService->resolveStreamUrl($streamUrl);
 					if ($resolved['url'] === null) {
 						return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
-					} elseif ($this->podcastRelayEnabled() && !$resolved['is_private_ip']) {
+					} elseif ($this->settings->podcastStreamRelayOnApiEnabled() && !$resolved['is_private_ip']) {
 						return new RelayStreamResponse($resolved['url']);
 					} else {
 						return new RedirectResponse($resolved['url']);
@@ -1689,11 +1690,11 @@ class AmpacheController extends ApiController {
 
 				if ($resolved['url'] === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "Failed to resolve the stream URL of the live stream $id");
-				} elseif ($this->radioRelayEnabled() && !$resolved['is_private_ip']) {
+				} elseif ($this->settings->radioStreamRelayOnApiEnabled() && !$resolved['is_private_ip']) {
 					if (!$resolved['hls']) {
 						// Relay a non-HLS stream
 						return new RelayStreamResponse($resolved['url']);
-					} elseif ($this->config->getSystemValue('music.enable_radio_hls', true)) {
+					} elseif ($this->settings->radioHlsEnabled()) {
 						// Relay a HLS stream.
 						// The manifest has to be rewritten so that the segments are also fetched through us, and that
 						// happens on a token-authenticated public route which is shared with the web UI.
@@ -2263,28 +2264,6 @@ class AmpacheController extends ApiController {
 	}
 
 	/**
-	 * Relaying the radio streams to the API clients is a separate decision from relaying them to the web UI,
-	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
-	 */
-	private function radioRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
-		return $this->isInternalSession()
-			? $enabled
-			: (bool)$this->config->getSystemValue('music.relay_radio_stream_on_api', $enabled);
-	}
-
-	/**
-	 * Relaying the podcasts to the API clients is a separate decision from relaying them to the web UI,
-	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
-	 */
-	private function podcastRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_podcast_stream', true);
-		return $this->isInternalSession()
-			? $enabled
-			: (bool)$this->config->getSystemValue('music.relay_podcast_stream_on_api', $enabled);
-	}
-
-	/**
 	 * @param Genre[] $genres
 	 */
 	private function renderTags(array $genres) : array {
@@ -2579,7 +2558,7 @@ class AmpacheController extends ApiController {
 			$ver = (int)$verString[0];
 		} else {
 			// Default version is 6 unless otherwise defined in config.php
-			$ver = (int)$this->config->getSystemValue('music.ampache_api_default_ver', 6);
+			$ver = $this->settings->ampacheApiDefaultVersion();
 		}
 
 		// For now, we have three supported major versions. Major version 3 can be sufficiently supported
