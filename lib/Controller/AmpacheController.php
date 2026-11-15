@@ -405,6 +405,7 @@ class AmpacheController extends ApiController {
 		// only 'podcast' and 'playlist' are documented to be supported and the implementation is really messy for the 'playlist'
 		// type, with inconsistencies between XML and JSON formats and XML-structures unlike any other actions.
 		if ($type == 'podcast' && $include) {
+			/** @var PodcastChannel[] $entities */
 			$this->injectEpisodesToChannels($entities);
 		}
 
@@ -1915,6 +1916,7 @@ class AmpacheController extends ApiController {
 		return new ErrorResponse(Http::STATUS_NOT_FOUND, 'entity has no cover');
 	}
 
+	/** @return array{0: ?string, 1: ?string, 2: ?string, 3: ?string} */
 	private static function parseTimeParameters(?string $add = null, ?string $update = null) : array {
 		// It's not documented, but Ampache supports also specifying date range on `add` and `update` parameters
 		// by using '/' as separator. If there is no such separator, then the value is used as a lower limit.
@@ -1928,10 +1930,15 @@ class AmpacheController extends ApiController {
 		return [$addMin, $addMax, $updateMin, $updateMax];
 	}
 
-	/** @phpstan-param BusinessLayer<covariant Entity> $businessLayer */
+	/**
+	 * @phpstan-template EntityType of Entity
+	 * @phpstan-param BusinessLayer<covariant EntityType> $businessLayer
+	 * @phpstan-return EntityType[]
+	 */
 	private function findEntities(
-			BusinessLayer $businessLayer, ?string $filter, bool $exact, ?int $limit = null, ?int $offset = null, ?string $add = null, ?string $update = null) : array {
-
+			BusinessLayer $businessLayer, ?string $filter, bool $exact,
+			?int $limit = null, ?int $offset = null, ?string $add = null, ?string $update = null
+	) : array {
 		$userId = $this->userId();
 
 		[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
