@@ -16,7 +16,9 @@ angular.module('Music').controller('MainController', [
 function ($rootScope, $scope, $document, $timeout, $window, gettextCatalog, Restangular,
 		scanService, libraryFactory, playQueueService, inViewService) {
 
-	gettextCatalog.currentLanguage = OC.getLanguage();
+	// Normalize BCP 47 language code (e.g. 'zh-CN', 'zh-TW', 'pt-BR') to POSIX format ('zh_CN', 'zh_TW', 'pt_BR')
+	// as expected by angular-gettext translation dictionaries
+	gettextCatalog.currentLanguage = (OC.getLanguage() || '').replace(/-/g, '_');
 
 	// Create a global rule to use themed icons for folders everywhere, the default icon-folder is not themed on NC 25 and later.
 	// It happens sometimes (at least on Chrome), that OC.MimeType is not yet present when we come here (see 
