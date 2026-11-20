@@ -4,6 +4,10 @@
 - Subsonic API: Proprietary extension `songListsNCM` providing the method `getSongList`
   [#192](https://github.com/nc-music/music/pull/192) @paroj
 
+### Fixed
+- Translations not shown for languages having a two-part language code. The most notable examples were "zh-CN" (Simplified Chinese) and "de-DE" (German, formal). (since Music v3.2.0)
+  [#194](https://github.com/nc-music/music/pull/194) @ashanzzz
+
 ## 3.3.1 - 2026-11-08
 
 ### Fixed
