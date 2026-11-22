@@ -4,9 +4,17 @@
 - Subsonic API: Proprietary extension `songListsNCM` providing the method `getSongList`
   [#192](https://github.com/nc-music/music/pull/192) @paroj
 
+### Changed
+- An image file named after an artist no longer doubles as the cover of the album in the same folder, unless the folder has no other image. A rescan is needed for this to take effect on an existing library.
+  [#102](https://github.com/nc-music/music/issues/102) @lachlan-00
+
 ### Fixed
 - Translations not shown for languages having a two-part language code. The most notable examples were "zh-CN" (Simplified Chinese) and "de-DE" (German, formal). (since Music v3.2.0)
   [#194](https://github.com/nc-music/music/pull/194) @ashanzzz
+- Ampache API: [#150](https://github.com/nc-music/music/pull/150) @lachlan-00
+  * Property `art` is now always a valid URL like on the original Ampache server, and the clients should use the property `has_art` to tell whether it resolves to a real image
+  * Art fetched with the action `get_art` was not cached by the clients, unlike the art fetched from `ampache/image.php`
+    [#102](https://github.com/nc-music/music/issues/102)
 
 ## 3.3.1 - 2026-11-08
 

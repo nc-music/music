@@ -331,7 +331,8 @@ class Track extends Entity {
 			'r128_track_gain'       => $this->getR128TrackGain(),
 		];
 
-		$result['has_art'] = !empty($result['art']);
+		// A song carries the art of its album, and so it has art exactly when the album has a cover file
+		$result['has_art'] = ($album !== null && $album->getCoverFileId() !== null);
 
 		$genreId = $this->getGenreId();
 		if ($genreId !== null) {
