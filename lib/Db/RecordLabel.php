@@ -31,16 +31,16 @@ class RecordLabel extends Entity {
 
 	public function toAmpacheApi() : array {
 		return [
-			'id' => (string)$this->getId(),
-			'name' => $this->getName(),
-			'artists' => $this->getArtistCount(),
-			'summary' => null,
+			'id'            => (string)$this->getId(),
+			'name'          => $this->getName(),
+			'artists'       => $this->getArtistCount(),
+			'summary'       => null,
 			'external_link' => null,
-			'address' => null,
-			'category' => 'tag_generated',
-			'email' => null,
-			'website' => null,
-			'user' => $this->getUserId(),
+			'address'       => null,
+			'category'      => 'tag_generated',
+			'email'         => null,
+			'website'       => null,
+			'user'          => $this->getUserId(),
 		];
 	}
 }

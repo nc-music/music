@@ -22,6 +22,7 @@ use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Service\PlaylistFileService;
 use OCA\Music\Service\RadioService;
 use OCA\Music\Service\StreamTokenService;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\HttpUtil;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -32,7 +33,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 
@@ -41,10 +41,10 @@ class RadioApiController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
 		private IURLGenerator $urlGenerator,
 		private RadioStationBusinessLayer $businessLayer,
 		private RadioService $service,
+		private SettingsStore $settings,
 		private StreamTokenService $tokenService,
 		private PlaylistFileService $playlistFileService,
 		private ?string $userId,
@@ -248,26 +248,6 @@ class RadioApiController extends Controller {
 	}
 
 	/**
-	 * get audio stream for a radio station
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	public function stationStream(int $id) : Response {
-		try {
-			$station = $this->businessLayer->find($id, $this->user());
-			$streamUrl = $station->getStreamUrl();
-			$resolved = $this->service->resolveStreamUrl($streamUrl);
-			if ($this->streamRelayEnabled()) {
-				return new RelayStreamResponse($resolved['url']);
-			} else {
-				return new RedirectResponse($resolved['url']);
-			}
-		} catch (BusinessLayerException $ex) {
-			return new ErrorResponse(Http::STATUS_NOT_FOUND, $ex->getMessage());
-		}
-	}
-
-	/**
 	 * get the actual stream URL from the given public URL
 	 *
 	 * Available without login since no user data is handled and this may be used on link-shared folder.
@@ -288,17 +268,18 @@ class RadioApiController extends Controller {
 
 	private function doResolveStreamUrl(string $url) : JSONResponse {
 		$resolved = $this->service->resolveStreamUrl($url);
-		$relayEnabled = $this->streamRelayEnabled();
 		if ($resolved['url'] === null) {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND, 'failed to read from the stream URL');
-		} else {
+		} elseif (!$resolved['is_private_ip']) {
+			// For security reasons, we don't relay streams that resolve to private IP addresses. Instead, just return the resolved URL.
+			// The client may still be able to stream from the URL directly if it is accessible from the client.
 			$token = $this->tokenService->tokenForUrl($resolved['url']);
 			if ($resolved['hls']) {
 				$resolved['url'] = $this->urlGenerator->linkToRoute(
 					'music.radioApi.hlsManifest',
 					['url' => \rawurlencode($resolved['url']), 'token' => \rawurlencode($token)]
 				);
-			} elseif ($relayEnabled) {
+			} elseif ($this->streamRelayEnabled()) {
 				$resolved['url'] = $this->urlGenerator->linkToRoute(
 					'music.radioApi.streamFromUrl',
 					['url' => \rawurlencode($resolved['url']), 'token' => \rawurlencode($token)]
@@ -388,18 +369,14 @@ class RadioApiController extends Controller {
 	}
 
 	private function hlsEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.enable_radio_hls', true);
-		if ($this->userId === null) {
-			$enabled = (bool)$this->config->getSystemValue('music.enable_radio_hls_on_share', $enabled);
-		}
-		return $enabled;
+		return ($this->userId === null)
+			? $this->settings->radioHlsOnShareEnabled()
+			: $this->settings->radioHlsEnabled();
 	}
 
 	private function streamRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
-		if ($this->userId === null) {
-			$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream_on_share', $enabled);
-		}
-		return $enabled;
+		return ($this->userId === null)
+			? $this->settings->radioStreamRelayOnShareEnabled()
+			: $this->settings->radioStreamRelayEnabled();
 	}
 }

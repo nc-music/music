@@ -34,12 +34,12 @@ use OCA\Music\Db\PodcastEpisode;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\SubsonicAPI;
-use OCA\Music\Http\FileResponse;
-use OCA\Music\Http\FileStreamResponse;
-use OCA\Music\Http\XmlResponse;
 use OCA\Music\Http\AudioTranscodeResponse;
+use OCA\Music\Http\FileResponse;
+use OCA\Music\Http\XmlResponse;
 use OCA\Music\Middleware\SubsonicException;
 use OCA\Music\Service\Ampache\AmpacheImageService;
+use OCA\Music\Service\AudioTranscodeService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
@@ -71,7 +71,6 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
-use OCP\IBinaryFinder;
 
 class SubsonicController extends ApiController {
 	private const API_VERSION = '1.16.1';
@@ -84,7 +83,6 @@ class SubsonicController extends ApiController {
 	private array $ignoredArticles;
 	private string $format;
 	private ?string $callback;
-	private string|false $ffmpegPath;
 
 	public function __construct(
 		string $appName,
@@ -108,12 +106,12 @@ class SubsonicController extends ApiController {
 		private LastfmService $lastfmService,
 		private PodcastService $podcastService,
 		private AmpacheImageService $imageService,
+		private AudioTranscodeService $transcodeService,
 		private Random $random,
 		private Logger $logger,
 		private IConfig $configManager,
 		private IScrobbler $scrobbler,
 		private Concurrency $concurrency,
-		IBinaryFinder $binaryFinder,
 	) {
 		parent::__construct($appName, $request, 'POST, GET', 'Authorization, Content-Type, Accept, X-Requested-With');
 
@@ -122,15 +120,6 @@ class SubsonicController extends ApiController {
 		$this->keyId = null;
 		$this->ignoredArticles = [];
 		$this->format = 'xml'; // default, should be immediately overridden by SubsonicMiddleware
-
-		$useFfmpeg = $configManager->getSystemValue("music.use_ffpmeg", true);
-		if ($useFfmpeg === false) {
-			$this->ffmpegPath = false;
-		} elseif (is_string($useFfmpeg)) {
-			$this->ffmpegPath = $useFfmpeg;
-		} else {
-			$this->ffmpegPath = $binaryFinder->findBinaryPath("ffmpeg");
-		}
 	}
 
 	/**
@@ -255,25 +244,23 @@ class SubsonicController extends ApiController {
 	}
 
 	#[SubsonicAPI]
-	protected function getAlbumList(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
-		$albums = $this->albumsForGetAlbumList($type, $genre, $fromYear, $toYear, $size, $offset);
+	protected function getAlbumList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
+		$albums = $this->getListByCriteria('albumList', $this->albumBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['albumList' => [
 			'album' => \array_map([$this, 'albumToOldApi'], $albums)
 		]];
 	}
 
 	#[SubsonicAPI]
-	protected function getAlbumList2(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
+	protected function getAlbumList2(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
 		/*
 		 * According to the API specification, the difference between this and getAlbumList
 		 * should be that this function would organize albums according the metadata while
 		 * getAlbumList would organize them by folders. However, we organize by metadata
-		 * also in getAlbumList, because that's more natural for the Music app and many/most
+		 * also in getAlbumList, because that's more natural for the Music app and many older
 		 * clients do not support getAlbumList2.
 		 */
-		$albums = $this->albumsForGetAlbumList($type, $genre, $fromYear, $toYear, $size, $offset);
+		$albums = $this->getListByCriteria('albumList2', $this->albumBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
 		return ['albumList2' => [
 			'album' => \array_map([$this, 'albumToNewApi'], $albums)
 		]];
@@ -360,7 +347,7 @@ class SubsonicController extends ApiController {
 		$size = \min($size, 500); // the API spec limits the maximum amount to 500
 
 		if ($genre !== null) {
-			$trackPool = $this->findTracksByGenre($genre);
+			$trackPool = $this->findByGenreName($this->trackBusinessLayer, $genre);
 		} else {
 			$trackPool = $this->trackBusinessLayer->findAll($this->user());
 		}
@@ -511,9 +498,21 @@ class SubsonicController extends ApiController {
 
 	#[SubsonicAPI]
 	protected function getSongsByGenre(string $genre, int $count = 10, int $offset = 0) : array {
-		$tracks = $this->findTracksByGenre($genre, $count, $offset);
+		$tracks = $this->findByGenreName($this->trackBusinessLayer, $genre, $count, $offset);
 
 		return ['songsByGenre' => [
+			'song' => $this->tracksToApi($tracks)
+		]];
+	}
+
+	/**
+	 * Proprietary OpenSubsonic extension for track-level song lists, analogous to getAlbumList2.
+	 * The supported list types mirror getAlbumList2.
+	 */
+	#[SubsonicAPI]
+	protected function getSongList(string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size = 10, int $offset = 0) : array {
+		$tracks = $this->getListByCriteria('songList', $this->trackBusinessLayer, $type, $genre, $fromYear, $toYear, $size, $offset);
+		return ['songList' => [
 			'song' => $this->tracksToApi($tracks)
 		]];
 	}
@@ -743,9 +742,9 @@ class SubsonicController extends ApiController {
 					}
 
 					if ($submission) {
-						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $timeOfPlay, $c);
+						$this->scrobbler->recordTrackPlayed($tracksById[$trackId], $c, $timeOfPlay);
 					} else {
-						$this->scrobbler->setNowPlaying($tracksById[$trackId], $timeOfPlay, $c);
+						$this->scrobbler->setNowPlaying($tracksById[$trackId], $c, $timeOfPlay);
 					}
 				}
 			}
@@ -1115,7 +1114,8 @@ class SubsonicController extends ApiController {
 			[ 'name' => 'formPost', 'versions' => [1] ],
 			[ 'name' => 'getPodcastEpisode', 'versions' => [1] ],
 			[ 'name' => 'songLyrics', 'versions' => [1] ],
-			[ 'name' => 'indexBasedQueue', 'versions' => [1] ]
+			[ 'name' => 'indexBasedQueue', 'versions' => [1] ],
+			[ 'name' => 'songListsNCM', 'versions' => [1] ], // proprietary
 		]];
 	}
 
@@ -1123,82 +1123,32 @@ class SubsonicController extends ApiController {
 	 * Helper methods
 	 * -------------------------------------------------------------------------
 	 */
-	private function canTranscode(
-		Track $track,
-		?string $format,
-		?int $maxBitrate,
-	): bool {
-		// no ffmpeg or disabled
-		if (!$this->ffmpegPath) {
-			return false;
-		}
-		// raw format asked
-		if ($format === "raw") {
-			return false;
-		}
-		// no format specified and no max bitrate => can use original
-		if ($format === null && ($maxBitrate === 0 || $maxBitrate === null)) {
-			return false;
-		}
-		// claculate if has same mimetype
-		$sameMimetype = true;
-		// if format is not defined, consider that mimetype is same
-		if ($format !== null && $format !== "") {
-			$mimeType = AudioTranscodeResponse::getMimetype($format);
-			if ($mimeType !== null) {
-				$sameMimetype = str_starts_with(
-					$mimeType,
-					$track->getMimetype(),
-				);
-			}
-		}
-		// if same format, and bitrate is compatible => no need to transcode
-		if (
-			$sameMimetype &&
-			($maxBitrate === null ||
-				$maxBitrate === 0 ||
-				$track->getBitrate() <= $maxBitrate * 1000)
-		) {
-			return false;
-		}
-		return true;
-	}
-
 	private function doDownload(
 		string $id,
 		?string $format,
 		?int $maxBitrate,
 	): Response {
 		if (
-			$format === AudioTranscodeResponse::FLAC &&
-			$maxBitrate !== null &&
-			$maxBitrate !== 0
+			$format === AudioTranscodeResponse::FLAC
+			&& $maxBitrate !== null
+			&& $maxBitrate !== 0
 		) {
 			return $this->subsonicErrorResponse(
 				0,
-				"Cannot limit bitrate when requesting a lossless format",
+				'Cannot limit bitrate when requesting a lossless format',
 			);
 		}
 		[$type, $entityId] = self::parseEntityId($id);
-		if ($type === "track") {
+		if ($type === 'track') {
 			$track = $this->trackBusinessLayer->find($entityId, $this->user());
 			$file = $this->getFilesystemNode($track->getFileId());
 
 			if ($file instanceof File) {
-				if ($this->canTranscode($track, $format, $maxBitrate)) {
-					return new AudioTranscodeResponse(
-						$this->ffmpegPath,
-						$this->logger,
-						$file,
-						$format,
-						$maxBitrate,
-					);
-				}
-				return new FileStreamResponse($file);
+				return $this->transcodeService->responseForTrack($track, $file, $format, $maxBitrate);
 			} else {
-				return $this->subsonicErrorResponse(70, "file not found");
+				return $this->subsonicErrorResponse(70, 'file not found');
 			}
-		} elseif ($type === "podcast_episode") {
+		} elseif ($type === 'podcast_episode') {
 			$episode = $this->podcastService->getEpisode(
 				$entityId,
 				$this->user(),
@@ -1206,7 +1156,7 @@ class SubsonicController extends ApiController {
 			if ($episode instanceof PodcastEpisode) {
 				return new RedirectResponse($episode->getStreamUrl());
 			} else {
-				return $this->subsonicErrorResponse(70, "episode not found");
+				return $this->subsonicErrorResponse(70, 'episode not found');
 			}
 		} else {
 			return $this->subsonicErrorResponse(
@@ -1545,7 +1495,7 @@ class SubsonicController extends ApiController {
 			'starred'       => Util::formatZuluDateTime($album->getStarred()),
 			'userRating'    => $album->getRating() ?: null,
 			'averageRating' => $album->getRating() ?: null,
-			'year'          => $album->yearToAPI(),
+			'year'          => $album->getYear(),
 			'genre'         => \implode(', ', $genres) ?: null,
 			'genres'        => \array_map(fn ($name) => ['name' => $name], $genres), // OpenSubsonic
 			'sortName'      => $this->nameWithoutArticle($album->getName()) ?? '', // OpenSubsonic
@@ -1597,7 +1547,7 @@ class SubsonicController extends ApiController {
 		];
 
 		/** @var array{'track': Track[], 'podcast_episode': PodcastEpisode[]} $apiEntriesLut */
-		$apiEntriesLut = \array_merge([], ...array_map(
+		$apiEntriesLut = \array_merge([], ...\array_map(
 			function ($handlers) use ($parsedEntries) {
 				[$type, $lookupFn, $toApiFn] = $handlers;
 				$typeEntryIds = \array_map(
@@ -1624,58 +1574,43 @@ class SubsonicController extends ApiController {
 	}
 
 	/**
-	 * Common logic for getAlbumList and getAlbumList2
-	 * @return Album[]
+	 * Common logic for getAlbumList, getAlbumList2, and getSongList.
+	 * @return Album[]|Track[]
 	 */
-	private function albumsForGetAlbumList(
-			string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size, int $offset) : array {
+	private function getListByCriteria(
+			string $listName, AlbumBusinessLayer|TrackBusinessLayer $businessLayer, string $type, ?string $genre, ?int $fromYear, ?int $toYear, int $size, int $offset) : array {
 		$size = \min($size, 500); // the API spec limits the maximum amount to 500
 		$userId = $this->user();
 
-		$albums = [];
-
 		switch ($type) {
 			case 'random':
-				$allAlbums = $this->albumBusinessLayer->findAll($userId);
-				$indices = $this->random->getIndices(\count($allAlbums), $offset, $size, $userId, 'subsonic_albums');
-				$albums = ArrayUtil::multiGet($allAlbums, $indices);
-				break;
+				$allEntities = $businessLayer->findAll($userId);
+				$indices = $this->random->getIndices(\count($allEntities), $offset, $size, $userId, "subsonic_$listName");
+				return ArrayUtil::multiGet($allEntities, $indices);
 			case 'starred':
-				$albums = $this->albumBusinessLayer->findAllStarred($userId, $size, $offset);
-				break;
+				return $businessLayer->findAllStarred($userId, $size, $offset);
 			case 'alphabeticalByName':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Name, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Name, $size, $offset);
 			case 'alphabeticalByArtist':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Parent, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Parent, $size, $offset);
 			case 'byGenre':
 				self::ensureParamHasValue('genre', $genre);
-				$albums = $this->findAlbumsByGenre($genre, $size, $offset);
-				break;
+				return $this->findByGenreName($businessLayer, $genre, $size, $offset);
 			case 'byYear':
 				self::ensureParamHasValue('fromYear', $fromYear);
 				self::ensureParamHasValue('toYear', $toYear);
-				$albums = $this->albumBusinessLayer->findAllByYearRange($fromYear, $toYear, $userId, $size, $offset);
-				break;
+				return $this->findByYearRange($businessLayer, $fromYear, $toYear, $userId, $size, $offset);
 			case 'newest':
-				$albums = $this->albumBusinessLayer->findAll($userId, SortBy::Newest, $size, $offset);
-				break;
+				return $businessLayer->findAll($userId, SortBy::Newest, $size, $offset);
 			case 'frequent':
-				$albums = $this->albumBusinessLayer->findFrequentPlay($userId, $size, $offset);
-				break;
+				return $businessLayer->findFrequentPlay($userId, $size, $offset);
 			case 'recent':
-				$albums = $this->albumBusinessLayer->findRecentPlay($userId, $size, $offset);
-				break;
+				return $businessLayer->findRecentPlay($userId, $size, $offset);
 			case 'highest':
-				$albums = $this->albumBusinessLayer->findAllRated($userId, $size, $offset);
-				break;
+				return $businessLayer->findAllRated($userId, $size, $offset);
 			default:
-				$this->logger->debug("Album list type '$type' is not supported");
-				break;
+				throw new SubsonicException("List type '$type' is not supported", 0);
 		}
-
-		return $albums;
 	}
 
 	/**
@@ -1732,7 +1667,7 @@ class SubsonicController extends ApiController {
 
 			$artist = $this->artistBusinessLayer->find($artistId, $userId);
 			if ($artist->getCoverFileId() !== null) {
-				$content['largeImageUrl'] = [$this->artistImageUrl($artistId)];
+				$content['largeImageUrl'] = $this->artistImageUrl($artistId);
 			}
 		}
 
@@ -1742,8 +1677,8 @@ class SubsonicController extends ApiController {
 		}
 
 		// This method is unusual in how it uses non-attribute elements in the response. On the other hand,
-		// all the details of the <similarArtist> elements are rendered as attributes. List those separately.
-		$attributeKeys = ['name', 'id', 'albumCount', 'coverArt', 'artistImageUrl', 'starred'];
+		// all the details of the <similarArtist> elements are rendered as attributes.
+		$attributeKeys = ['similarArtist.*'];
 
 		return $this->subsonicResponse([$rootName => $content], $attributeKeys);
 	}
@@ -1844,7 +1779,7 @@ class SubsonicController extends ApiController {
 
 	/**
 	 * Common logic for search2 and search3
-	 * @return array with keys 'artists', 'albums', and 'tracks'
+	 * @return array{artists: Artist[], albums: Album[], tracks: Track[]}
 	 */
 	private function doSearch(string $query, int $artistCount, int $artistOffset,
 			int $albumCount, int $albumOffset, int $songCount, int $songOffset) : array {
@@ -1891,31 +1826,12 @@ class SubsonicController extends ApiController {
 	}
 
 	/**
-	 * Find tracks by genre name
-	 * @return Track[]
+	 * Find albums or tracks by genre name
+	 * @return Album[]|Track[]
 	 */
-	private function findTracksByGenre(string $genreName, ?int $limit = null, ?int $offset = null) : array {
+	private function findByGenreName(AlbumBusinessLayer|TrackBusinessLayer $businessLayer, string $genreName, ?int $limit = null, ?int $offset = null) : array {
 		$genre = $this->findGenreByName($genreName);
-
-		if ($genre) {
-			return $this->trackBusinessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset);
-		} else {
-			return [];
-		}
-	}
-
-	/**
-	 * Find albums by genre name
-	 * @return Album[]
-	 */
-	private function findAlbumsByGenre(string $genreName, ?int $limit = null, ?int $offset = null) : array {
-		$genre = $this->findGenreByName($genreName);
-
-		if ($genre) {
-			return $this->albumBusinessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset);
-		} else {
-			return [];
-		}
+		return $genre ? $businessLayer->findAllByGenre($genre->getId(), $this->user(), $limit, $offset) : [];
 	}
 
 	private function findGenreByName(string $name) : ?Genre {
@@ -1924,6 +1840,36 @@ class SubsonicController extends ApiController {
 			$genreArr = $this->genreBusinessLayer->findAllByName('', $this->user());
 		}
 		return \count($genreArr) ? $genreArr[0] : null;
+	}
+
+	private function findByYearRange(
+			AlbumBusinessLayer|TrackBusinessLayer $businessLayer, int $fromYear, int $toYear, string $userId, ?int $limit, ?int $offset) : array {
+		$reverseOrder = false;
+		if ($fromYear > $toYear) {
+			$reverseOrder = true;
+			Util::swap($fromYear, $toYear);
+		}
+
+		$entities = $businessLayer->findAllAdvanced(
+			'and', [
+				['rule' => 'year', 'operator' => '>=', 'input' => $fromYear],
+				['rule' => 'year', 'operator' => '<=', 'input' => $toYear]
+			],
+			$userId
+		);
+
+		// Our Mapper interface does not support sorting by year, so we sort and slice the result here in PHP.
+		\usort($entities, function ($entity1, $entity2) use ($reverseOrder) {
+			return $reverseOrder
+				? $entity2->getYear() - $entity1->getYear()
+				: $entity1->getYear() - $entity2->getYear();
+		});
+
+		if ($limit !== null || $offset !== null) {
+			$entities = \array_slice($entities, $offset ?: 0, $limit);
+		}
+
+		return $entities;
 	}
 
 	private function artistImageUrl(int $id) : string {
@@ -1975,7 +1921,7 @@ class SubsonicController extends ApiController {
 			$response->addHeader('Content-Type', 'text/javascript; charset=UTF-8');
 		} else {
 			if (\is_array($useAttributes)) {
-				$useAttributes = \array_merge($useAttributes, ['status', 'version', 'type', 'serverVersion', 'openSubsonic', 'xmlns']);
+				$useAttributes[] = 'subsonic-response.*';
 			}
 			$responseData['subsonic-response']['xmlns'] = 'http://subsonic.org/restapi';
 			$response = new XmlResponse($responseData, $useAttributes);

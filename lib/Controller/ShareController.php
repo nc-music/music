@@ -60,6 +60,9 @@ class ShareController extends Controller {
 				$fileId = $share->getNodeId();
 			} else {
 				$folder = $this->getSharedFolder($token);
+				if (empty($folder->getById($fileId))) {
+					return new ErrorResponse(Http::STATUS_NOT_FOUND, 'no such file under the share');
+				}
 			}
 
 			$info = $this->scanner->getFileInfo($fileId, $shareOwner, $folder);

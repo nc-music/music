@@ -30,7 +30,7 @@ class FileSystemService {
 
 	/**
 	 * Returns all folders of the user containing indexed tracks, along with the contained track IDs
-	 * @return array of entries like {id: int, name: string, parent: ?int, trackIds: int[]}
+	 * @return array<array{id: int, name: string, parent: ?int, trackIds: int[]}>
 	 */
 	public function findAllFolders(string $userId, Folder $musicFolder) : array {
 		// All tracks of the user, grouped by their parent folders. Some of the parent folders
@@ -93,8 +93,8 @@ class FileSystemService {
 	 * Get folder info lookup table, for the given tracks. The table will contain all the predecessor folders
 	 * between those tracks and the root music folder (inclusive).
 	 *
-	 * @param array $trackIdsByFolder Keys are folder IDs and values are arrays of track IDs
-	 * @return array Keys are folder IDs and values are arrays like ['name' : string, 'parent' : int, 'trackIds' : int[]]
+	 * @param array<int, int[]> $trackIdsByFolder Keys are folder IDs and values are arrays of track IDs
+	 * @return array<int, array{name: string, parent: ?int, trackIds: int[]}> where keys are folder IDs
 	 */
 	private function getFoldersLut(array $trackIdsByFolder, string $userId, Folder $musicFolder) : array {
 		// Get the folder names and direct parent folder IDs directly from the DB.
@@ -126,9 +126,10 @@ class FileSystemService {
 	}
 
 	/**
-	 * Add externally mounted folders and shared files and folders to the folder LUT if there are any under the $musicFolder
+	 * Add externally mounted folders and shared files and folders to the folder LUT if there are any under the $musicFolder.
+	 * The library root folder must be included in the LUT before calling this function.
 	 *
-	 * @param array $lut (in|out) Keys are folder IDs and values are arrays like ['name' : string, 'parent' : int, 'trackIds' : int[]]
+	 * @param array<int, array{name: string, parent: ?int, trackIds: int[]}> $lut (in|out) where keys are folder IDs
 	 */
 	private function addExternalMountsToFoldersLut(array &$lut, string $userId, Folder $musicFolder) : void {
 		$nodesUnderRoot = $musicFolder->getDirectoryListing();
@@ -155,6 +156,7 @@ class FileSystemService {
 							if ($trackIdIdx !== false) {
 								// move the track from it's actual parent (in other user's storage) to our root
 								unset($entry['trackIds'][$trackIdIdx]);
+								\assert(isset($lut[$rootFolderId])); // this is needed to help PHPStan
 								$lut[$rootFolderId]['trackIds'][] = $trackId;
 
 								// remove the former parent folder if it has no more tracks and it's not one of the mount point folders
@@ -176,7 +178,7 @@ class FileSystemService {
 	 * Add any missing intermediary folder to the LUT. For this function to work correctly, the pre-condition is that the LUT contains
 	 * a root node which is predecessor of all other contained nodes and has 'parent' set as null.
 	 *
-	 * @param array $lut (in|out) Keys are folder IDs and values are arrays like ['name' : string, 'parent' : int, 'trackIds' : int[]]
+	 * @param array<int, array{name: string, parent: ?int, trackIds: int[]}> $lut (in|out) where keys are folder IDs
 	 */
 	private function addMissingParentsToFoldersLut(array &$lut) : void {
 		$foldersToProcess = $lut;

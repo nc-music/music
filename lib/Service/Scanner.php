@@ -19,6 +19,7 @@ use OCA\Music\AppFramework\Core\Logger;
 use OCA\Music\BusinessLayer\AlbumBusinessLayer;
 use OCA\Music\BusinessLayer\ArtistBusinessLayer;
 use OCA\Music\BusinessLayer\GenreBusinessLayer;
+use OCA\Music\BusinessLayer\Library;
 use OCA\Music\BusinessLayer\PlaylistBusinessLayer;
 use OCA\Music\BusinessLayer\RecordLabelBusinessLayer;
 use OCA\Music\BusinessLayer\TrackBusinessLayer;
@@ -48,6 +49,7 @@ class Scanner extends PublicEmitter {
 		private PlaylistBusinessLayer $playlistBusinessLayer,
 		private GenreBusinessLayer $genreBusinessLayer,
 		private RecordLabelBusinessLayer $recordLabelBusinessLayer,
+		private Library $library,
 		private Cache $cache,
 		private CoverService $coverService,
 		private Logger $logger,
@@ -162,7 +164,7 @@ class Scanner extends PublicEmitter {
 	}
 
 	/**
-	 * @return array Information about consumed time: ['analyze' => int|float, 'db update' => int|float]
+	 * @return array{analyze: int|float, db_update: int|float} Information about consumed time in nanoseconds
 	 */
 	private function updateAudio(File $file, string $userId, Folder $libraryRoot, string $filePath, string $mimetype, bool $partOfScan) : array {
 		$this->emit(self::class, 'update', [$filePath]);
@@ -239,7 +241,7 @@ class Scanner extends PublicEmitter {
 
 		return [
 			'analyze'   => $time2 - $time1,
-			'db update' => $time3 - $time2
+			'db_update' => $time3 - $time2
 		];
 	}
 
@@ -307,7 +309,7 @@ class Scanner extends PublicEmitter {
 
 		// track number
 		$meta['track_number'] = self::normalizeOrdinal(
-			ExtractorGetID3::getFirstOfTags($fileInfo,['track_number', 'tracknumber', 'track'], $fieldsFromFileName['track_number'])
+			ExtractorGetID3::getFirstOfTags($fileInfo, ['track_number', 'tracknumber', 'track'], $fieldsFromFileName['track_number'])
 		);
 
 		// disc number
@@ -338,7 +340,7 @@ class Scanner extends PublicEmitter {
 
 		$meta['sample_rate'] = self::normalizeUnsigned($fileInfo['audio']['sample_rate'] ?? null);
 
-		// MusicBrainz IDs
+		// MusicBrainz IDs (multivalued artist IDs are rejected while we have no proper multi-artist support)
 		$meta['mb_recording_id'] = self::normalizeMbid(
 			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Recording Id', 'musicbrainz_trackid'])
 		);
@@ -346,13 +348,13 @@ class Scanner extends PublicEmitter {
 			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Release Track Id', 'musicbrainz_releasetrackid'])
 		);
 		$meta['mb_artist_id'] = self::normalizeMbid(
-			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Artist Id', 'musicbrainz_artistid'])
+			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Artist Id', 'musicbrainz_artistid'], null, true)
 		);
 		$meta['mb_release_artist_id'] = self::normalizeMbid(
-			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Album Artist Id', 'musicbrainz_albumartistid'])
+			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Album Artist Id', 'musicbrainz_albumartistid'], null, true)
 		);
 		$meta['mb_composer_id'] = self::normalizeMbid(
-			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Composer Id', 'musicbrainz_composerid'])
+			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Composer Id', 'musicbrainz_composerid'], null, true)
 		);
 		$meta['mb_release_id'] = self::normalizeMbid(
 			ExtractorGetID3::getFirstOfTags($fileInfo, ['MusicBrainz Album Id', 'musicbrainz_albumid'])
@@ -367,10 +369,10 @@ class Scanner extends PublicEmitter {
 		}
 
 		// Replay gain
-		$meta['replaygain_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_album_gain'));
-		$meta['replaygain_album_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_album_peak'));
-		$meta['replaygain_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_gain'));
-		$meta['replaygain_track_peak'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'replaygain_track_peak'));
+		$meta['replaygain_album_gain'] = self::normalizeFloat($fileInfo['replay_gain']['album']['adjustment'] ?? null);
+		$meta['replaygain_album_peak'] = self::normalizeFloat($fileInfo['replay_gain']['album']['peak'] ?? null);
+		$meta['replaygain_track_gain'] = self::normalizeFloat($fileInfo['replay_gain']['track']['adjustment'] ?? null);
+		$meta['replaygain_track_peak'] = self::normalizeFloat($fileInfo['replay_gain']['track']['peak'] ?? null);
 		$meta['r128_album_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'r128_album_gain'));
 		$meta['r128_track_gain'] = self::normalizeFloat(ExtractorGetID3::getTag($fileInfo, 'r128_track_gain'));
 
@@ -451,6 +453,10 @@ class Scanner extends PublicEmitter {
 				$result['obsoleteAlbums'],
 				$result['obsoleteArtists']
 			);
+
+			foreach ($result['affectedUsers'] as $affectedUserId) {
+				$this->library->setLastCleanTime($affectedUserId, \time());
+			}
 
 			$this->logger->debug('removed entities: ' . \json_encode($result));
 			$this->emit(self::class, 'delete', [$result['deletedTracks'], $result['affectedUsers']]);
@@ -690,7 +696,7 @@ class Scanner extends PublicEmitter {
 			}
 			if ($file instanceof File) {
 				$memBefore = $debugOutput ? \memory_get_usage(true) : 0;
-				['analyze' => $analyzeTime, 'db update' => $dbTime]
+				['analyze' => $analyzeTime, 'db_update' => $dbTime]
 					= $this->updateAudio($file, $userId, $libraryRoot, $file->getPath(), $file->getMimetype(), /*partOfScan=*/true);
 				if ($debugOutput) {
 					$memAfter = \memory_get_usage(true);

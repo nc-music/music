@@ -108,7 +108,7 @@ class PlaceholderImage {
 		if (empty($displayName) === true) {
 			return '?';
 		}
-		$firstTwoLetters = array_map(
+		$firstTwoLetters = \array_map(
 			fn ($namePart) => \mb_strtoupper(\mb_substr($namePart, 0, 1), 'UTF-8'),
 			\explode(' ', $displayName, 2)
 		);
@@ -175,7 +175,7 @@ class PlaceholderImage {
 		$hash = \strtolower($hash);
 
 		// Already a md5 hash?
-		if (preg_match('/^([0-9a-f]{4}-?){8}$/', $hash, $matches) !== 1) {
+		if (\preg_match('/^([0-9a-f]{4}-?){8}$/', $hash, $matches) !== 1) {
 			$hash = \md5($hash);
 		}
 

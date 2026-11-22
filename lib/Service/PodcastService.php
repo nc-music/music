@@ -19,11 +19,13 @@ use OCA\Music\BusinessLayer\PodcastEpisodeBusinessLayer;
 use OCA\Music\Db\PodcastChannel;
 use OCA\Music\Db\PodcastEpisode;
 use OCA\Music\Db\SortBy;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\FilesUtil;
 use OCA\Music\Utility\HttpUtil;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\IConfig;
 
 class PodcastService {
 
@@ -37,6 +39,7 @@ class PodcastService {
 		private PodcastChannelBusinessLayer $channelBusinessLayer,
 		private PodcastEpisodeBusinessLayer $episodeBusinessLayer,
 		private Logger $logger,
+		private SettingsStore $settings,
 	) {
 	}
 
@@ -115,7 +118,8 @@ class PodcastService {
 	 * @return array{status: int, channel: ?PodcastChannel, message: string}
 	 */
 	public function subscribe(string $url, string $userId) : array {
-		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($url);
+		['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage]
+			= HttpUtil::loadFromUrl($url, $this->settings->localRemoteServersAllowed());
 		if ($content === false) {
 			return ['status' => self::STATUS_INVALID_URL, 'channel' => null, 'message' => "Error loading the URL: $statusCode $statusMessage"];
 		}
@@ -176,7 +180,8 @@ class PodcastService {
 
 		if ($channel !== null) {
 			$xmlTree = null;
-			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage] = HttpUtil::loadFromUrl($channel->getRssUrl());
+			['content' => $content, 'status_code' => $statusCode, 'message' => $statusMessage]
+				= HttpUtil::loadFromUrl($channel->getRssUrl(), $this->settings->localRemoteServersAllowed());
 			if ($content === false) {
 				$status = self::STATUS_INVALID_URL;
 				$message = "$statusCode $statusMessage";
@@ -334,10 +339,10 @@ class PodcastService {
 	 * @param string $userId user
 	 * @param Folder $userFolder user home dir
 	 * @param string $filePath path of the file to import
-	 * @return array with three keys:
-	 *               - 'channels': Array of PodcastChannel objects imported from the file
-	 *               - 'not_changed_count': An integer showing the number of channels in the file which were already subscribed by the user
-	 *               - 'failed_count': An integer showing the number of entries in the file which were not valid URLs
+	 * @return array{channels: PodcastChannel[], not_changed_count: int, failed_count: int}
+	 *         - 'channels': Channels imported from the file
+	 *         - 'not_changed_count': The number of channels in the file which were already subscribed by the user
+	 *         - 'failed_count': The number of entries in the file which were not valid URLs
 	 * @throws \OCP\Files\NotFoundException if the $filePath is not a valid file
 	 * @throws \UnexpectedValueException if the $filePath points to a file of unsupported type
 	 */

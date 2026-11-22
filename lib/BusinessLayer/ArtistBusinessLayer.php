@@ -149,7 +149,7 @@ class ArtistBusinessLayer extends BusinessLayer {
 			$existingIdsForName = $this->mapper->findIdsAndMbidsByHash($hash, $userId);
 
 			if ($mbid !== null) {
-				if ($mbidMatch = ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid || $row['mbid'] === null)) {
+				if ($mbidMatch = (ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === $mbid) ?? ArrayUtil::find($existingIdsForName, fn ($row) => $row['mbid'] === null))) {
 					// DB already has artist with this MBID or no MBID, update it
 					$artist->setId($mbidMatch['id']);
 					return $this->mapper->update($artist);
@@ -158,6 +158,7 @@ class ArtistBusinessLayer extends BusinessLayer {
 				// the input has no MBID but the DB has at least one artist with matching name (which may or may not have MBID),
 				// merge the input with the first such artist
 				$artist->setId($existingIdsForName[0]['id']);
+				$artist->setMbid($existingIdsForName[0]['mbid']);
 				return $this->mapper->update($artist);
 			}
 			// TODO: Should we combine artists who have different name but same MBID (likely an artist whose credited name varies between works)

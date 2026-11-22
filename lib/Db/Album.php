@@ -175,11 +175,11 @@ class Album extends Entity {
 	}
 
 	/**
-	 * The Shiva and Ampache API definitions require the year to be a single numeric value.
+	 * The Shiva, Ampache, and Subsonic API definitions require the year to be a single numeric value.
 	 * In case the album has multiple years, output the largest of these in the API.
 	 * @return int|null
 	 */
-	public function yearToAPI() : ?int {
+	public function getYear() : ?int {
 		return empty($this->years) ? null : (int)\max($this->years);
 	}
 
@@ -231,7 +231,7 @@ class Album extends Entity {
 	public function toShivaApi(IURLGenerator $urlGenerator, IL10N $l10n) : array {
 		return [
 			'name'          => $this->getNameString($l10n),
-			'year'          => $this->yearToAPI(),
+			'year'          => $this->getYear(),
 			'cover'         => $this->coverToApi($urlGenerator),
 			'id'            => $this->getId(),
 			'uri'           => $this->uriToShivaApi($urlGenerator),

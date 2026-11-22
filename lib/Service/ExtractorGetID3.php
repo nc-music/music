@@ -15,8 +15,8 @@
 namespace OCA\Music\Service;
 
 use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\Settings\SettingsStore;
 use OCP\Files\File;
-use OCP\IConfig;
 
 /**
  * an extractor class for getID3
@@ -26,7 +26,7 @@ class ExtractorGetID3 {
 	private ?\getID3 $getID3 = null; // lazy-loaded
 
 	public function __construct(
-		private IConfig $config,
+		private SettingsStore $settings,
 		private Logger $logger,
 	) {
 	}
@@ -53,19 +53,11 @@ class ExtractorGetID3 {
 			// they are ancient and often produces incorrect results, especially with non-Latin scripts (because these
 			// tags are supposed to be always in ISO-8859-1 but they have often been abused). Also, it may be cumbersome
 			// to remove incorrect Lyrics3 tags from files because they are not supported by most tag editors.
-			$this->getID3->option_tag_id3v1 = $this->getBooleanConfig('music.tag_enabled_id3v1', false);
-			$this->getID3->option_tag_id3v2 = $this->getBooleanConfig('music.tag_enabled_id3v2', true);
-			$this->getID3->option_tag_lyrics3 = $this->getBooleanConfig('music.tag_enabled_lyrics3', false);
-			$this->getID3->option_tag_apetag = $this->getBooleanConfig('music.tag_enabled_ape', true);
+			$this->getID3->option_tag_id3v1 = $this->settings->tagEnabledId3v1();
+			$this->getID3->option_tag_id3v2 = $this->settings->tagEnabledId3v2();
+			$this->getID3->option_tag_lyrics3 = $this->settings->tagEnabledLyrics3();
+			$this->getID3->option_tag_apetag = $this->settings->tagEnabledApe();
 		}
-	}
-
-	private function getBooleanConfig(string $key, bool $default) : bool {
-		$value = $this->config->getSystemValue($key, $default);
-		if (\is_string($value)) {
-			return \filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
-		}
-		return (bool)$value;
 	}
 
 	/**
@@ -118,14 +110,14 @@ class ExtractorGetID3 {
 				}
 			}
 
-			// GetID3 copies incorrectly the multi-valued id3v2 tags involved_people_list and musician_credits_list; these have a structure
-			// like [role1, name1, role2, name2, ...] where the order and possibly repeated roles and names are important but CopyTagsToComments
-			// discards any duplicates. Reorganize the lists into associative arrays using the original tags as source.
-			if (isset($metadata['tags']['id3v2']['involved_people_list'])) {
-				$metadata['comments']['involved_people_list'] = self::parseId3ContributorList($metadata['tags']['id3v2']['involved_people_list']);
+			// GetID3 organizes the id3v2 tags involved_people_list and musician_credits_list into associative arrays but we morph these to
+			// slightly different structures. Natively, these tags are stored in the ID3v2.x spec as null-delimited strings in the form of
+			// [role1, name1, role2, name2, ...] but this is completely hidden by GetID3 since https://github.com/JamesHeinrich/getID3/pull/510.
+			if (isset($metadata['comments']['involved_people_list'])) {
+				$metadata['comments']['involved_people_list'] = self::parseId3ContributorList($metadata['comments']['involved_people_list'], 'contributor');
 			}
-			if (isset($metadata['tags']['id3v2']['musician_credits_list'])) {
-				$metadata['comments']['musician_credits_list'] = self::parseId3ContributorList($metadata['tags']['id3v2']['musician_credits_list']);
+			if (isset($metadata['comments']['musician_credits_list'])) {
+				$metadata['comments']['musician_credits_list'] = self::parseId3ContributorList($metadata['comments']['musician_credits_list'], 'performer');
 			}
 
 			// GetID3 doesn't split up null-delimited strings inside ID3v2.4 TXXX frames to multiple values while it apparently does it on
@@ -162,8 +154,13 @@ class ExtractorGetID3 {
 		return $pic;
 	}
 
-	public static function getTag(array $fileInfo, string $tag, bool $binaryValued = false) : string|int|array|null {
-		$value = $fileInfo['comments'][$tag][0] ?? null; // TODO: better handling for multi-valued tags
+	public static function getTag(array $fileInfo, string $tag, bool $binaryValued = false, bool $rejectMultivalued = false) : string|int|array|null {
+		// TODO: better handling for multi-valued tags
+		if ($rejectMultivalued && \count($fileInfo['comments'][$tag] ?? []) !== 1) {
+			$value = null;
+		} else {
+			$value = $fileInfo['comments'][$tag][0] ?? null;
+		}
 
 		if (\is_string($value) && !$binaryValued) {
 			// Ensure that the tag contains only valid utf-8 characters.
@@ -180,9 +177,9 @@ class ExtractorGetID3 {
 	/**
 	 * @param string[] $tags
 	 */
-	public static function getFirstOfTags(array $fileInfo, array $tags, string|array|null $defaultValue = null) : string|int|array|null {
+	public static function getFirstOfTags(array $fileInfo, array $tags, string|array|null $defaultValue = null, bool $rejectMultivalued = false) : string|int|array|null {
 		foreach ($tags as $tag) {
-			$value = self::getTag($fileInfo, $tag);
+			$value = self::getTag($fileInfo, $tag, false, $rejectMultivalued);
 			if ($value !== null && $value !== '') {
 				return $value;
 			}
@@ -206,14 +203,14 @@ class ExtractorGetID3 {
 	}
 
 	/**
-	 * @param string[] $contributors E.g. ['role1', 'name1a', 'role1', 'name1b', 'role2', 'name2', ...]
+	 * @param array<array{position: string, person: string}> $contributors E.g. [['position' => 'role1', 'person' => 'name1a'], ['position' => 'role1', 'person' => 'name1b'], ['position' => 'role2', 'person' => 'name2'], ...]
 	 * @return array<string, string[]> E.g. ['role1' => ['name1a', 'name1b'], 'role2' => ['name2']]
 	 */
-	private static function parseId3ContributorList(array $contributors) : array {
+	private static function parseId3ContributorList(array $contributors, string $defaultRole) : array {
 		$result = [];
-		while (\count($contributors)) {
-			$role = \array_shift($contributors);
-			$name = \array_shift($contributors);
+		foreach ($contributors as $contributor) {
+			$role = $contributor['position'] ?: $defaultRole;
+			$name = $contributor['person'] ?: '';
 			$result[$role][] = $name;
 		}
 		return $result;

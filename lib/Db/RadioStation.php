@@ -38,7 +38,7 @@ class RadioStation extends Entity {
 
 	public function toAmpacheApi(callable $createImageUrl, ?callable $createStreamUrl = null) : array {
 		return [
-			'id'       => $this->getId(),
+			'id'       => (string)$this->getId(),
 			'name'     => $this->getName() ?? $this->getStreamUrl(),
 			'url'      => $createStreamUrl ? $createStreamUrl($this) : $this->getStreamUrl(),
 			'site_url' => $this->getHomeUrl(),

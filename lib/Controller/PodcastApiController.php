@@ -17,6 +17,8 @@ use OCA\Music\AppFramework\Utility\FileExistsException;
 use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Service\PodcastService;
+use OCA\Music\Service\RadioService;
+use OCA\Music\Settings\SettingsStore;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -25,7 +27,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 
@@ -34,10 +35,11 @@ class PodcastApiController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $rootFolder,
+		private SettingsStore $settings,
 		private PodcastService $podcastService,
+		private RadioService $radioService,
 		private ?string $userId,
 		private Logger $logger,
 	) {
@@ -165,10 +167,15 @@ class PodcastApiController extends Controller {
 			$streamUrl = $episode->getStreamUrl();
 			if ($streamUrl === null) {
 				return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-			} elseif ($this->config->getSystemValue('music.relay_podcast_stream', true)) {
-				return new RelayStreamResponse($streamUrl);
 			} else {
-				return new RedirectResponse($streamUrl);
+				$resolved = $this->radioService->resolveStreamUrl($streamUrl);
+				if ($resolved['url'] === null) {
+					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
+				} elseif ($this->settings->podcastStreamRelayEnabled() && !$resolved['is_private_ip']) {
+					return new RelayStreamResponse($resolved['url']);
+				} else {
+					return new RedirectResponse($resolved['url']);
+				}
 			}
 		} else {
 			return new ErrorResponse(Http::STATUS_NOT_FOUND);
@@ -218,6 +225,7 @@ class PodcastApiController extends Controller {
 	 *                            - 'overwrite' The existing file will be overwritten
 	 *                            - 'keepboth' The new file is named with a suffix to make it unique
 	 *                            - 'abort' (default) The operation will fail
+	 * @phpstan-param 'overwrite'|'keepboth'|'abort' $oncollision
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

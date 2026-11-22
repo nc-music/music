@@ -201,15 +201,13 @@ abstract class BusinessLayer {
 	}
 
 	/**
-	 * Find all entities matching multiple criteria, as needed for the Ampache API method `advanced_search`
+	 * Find all entities matching multiple criteria, as needed for the "advanced search" on the web UI and the Ampache API.
 	 * @param string $conjunction Operator to use between the rules, either 'and' or 'or'
-	 * @param array $rules Array of arrays: [['rule' => string, 'operator' => string, 'input' => string], ...]
-	 *                     Here, 'rule' has dozens of possible values depending on the business layer in question,
-	 *                     (see https://ampache.org/api/api-advanced-search#available-search-rules, alias names not supported here),
-	 *                     'operator' is one of
-	 *                     ['contain', 'notcontain', 'start', 'end', 'is', 'isnot', 'sounds', 'notsounds', 'regexp', 'notregexp',
-	 *                     '>=', '<=', '=', '!=', '>', '<', 'before', 'after', 'true', 'false', 'equal', 'ne', 'limit'],
-	 *                     'input' is the right side value of the 'operator' (disregarded for the operators 'true' and 'false')
+	 * @param array<array{rule: string, operator: string, input: string}> $rules
+	 *        - `rule` has dozens of possible values depending on the business layer in question, see AdvSearchRules::getRules()
+	 *        - `operator` is one of ['contain', 'notcontain', 'start', 'end', 'is', 'isnot', 'sounds', 'notsounds', 'regexp', 'notregexp',
+	 *          '>=', '<=', '=', '!=', '>', '<', 'before', 'after', 'true', 'false', 'equal', 'ne', 'limit'],
+	 *        - `input` is the right side value of the `operator` (disregarded for the operators 'true' and 'false')
 	 * @param Random $random When the randomization utility is passed, the result set will be in random order (still supporting proper paging).
 	 *                       In this case, the argument $sortBy is ignored.
 	 * @return Entity[]
@@ -269,7 +267,7 @@ abstract class BusinessLayer {
 	 * Find all IDs and names of user's entities of this kind.
 	 * Optionally, limit results based on a parent entity (not applicable for all entity types) or update/insert times or name
 	 * @param bool $excludeChildless Exclude entities having no child-entities if applicable for this business layer (eg. artists without albums)
-	 * @return array of arrays like ['id' => string, 'name' => string]
+	 * @return array<array{id: string, name: string}>
 	 */
 	public function findAllIdsAndNames(string $userId, IL10N $l10n, ?int $parentId = null, ?int $limit = null, ?int $offset = null,
 			?string $createdMin = null, ?string $createdMax = null, ?string $updatedMin = null, ?string $updatedMax = null,

@@ -47,13 +47,13 @@ use OCA\Music\Db\Track;
 use OCA\Music\Http\Attribute\AmpacheAPI;
 use OCA\Music\Http\ErrorResponse;
 use OCA\Music\Http\FileResponse;
-use OCA\Music\Http\FileStreamResponse;
 use OCA\Music\Http\RelayStreamResponse;
 use OCA\Music\Http\XmlResponse;
 use OCA\Music\Middleware\AmpacheException;
 use OCA\Music\Service\Ampache\AmpacheAdvSearch;
 use OCA\Music\Service\Ampache\AmpacheImageService;
 use OCA\Music\Service\Ampache\AmpachePreferences;
+use OCA\Music\Service\AudioTranscodeService;
 use OCA\Music\Service\CoverService;
 use OCA\Music\Service\DetailsService;
 use OCA\Music\Service\FileSystemService;
@@ -63,6 +63,7 @@ use OCA\Music\Service\PodcastService;
 use OCA\Music\Service\RadioService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
 use OCA\Music\Service\StreamTokenService;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\AppInfo;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\HttpUtil;
@@ -116,10 +117,34 @@ class AmpacheController extends ApiController {
 	 */
 	private const DEPRECATED_ACTIONS = ['tag', 'tags', 'tag_albums', 'tag_artists', 'tag_songs'];
 
+	/**
+	 * Per-action map of a parameter name to an alternative name Ampache also accepts for it, used when
+	 * the primary name is missing from the request. `flag`, `rate`, `record_play`, `stream`, `download`
+	 * and `get_art` report the target object id as `id` (what API4/5 always used, and what API6 still
+	 * reports it as) but also accept `filter` as an alias (Ampache's `Api6\*Method::FILTER_ALIAS`/
+	 * `FILTER_KEY` pair). For `update_podcast`/`podcast_update` it's the other way around: `filter` is
+	 * the documented name and `id` is only an alias kept for the REST binding (`UpdatePodcastMethod`'s
+	 * own comment: "the rest route passes the podcast as `id`"). `playlist_add_song` accepts `id` as an
+	 * alias of `song`, and `playlist_add` accepts `song`/`object_type` as aliases of `id`/`type`
+	 * (`AbstractPlaylistAdd(Song)?Method`). Either way, whichever name is missing falls back to the
+	 * other, so which one is "the alias" here doesn't need to match which one Ampache calls canonical.
+	 */
+	private const PARAM_ALIASES = [
+		'flag'              => ['id' => 'filter'],
+		'rate'              => ['id' => 'filter'],
+		'record_play'       => ['id' => 'filter'],
+		'stream'            => ['id' => 'filter'],
+		'download'          => ['id' => 'filter'],
+		'get_art'           => ['id' => 'filter'],
+		'update_podcast'    => ['id' => 'filter'],
+		'podcast_update'    => ['id' => 'filter'],
+		'playlist_add_song' => ['song' => 'id'],
+		'playlist_add'      => ['id' => 'song', 'type' => 'object_type'],
+	];
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
 		private IL10N $l10n,
 		private IURLGenerator $urlGenerator,
 		private IUserManager $userManager,
@@ -143,7 +168,9 @@ class AmpacheController extends ApiController {
 		private LastfmService $lastfmService,
 		private LibrarySettings $librarySettings,
 		private RadioService $radioService,
+		private SettingsStore $settings,
 		private StreamTokenService $streamTokenService,
+		private AudioTranscodeService $transcodeService,
 		private Random $random,
 		private Logger $logger,
 		private IScrobbler $scrobbler,
@@ -249,7 +276,8 @@ class AmpacheController extends ApiController {
 					return $value;
 				};
 
-				$parameterExtractor = new RequestParameterExtractor($this->request, ['limit' => $limitFilter]);
+				$paramAliases = self::PARAM_ALIASES[$action] ?? [];
+				$parameterExtractor = new RequestParameterExtractor($this->request, ['limit' => $limitFilter], $paramAliases);
 				try {
 					$parameterValues = $parameterExtractor->getParametersForMethod($reflection);
 				} catch (RequestParameterExtractorException $ex) {
@@ -307,7 +335,7 @@ class AmpacheController extends ApiController {
 			'api'                 => $this->apiVersionString(),
 			'update'              => $updateTime->format('c'),
 			'add'                 => $addTime->format('c'),
-			'clean'               => \date('c', \time()), // TODO: actual time of the latest item removal
+			'clean'               => \date('c', $this->library->getLastCleanTime($user)),
 			'songs'               => $this->trackBusinessLayer->count($user),
 			'artists'             => $this->artistBusinessLayer->count($user),
 			'albums'              => $this->albumBusinessLayer->count($user),
@@ -326,7 +354,7 @@ class AmpacheController extends ApiController {
 			'max_song'            => $this->trackBusinessLayer->maxId($user),
 			'max_album'           => $this->albumBusinessLayer->maxId($user),
 			'max_artist'          => $this->artistBusinessLayer->maxId($user),
-			'max_video'           => null,
+			'max_video'           => 0,
 			'max_podcast'         => $this->podcastChannelBusinessLayer->maxId($user),
 			'max_podcast_episode' => $this->podcastEpisodeBusinessLayer->maxId($user),
 			'username'            => $user
@@ -379,6 +407,7 @@ class AmpacheController extends ApiController {
 		// only 'podcast' and 'playlist' are documented to be supported and the implementation is really messy for the 'playlist'
 		// type, with inconsistencies between XML and JSON formats and XML-structures unlike any other actions.
 		if ($type == 'podcast' && $include) {
+			/** @var PodcastChannel[] $entities */
 			$this->injectEpisodesToChannels($entities);
 		}
 
@@ -694,6 +723,67 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
+	protected function song_tags(int $filter) : array {
+		$userId = $this->userId();
+		$track = $this->trackBusinessLayer->find($filter, $userId);
+		$artist = $this->artistBusinessLayer->find($track->getArtistId(), $userId);
+		$album = $this->albumBusinessLayer->find($track->getAlbumId(), $userId);
+
+		$rootFolder = $this->librarySettings->getFolder($userId);
+		$lyrics = $this->detailsService->getLyricsAsPlainText($track->getFileId(), $rootFolder);
+
+		return ['song_tag' => [$track->toAmpacheSongTagsApi($artist, $album, $lyrics)]];
+	}
+
+	#[AmpacheAPI]
+	protected function get_lyrics(int $filter) : array {
+		// request param `plugins` is ignored: we have no lyrics plugins, only our own stored/parsed lyrics
+		$userId = $this->userId();
+		$track = $this->trackBusinessLayer->find($filter, $userId);
+
+		$rootFolder = $this->librarySettings->getFolder($userId);
+		$lyrics = $this->detailsService->getLyricsAsPlainText($track->getFileId(), $rootFolder);
+
+		$plugin = [];
+		if ($lyrics !== null) {
+			$lyrics = \mb_ereg_replace("\n", '<br />', $lyrics); // matches how the `song` action already represents lyrics
+			$plugin['database'] = ['text' => $lyrics];
+		}
+
+		return [
+			'object_id'   => $filter,
+			'object_type' => 'song',
+			'plugin'      => $plugin
+		];
+	}
+
+	/**
+	 * Maps a stream/download URL, as previously handed out by this same server, back to the song it points at.
+	 * Like the original Ampache server, this is done by parsing the query string alone; the URL is never
+	 * required to originate from this exact request's host.
+	 */
+	#[AmpacheAPI]
+	protected function url_to_song(?string $filter, ?string $url) : array {
+		// the `filter` alias takes precedence over the documented `url` argument, matching the real Ampache server
+		$streamUrl = $filter ?: $url;
+		if (empty($streamUrl)) {
+			throw new AmpacheException("Required parameter 'url' missing", 400);
+		}
+
+		$query = (string)\parse_url(\html_entity_decode($streamUrl), PHP_URL_QUERY);
+		\parse_str($query, $params);
+		$action = $params['action'] ?? null;
+		$type = $params['type'] ?? 'song';
+
+		if (!\in_array($action, ['stream', 'download']) || $type !== 'song' || !isset($params['id'])) {
+			throw new AmpacheException("Not a song stream URL: $streamUrl", 400);
+		}
+
+		$track = $this->trackBusinessLayer->find((int)$params['id'], $this->userId());
+		return $this->renderSongs([$track]);
+	}
+
+	#[AmpacheAPI]
 	protected function songs(
 			?string $filter, ?string $add, ?string $update,
 			int $limit, int $offset = 0, bool $exact = false) : array {
@@ -703,8 +793,10 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function search_songs(string $filter, int $limit, int $offset = 0) : array {
+	protected function search_songs(string $filter, int $limit, int $offset = 0, ?string $rule_1_input = null) : array {
 		$userId = $this->userId();
+		// On API6, `rule_1_input` is an alias for `filter` and, when both are given, takes precedence
+		$filter = $rule_1_input ?? $filter;
 		$tracks = $this->trackBusinessLayer->findAllByNameRecursive($filter, $userId, $limit, $offset);
 		return $this->renderSongs($tracks);
 	}
@@ -1030,8 +1122,9 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function podcasts(?string $filter, ?string $include, int $limit, int $offset = 0, bool $exact = false) : array {
-		$channels = $this->findEntities($this->podcastChannelBusinessLayer, $filter, $exact, $limit, $offset);
+	protected function podcasts(
+			?string $filter, ?string $include, ?string $add, ?string $update, int $limit, int $offset = 0, bool $exact = false) : array {
+		$channels = $this->findEntities($this->podcastChannelBusinessLayer, $filter, $exact, $limit, $offset, $add, $update);
 
 		if ($include === 'episodes') {
 			$this->injectEpisodesToChannels($channels);
@@ -1113,6 +1206,14 @@ class AmpacheController extends ApiController {
 			default:
 				throw new AmpacheException("Unexpected status code {$result['status']}", 400);
 		}
+	}
+
+	/**
+	 * Alias of `update_podcast`, added under this name on API6
+	 */
+	#[AmpacheAPI]
+	protected function podcast_update(int $id) : array {
+		return $this->update_podcast($id);
 	}
 
 	#[AmpacheAPI]
@@ -1386,10 +1487,11 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function record_play(int $id, ?int $date) : array {
+	protected function record_play(int $id, ?int $date, ?string $client = null) : array {
 		$timeOfPlay = ($date === null) ? null : new \DateTime('@' . $date);
 		$track = $this->trackBusinessLayer->find($id, $this->userId());
-		$this->scrobbler->recordTrackPlayed($track, $timeOfPlay);
+		// The client may identify itself with the optional argument `client`
+		$this->scrobbler->recordTrackPlayed($track, $client ?? 'ampache-api', $timeOfPlay);
 		return ['success' => 'play recorded'];
 	}
 
@@ -1427,7 +1529,7 @@ class AmpacheController extends ApiController {
 
 			// This reaches the external scrobbling services and the shared "now playing" state alike, as the
 			// TrackBusinessLayer is registered as one of the scrobblers.
-			$this->scrobbler->setNowPlaying($track, $timeOfPlay, $client);
+			$this->scrobbler->setNowPlaying($track, $client ?? 'ampache-api', $timeOfPlay);
 		} else {
 			$this->trackBusinessLayer->clearNowPlaying($this->userId());
 		}
@@ -1479,7 +1581,7 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function scrobble(string $song, string $artist, string $album, ?int $date) : array {
+	protected function scrobble(string $song, string $artist, string $album, ?int $date, ?string $client = null) : array {
 		// arguments songmbid, artistmbid, and albummbid not supported for now
 		$matching = $this->trackBusinessLayer->findAllByNameArtistOrAlbum($song, $artist, $album, $this->userId());
 		if (\count($matching) === 0) {
@@ -1487,11 +1589,13 @@ class AmpacheController extends ApiController {
 		} elseif (\count($matching) > 1) {
 			throw new AmpacheException('Multiple songs matched the criteria, nothing recorded', 400);
 		}
-		return $this->record_play($matching[0]->getId(), $date);
+		return $this->record_play($matching[0]->getId(), $date, $client);
 	}
 
 	#[AmpacheAPI]
-	protected function user(?string $username) : array {
+	protected function user(?string $username, ?string $filter = null) : array {
+		// `filter` is an alias for `username` and, when both are given, takes precedence
+		$username = $filter ?? $username;
 		$userId = $this->userId();
 		if (!empty($username) && \mb_strtolower($username) !== \mb_strtolower($userId)) {
 			throw new AmpacheException('Getting info of other users is forbidden', 403);
@@ -1545,9 +1649,8 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function download(int $id, string $type = 'song', bool $stats = false) : Response {
-		// request params `format` and `bitrate` are ignored
-
+	protected function download(
+			int $id, string $type = 'song', bool $stats = false, ?string $format = null, ?int $bitrate = null) : Response {
 		// On all errors, return HTTP error codes instead of Ampache errors. When client calls this action, it awaits a binary response
 		// and is probably not prepared to parse any Ampache json/xml responses.
 		$userId = $this->userId();
@@ -1561,7 +1664,9 @@ class AmpacheController extends ApiController {
 					if ($stats) {
 						$this->record_play($id, null);
 					}
-					return new FileStreamResponse($file);
+					// Ampache's `bitrate` argument is in bits per second, unlike the kbps used internally here and by Subsonic
+					$maxBitrateKbps = ($bitrate !== null) ? \intdiv($bitrate, 1000) : null;
+					return $this->transcodeService->responseForTrack($track, $file, $format, $maxBitrateKbps);
 				} else {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "File for song $id does not exist");
 				}
@@ -1570,10 +1675,15 @@ class AmpacheController extends ApiController {
 				$streamUrl = $episode->getStreamUrl();
 				if ($streamUrl === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has no stream URL");
-				} elseif ($this->podcastRelayEnabled()) {
-					return new RelayStreamResponse($streamUrl);
 				} else {
-					return new RedirectResponse($streamUrl);
+					$resolved = $this->radioService->resolveStreamUrl($streamUrl);
+					if ($resolved['url'] === null) {
+						return new ErrorResponse(Http::STATUS_NOT_FOUND, "The podcast episode $id has an invalid stream URL");
+					} elseif ($this->settings->podcastStreamRelayOnApiEnabled() && !$resolved['is_private_ip']) {
+						return new RelayStreamResponse($resolved['url']);
+					} else {
+						return new RedirectResponse($resolved['url']);
+					}
 				}
 			} elseif ($type === 'live_stream') {
 				$station = $this->radioStationBusinessLayer->find($id, $userId);
@@ -1581,18 +1691,18 @@ class AmpacheController extends ApiController {
 
 				if ($resolved['url'] === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "Failed to resolve the stream URL of the live stream $id");
-				} elseif ($this->radioRelayEnabled()) {
+				} elseif ($this->settings->radioStreamRelayOnApiEnabled() && !$resolved['is_private_ip']) {
 					if (!$resolved['hls']) {
 						// Relay a non-HLS stream
 						return new RelayStreamResponse($resolved['url']);
-					} else if ($this->config->getSystemValue('music.enable_radio_hls', true)) {
+					} elseif ($this->settings->radioHlsEnabled()) {
 						// Relay a HLS stream.
 						// The manifest has to be rewritten so that the segments are also fetched through us, and that
 						// happens on a token-authenticated public route which is shared with the web UI.
 						$token = $this->streamTokenService->tokenForUrl($resolved['url']);
 						return new RedirectResponse($this->urlGenerator->linkToRouteAbsolute('music.radioApi.hlsManifest', [
-							'url'	=> \rawurlencode($resolved['url']),
-							'token'	=> \rawurlencode($token)
+							'url'   => \rawurlencode($resolved['url']),
+							'token' => \rawurlencode($token)
 						]));
 					} else {
 						// HLS stream while the HLS-relaying is disabled. Redirect to the resolved URL without relaying.
@@ -1611,7 +1721,7 @@ class AmpacheController extends ApiController {
 				if ($randomId === null) {
 					return new ErrorResponse(Http::STATUS_NOT_FOUND, "The playlist $id is empty");
 				} else {
-					return $this->download((int)$randomId, 'song', $stats);
+					return $this->download((int)$randomId, 'song', $stats, $format, $bitrate);
 				}
 			} else {
 				return new ErrorResponse(Http::STATUS_UNSUPPORTED_MEDIA_TYPE, "Unsupported type '$type'");
@@ -1622,21 +1732,20 @@ class AmpacheController extends ApiController {
 	}
 
 	#[AmpacheAPI]
-	protected function stream(int $id, ?int $offset, string $type = 'song', bool $stats = true) : Response {
-		// request params `bitrate`, `format`, and `length` are ignored
+	protected function stream(
+			int $id, ?int $offset, string $type = 'song', bool $stats = true, ?string $format = null, ?int $bitrate = null) : Response {
+		// request param `length` (requesting an estimated Content-Length) is ignored
 
-		// This is just a dummy implementation. We don't support transcoding or streaming
-		// from a time offset.
-		// All the other unsupported arguments are just ignored, but a request with an offset
-		// is responded with an error. This is because the client would probably work in an
-		// unexpected way if it thinks it's streaming from offset but actually it is streaming
-		// from the beginning of the file. Returning an error gives the client a chance to fallback
-		// to other methods of seeking.
+		// We don't support streaming from a time offset. All the other unsupported arguments are just
+		// ignored, but a request with an offset is responded with an error. This is because the client
+		// would probably work in an unexpected way if it thinks it's streaming from offset but actually
+		// it is streaming from the beginning of the file. Returning an error gives the client a chance
+		// to fallback to other methods of seeking.
 		if ($offset !== null) {
 			return new ErrorResponse(Http::STATUS_UNSUPPORTED_MEDIA_TYPE, 'Streaming with time offset is not supported');
 		}
 
-		return $this->download($id, $type, $stats);
+		return $this->download($id, $type, $stats, $format, $bitrate);
 	}
 
 	#[AmpacheAPI]
@@ -1684,7 +1793,7 @@ class AmpacheController extends ApiController {
 	private function userId() : string {
 		// It would be an internal server logic error if the middleware would let
 		// an action needing the user session to be called without a valid session.
-		assert($this->session !== null);
+		\assert($this->session !== null);
 		return $this->session->getUserId();
 	}
 
@@ -1813,6 +1922,7 @@ class AmpacheController extends ApiController {
 		return new ErrorResponse(Http::STATUS_NOT_FOUND, 'entity has no cover');
 	}
 
+	/** @return array{0: ?string, 1: ?string, 2: ?string, 3: ?string} */
 	private static function parseTimeParameters(?string $add = null, ?string $update = null) : array {
 		// It's not documented, but Ampache supports also specifying date range on `add` and `update` parameters
 		// by using '/' as separator. If there is no such separator, then the value is used as a lower limit.
@@ -1826,10 +1936,15 @@ class AmpacheController extends ApiController {
 		return [$addMin, $addMax, $updateMin, $updateMax];
 	}
 
-	/** @phpstan-param BusinessLayer<covariant Entity> $businessLayer */
+	/**
+	 * @phpstan-template EntityType of Entity
+	 * @phpstan-param BusinessLayer<covariant EntityType> $businessLayer
+	 * @phpstan-return EntityType[]
+	 */
 	private function findEntities(
-			BusinessLayer $businessLayer, ?string $filter, bool $exact, ?int $limit = null, ?int $offset = null, ?string $add = null, ?string $update = null) : array {
-
+			BusinessLayer $businessLayer, ?string $filter, bool $exact,
+			?int $limit = null, ?int $offset = null, ?string $add = null, ?string $update = null
+	) : array {
 		$userId = $this->userId();
 
 		[$addMin, $addMax, $updateMin, $updateMax] = self::parseTimeParameters($add, $update);
@@ -2015,7 +2130,7 @@ class AmpacheController extends ApiController {
 					'time'          => $this->trackBusinessLayer->totalDurationOfAlbum($album->getId()),
 					'rating'        => $album->getRating(),
 					'preciserating' => $album->getRating(),
-					'year'          => $album->yearToAPI(),
+					'year'          => $album->getYear(),
 					'art'           => $this->createCoverUrl($album),
 					'has_art'       => $album->getCoverFileId() !== null,
 					'flag'          => !empty($album->getStarred()),
@@ -2132,7 +2247,7 @@ class AmpacheController extends ApiController {
 			'gather_types'   => self::CATALOGS[$catalogId]['gather_types'],
 			'enabled'        => true,
 			'last_add'       => $addTime->getTimestamp(),
-			'last_clean'     => \time(), // we don't track the time of the latest removal, see also the action `handshake`
+			'last_clean'     => $isMusic ? $this->library->getLastCleanTime($userId) : 0,
 			'last_update'    => $updateTime->getTimestamp(),
 			'path'           => $isMusic ? $this->librarySettings->getPath($userId) : '',
 			'rename_pattern' => '',
@@ -2153,28 +2268,6 @@ class AmpacheController extends ApiController {
 		return [
 			'live_stream' => \array_map(fn ($s) => $s->toAmpacheApi($createImageUrl, $createStreamUrl), $stations)
 		];
-	}
-
-	/**
-	 * Relaying the radio streams to the API clients is a separate decision from relaying them to the web UI,
-	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
-	 */
-	private function radioRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_radio_stream', true);
-		return $this->isInternalSession()
-			? $enabled
-			: (bool)$this->config->getSystemValue('music.relay_radio_stream_on_api', $enabled);
-	}
-
-	/**
-	 * Relaying the podcasts to the API clients is a separate decision from relaying them to the web UI,
-	 * as the API clients are not bound by the content security policy which is the main reason for the relay.
-	 */
-	private function podcastRelayEnabled() : bool {
-		$enabled = (bool)$this->config->getSystemValue('music.relay_podcast_stream', true);
-		return $this->isInternalSession()
-			? $enabled
-			: (bool)$this->config->getSystemValue('music.relay_podcast_stream_on_api', $enabled);
 	}
 
 	/**
@@ -2472,7 +2565,7 @@ class AmpacheController extends ApiController {
 			$ver = (int)$verString[0];
 		} else {
 			// Default version is 6 unless otherwise defined in config.php
-			$ver = (int)$this->config->getSystemValue('music.ampache_api_default_ver', 6);
+			$ver = $this->settings->ampacheApiDefaultVersion();
 		}
 
 		// For now, we have three supported major versions. Major version 3 can be sufficiently supported

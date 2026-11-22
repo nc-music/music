@@ -22,6 +22,7 @@ use OCA\Music\Db\MatchMode;
 use OCA\Music\Db\SortBy;
 use OCA\Music\Db\Track;
 use OCA\Music\Db\TrackMapper;
+use OCA\Music\Event\TrackPlayedEvent;
 use OCA\Music\Service\FileSystemService;
 use OCA\Music\Service\Scrobbling\IScrobbler;
 use OCA\Music\Utility\AppInfo;
@@ -29,6 +30,7 @@ use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\StringUtil;
 use OCA\Music\Utility\Util;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\EventDispatcher\IEventDispatcher;
 
 /**
  * Base class functions with the actually used inherited types to help IDE and Scrutinizer:
@@ -45,6 +47,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 		private FileSystemService $fileSystemService,
 		private Logger $logger,
 		private Cache $cache,
+		private IEventDispatcher $eventDispatcher,
 	) {
 		parent::__construct($trackMapper);
 	}
@@ -225,14 +228,22 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 
 	/**
 	 * Update "last played" timestamp and increment the total play count of the track.
+	 * On success, dispatch TrackPlayedEvent to let other apps know about the play.
 	 */
-	public function recordTrackPlayed(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
+	public function recordTrackPlayed(Track $track, string $client,?\DateTime $timeOfPlay = null) : void {
 		$timeOfPlay = $timeOfPlay ?? new \DateTime();
 		$userId = $track->getUserId();
 
 		if (!$this->mapper->recordTrackPlayed($track->getId(), $userId, $timeOfPlay)) {
 			// failing to update the play count would be unexpected as the caller has already obtained the Track from the DB
 			$this->logger->error("Could not record track with ID {$track->getId()} as played");
+		} else {
+			$this->eventDispatcher->dispatchTyped(new TrackPlayedEvent(
+				$userId,
+				$track->getId(),
+				\DateTimeImmutable::createFromMutable($timeOfPlay),
+				$client
+			));
 		}
 
 		// Update also "now playing" if the client hasn't updated it separately
@@ -258,14 +269,14 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 			}
 		}
 
-		$this->setNowPlaying($track, $timeOfPlay, $client);
+		$this->setNowPlaying($track, $client, $timeOfPlay);
 	}
 
 	/**
 	 * Save the track to config as the "now playing" track with the provided timestamp
-	 * @param ?string $client Name of the application reporting the play, when it is known
+	 * @param string $client Name of the application reporting the play
 	 */
-	public function setNowPlaying(Track $track, ?\DateTime $timeOfPlay = null, ?string $client = null) : void {
+	public function setNowPlaying(Track $track, string $client, ?\DateTime $timeOfPlay = null) : void {
 		$data = [
 			'trackId'    => $track->getId(),
 			'timeOfPlay' => ($timeOfPlay ?? new \DateTime())->getTimestamp(),
@@ -333,7 +344,7 @@ class TrackBusinessLayer extends BusinessLayer implements IScrobbler {
 	public function addOrUpdateTrack(
 			string $title, ?int $number, ?int $discNumber, ?int $year, int $genreId, int $artistId, int $albumId,
 			int $fileId, string $mimetype, string $userId, ?int $recordLabelId = null, ?int $length = null, ?int $bitrate = null,
-			?int $sampleRate = null, ?int $bpm = null, ?int $composerId = null, ?string $comment = null, ?string $mbid = null, 
+			?int $sampleRate = null, ?int $bpm = null, ?int $composerId = null, ?string $comment = null, ?string $mbid = null,
 			?string $mbidRelTrack = null, ?float $replaygainAlbumGain = null, ?float $replaygainAlbumPeak = null,
 			?float $replaygainTrackGain = null, ?float $replaygainTrackPeak = null, ?float $r128AlbumGain = null, ?float $r128TrackGain = null) : Track {
 		$track = new Track();

@@ -139,6 +139,7 @@ class PodcastChannel extends Entity {
 			'flag'          => !empty($this->getStarred()),
 			'rating'        => $this->getRating(),
 			'preciserating' => $this->getRating(),
+			'averagerating' => $this->getRating(),
 		];
 
 		if ($this->episodes !== null) {

@@ -124,21 +124,28 @@ class PodcastEpisode extends Entity {
 			'author'         => $this->getAuthor(),
 			'author_full'    => $this->getAuthor(),
 			'website'        => $this->getLinkUrl(),
+			'public_url'     => $this->getLinkUrl(),
 			'pubdate'        => Util::formatDateTimeUtcOffset($this->getPublished()),
 			'state'          => 'Completed',
+			'filename'       => self::filenameFromUrl($this->getStreamUrl()),
 			'filelength'     => Util::formatTime($this->getDuration()),
 			'filesize'       => Util::formatFileSize($this->getSize(), 2) . 'B',
 			'bitrate'        => $this->getBitrate(),
 			'stream_bitrate' => $this->getBitrate(),
+			'mode'           => null, // cbr/vbr; not extracted for podcast episodes
 			'time'           => $this->getDuration(),
 			'size'           => $this->getSize(),
 			'mime'           => $this->getMimetype(),
 			'url'            => $createStreamUrl ? $createStreamUrl($this) : $this->getStreamUrl(),
-			'art'            => $imageUrl,
-			'has_art'        => !empty($imageUrl),
-			'flag'           => !empty($this->getStarred()),
-			'rating'         => $this->getRating(),
-			'preciserating'  => $this->getRating(),
+			// All podcast episodes belong to the single synthetic podcasts catalog (see
+			// AmpacheController::CATALOG_PODCASTS_ID).
+			'catalog'       => 'podcasts',
+			'art'           => $imageUrl,
+			'has_art'       => !empty($imageUrl),
+			'flag'          => !empty($this->getStarred()),
+			'rating'        => $this->getRating(),
+			'preciserating' => $this->getRating(),
+			'averagerating' => $this->getRating(),
 		];
 	}
 
@@ -233,6 +240,15 @@ class PodcastEpisode extends Entity {
 		];
 
 		return $mime_map[$mime] ?? null;
+	}
+
+	private static function filenameFromUrl(?string $url) : ?string {
+		if ($url === null) {
+			return null;
+		} else {
+			$path = \parse_url($url, PHP_URL_PATH);
+			return \is_string($path) ? \basename($path) : null;
+		}
 	}
 
 	private static function extractSuffixFromUrl(?string $url) : ?string {

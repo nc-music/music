@@ -26,9 +26,9 @@ class HttpUtil {
 	 * Use HTTP GET to load the requested URL
 	 * @return array{content: string|false, status_code: int, message: string, content_type: ?string}
 	 */
-	public static function loadFromUrl(string $url, ?int $maxLength = null, ?int $timeout_s = null) : array {
+	public static function loadFromUrl(string $url, bool $allowPrivateIp = false, ?int $maxLength = null, ?int $timeout_s = null) : array {
 		$context = self::createContext($timeout_s);
-		$resolved = self::resolveRedirections($url, $context); // handles also checking for allowed URL schemes and IP ranges
+		$resolved = self::resolveRedirections($url, $context, $allowPrivateIp); // handles also checking for allowed URL schemes and IP ranges
 
 		$status_code = $resolved['status_code'];
 		if ($status_code >= 200 && $status_code < 300) {
@@ -59,12 +59,12 @@ class HttpUtil {
 	 * Resolve redirections with a custom logic. The platform solution doesn't always work correctly, especially with
 	 * unusually long header lines, see https://github.com/nc-music/oc-music/issues/1209.
 	 * @param resource $context
-	 * @return array{url: string, status_code: int, status_msg: string, headers: array<string, string>}
+	 * @return array{url: string, status_code: int, status_msg: string, headers: array<string, string>, is_private_ip: bool}
 	 * 					The final URL and the headers from the URL, after any redirections. @see HttpUtil::parseHeaders
 	 */
-	public static function resolveRedirections(string $url, $context, int $maxRedirects = 20) : array {
+	public static function resolveRedirections(string $url, $context, bool $allowPrivateIp = false, int $maxRedirects = 20) : array {
 		do {
-			$headers = self::getUrlHeaders($url, $context);
+			$headers = self::getUrlHeaders($url, $context, $allowPrivateIp);
 			$status = $headers['status_code'];
 			$location = ArrayUtil::getCaseInsensitive($headers['headers'], 'location');
 			$redirect = ($status >= 300 && $status < 400 && $location !== null);
@@ -85,12 +85,19 @@ class HttpUtil {
 
 	/**
 	 * @param resource $context
-	 * @return array{status_code: int, status_msg: string, headers: array<string, string>}
+	 * @return array{status_code: int, status_msg: string, headers: array<string, string>, is_private_ip: bool}
 	 * 					The headers from the URL, after any redirections. @see HttpUtil::parseHeaders
 	 */
-	private static function getUrlHeaders(string $url, $context) : array {
+	private static function getUrlHeaders(string $url, $context, bool $allowPrivateIp) : array {
 		$result = null;
-		if (self::isUrlAllowed($url)) {
+		$parsedUrl = \parse_url($url);
+		$isPrivateIp = !self::isPublicHost($parsedUrl['host'] ?? '');
+
+		if (!self::isSchemeAllowed($parsedUrl['scheme'] ?? '')) {
+			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL scheme not allowed', 'headers' => ['Content-Length' => '0']];
+		} else if (!$allowPrivateIp && $isPrivateIp) {
+			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL resolves to a private IP address', 'headers' => ['Content-Length' => '0']];
+		} else {
 			$rawHeaders = @\get_headers($url, /* associative= */ false, $context);
 
 			if ($rawHeaders !== false) {
@@ -98,9 +105,9 @@ class HttpUtil {
 			} else {
 				$result = ['status_code' => Http::STATUS_SERVICE_UNAVAILABLE, 'status_msg' => 'Error connecting the URL', 'headers' => ['Content-Length' => '0']];
 			}
-		} else {
-			$result = ['status_code' => Http::STATUS_FORBIDDEN, 'status_msg' => 'URL scheme or host not allowed', 'headers' => ['Content-Length' => '0']];
 		}
+		$result['is_private_ip'] = $isPrivateIp;
+
 		return $result;
 	}
 
@@ -166,38 +173,31 @@ class HttpUtil {
 		return $opts;
 	}
 
-	private static function isUrlAllowed(string $url) : bool {
-		$allowed = false;
+	private static function isSchemeAllowed(string $scheme) : bool {
+		return \in_array(\mb_strtolower($scheme), self::ALLOWED_SCHEMES);
+	}
 
-		$parsedUrl = \parse_url($url);
-		$scheme = $parsedUrl['scheme'] ?? '';
-		$validScheme = \in_array(\mb_strtolower($scheme), self::ALLOWED_SCHEMES);
-
-		if ($validScheme && !empty($parsedUrl['host'])) {
-			// The host may be either a domain name or an IP address
-			$ip = \filter_var($parsedUrl['host'], FILTER_VALIDATE_IP);
-			if ($ip !== false) {
-				// The host is an IP address, check that it is a public IP address
-				$allowed = \filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
-			} else {
-				// The host is a domain name, resolve it to IP addresses and check that all of them are public IP addresses.
-				// Any of these IP addresses may be used when connecting to the host.
-				$ipRecords = \dns_get_record($parsedUrl['host'], DNS_A + DNS_AAAA);
-				if (!empty($ipRecords)) {
-					$allowed = true;
-					foreach ($ipRecords as $record) {
-						$ip = $record['ip'] ?? $record['ipv6'] ?? '';
-						$ip = \filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
-						if ($ip === false) {
-							$allowed = false;
-							break;
-						}
+	private static function isPublicHost(string $host) : bool {
+		$ip = \filter_var($host, FILTER_VALIDATE_IP);
+		if ($ip !== false) {
+			// The host is an IP address, check that it is a public IP address
+			return \filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+		} else {
+			// The host is a domain name, resolve it to IP addresses and check that all of them are public IP addresses.
+			// Any of these IP addresses may be used when connecting to the host.
+			$ipRecords = \dns_get_record($host, DNS_A + DNS_AAAA);
+			if (!empty($ipRecords)) {
+				foreach ($ipRecords as $record) {
+					$ip = $record['ip'] ?? $record['ipv6'] ?? '';
+					$ip = \filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+					if ($ip === false) {
+						return false;
 					}
 				}
+				return true;
 			}
 		}
-
-		return $allowed;
+		return false;
 	}
 
 	public static function setClientCachingDays(Response $httpResponse, int $days) : void {

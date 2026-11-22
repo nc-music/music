@@ -918,7 +918,6 @@ class ShivaApiControllerTest extends ControllerTestUtility {
 		$track->setMimetype('audio/mp3');
 		$track->setBitrate(123);
 
-
 		$this->trackBusinessLayer->expects($this->once())
 			->method('find')
 			->with($this->equalTo($trackId), $this->equalTo($this->userId))

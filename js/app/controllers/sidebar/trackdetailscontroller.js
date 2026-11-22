@@ -56,6 +56,9 @@ angular.module('Music').controller('TrackDetailsController', [
 
 					result.tags = toArray(result.tags);
 					result.fileinfo = toArray(result.fileinfo);
+					if (result.replay_gain) {
+						result.replay_gain = toArray(result.replay_gain);
+					}
 					$scope.details = result;
 
 					if (($scope.selectedTab == 'lyrics' && !result.lyrics)
@@ -104,15 +107,21 @@ angular.module('Music').controller('TrackDetailsController', [
 
 		$scope.$watch('selectedTab', $scope.$parent.adjustFixedPositions);
 
-		$scope.formatDetailValue = function(value, key=null) {
+		$scope.formatDetailValue = function(value, key=null, group=null) {
 			if (value instanceof Object) {
-				return Object.entries(value).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join('; ') : v}`).join('<br/>');
+				return Object.entries(value).map(([k, v]) =>
+					`${k}: ${Array.isArray(v)
+						? v.map(iv => $scope.formatDetailValue(iv, key, group)).join('; ') 
+						: (v instanceof Object) ? JSON.stringify(v) : $scope.formatDetailValue(v, k, group)}`)
+					.join('<br/>');
 			} else if (key == 'sample_rate') {
 				return (value/1000).toFixed(1) + ' kHz';
 			} else if (key == 'bitrate') {
 				return (value/1000).toFixed(0) + ' kbps';
 			} else if (key?.match(/^musicbrainz.*id$/)) {
 				return $scope.mbidLink(value);
+			} else if (group == 'replay_gain' && ['adjustment', 'volume', 'reference_volume'].includes(key)) {
+				return Number(value.toPrecision(6)) + ' dB';
 			} else if (isFloat(value)) {
 				// limit the number of shown digits on floating point numbers
 				return Number(value.toPrecision(6));
@@ -131,9 +140,8 @@ angular.module('Music').controller('TrackDetailsController', [
 		};
 
 		$scope.formatDetailName = function(rawName) {
-			// abbreviate "musicbrainz" and "replaygain" in tag names to avoid truncation of long names in the sidebar
+			// abbreviate "musicbrainz" in tag names to avoid truncation of long names in the sidebar
 			rawName = rawName.replace(/musicbrainz/, 'mb');
-			rawName = rawName.replace(/replaygain/, 'rg');
 
 			switch (rawName) {
 			case 'band':			return 'album artist';
@@ -174,10 +182,8 @@ angular.module('Music').controller('TrackDetailsController', [
 			default:
 				if (tag.key.match(/^musicbrainz.*id$/)) {
 					return 150;
-				} else if (tag.key.match(/^musicbrainz/)) {
+				} else if (tag.key.startsWith('musicbrainz')) {
 					return 149;
-				} else if (tag.key.startsWith('replaygain')) {
-					return 200;
 				} else {
 					return 100;
 				}

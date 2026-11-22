@@ -109,7 +109,7 @@ class CoverService {
 	 * @param Album|Artist|PodcastChannel $entity
 	 * @param string $userId
 	 * @param Folder $rootFolder
-	 * @return array Dictionary with keys 'data' and 'hash'
+	 * @return array{data: array{mimetype: string, content: string}|null, hash: string|null}
 	 */
 	public function getCoverAndHash($entity, string $userId, Folder $rootFolder) : array {
 		$hash = $this->cache->get($userId, self::getHashKey($entity));
@@ -132,14 +132,14 @@ class CoverService {
 	/**
 	 * Get all album cover hashes for one user.
 	 * @param string $userId
-	 * @return array with album IDs as keys and hashes as values
+	 * @return array<int, string> with album IDs as keys and hashes as values
 	 */
 	public function getAllCachedAlbumCoverHashes(string $userId) : array {
 		$rows = $this->cache->getAll($userId, 'album_cover_hash_');
 		$hashes = [];
 		$prefixLen = \strlen('album_cover_hash_');
 		foreach ($rows as $row) {
-			$albumId = \substr($row['key'], $prefixLen);
+			$albumId = (int)\substr($row['key'], $prefixLen);
 			$hashes[$albumId] = $row['data'];
 		}
 		return $hashes;
@@ -150,8 +150,8 @@ class CoverService {
 	 *
 	 * @param string $hash
 	 * @param string $userId
-	 * @param bool $asBase64
-	 * @return array|null Image data in format accepted by \OCA\Music\Http\FileResponse
+	 * @param bool $asBase64 Return the image content as base64-encoded string instead of raw binary data
+	 * @return array{mimetype: string, content: string}|null Image data in format accepted by \OCA\Music\Http\FileResponse
 	 */
 	public function getCoverFromCache(string $hash, string $userId, bool $asBase64 = false) : ?array {
 		$cached = $this->cache->get($userId, 'cover_' . $hash);
@@ -240,7 +240,7 @@ class CoverService {
 	 * @param int $size Maximum size for the image to read, larger images are scaled down.
 	 *                  Special value DO_NOT_CROP_OR_SCALE can be used to opt out of
 	 *                  scaling and cropping altogether.
-	 * @return array|null Image data in format accepted by \OCA\Music\Http\FileResponse
+	 * @return array{mimetype: string, content: string}|null Image data in format accepted by \OCA\Music\Http\FileResponse
 	 */
 	private function readCover($entity, Folder $rootFolder, int $size) : ?array {
 		$response = null;
@@ -271,7 +271,7 @@ class CoverService {
 	 * Read cover image from the file system
 	 * @param Album|Artist $entity
 	 * @param Folder $rootFolder
-	 * @return array|null Image data in format accepted by \OCA\Music\Http\FileResponse
+	 * @return array{mimetype: string, content: string}|null Image data in format accepted by \OCA\Music\Http\FileResponse
 	 */
 	private function readCoverFromLocalFile($entity, Folder $rootFolder) : ?array {
 		$response = null;
@@ -307,9 +307,9 @@ class CoverService {
 	 *
 	 * If one of the dimensions of the image is smaller than the maximum, then just
 	 * crop to square shape but do not scale.
-	 * @param array $image The image to be scaled down in format accepted by \OCA\Music\Http\FileResponse
+	 * @param array{mimetype: string, content: string} $image The image to be scaled down in format accepted by \OCA\Music\Http\FileResponse
 	 * @param integer $maxSize The maximum size in pixels for the square shaped output
-	 * @return array The processed image in format accepted by \OCA\Music\Http\FileResponse
+	 * @return array{mimetype: string, content: string} The processed image in format accepted by \OCA\Music\Http\FileResponse
 	 */
 	public function scaleDownAndCrop(array $image, int $maxSize) : array {
 		$meta = \getimagesizefromstring($image['content']);
@@ -338,25 +338,23 @@ class CoverService {
 
 				if ($scaledImg === false) {
 					$this->logger->warning("Failed to create scaled image of size $dstSize x $dstSize");
-					\imagedestroy($img);
 				} else {
 					\imagecopyresampled($scaledImg, $img, 0, 0, $srcX, $srcY, $dstSize, $dstSize, $srcCropSize, $srcCropSize);
-					\imagedestroy($img);
 
 					\ob_start();
 					\ob_clean();
 					$image['mimetype'] = $meta['mime']; // override the supplied mime with the auto-detected one
 					switch ($image['mimetype']) {
 						case 'image/jpeg':
-							imagejpeg($scaledImg, null, 75);
+							\imagejpeg($scaledImg, null, 75);
 							$image['content'] = \ob_get_contents();
 							break;
 						case 'image/png':
-							imagepng($scaledImg, null, 7, PNG_ALL_FILTERS);
+							\imagepng($scaledImg, null, 7, PNG_ALL_FILTERS);
 							$image['content'] = \ob_get_contents();
 							break;
 						case 'image/gif':
-							imagegif($scaledImg, null);
+							\imagegif($scaledImg, null);
 							$image['content'] = \ob_get_contents();
 							break;
 						default:
@@ -364,7 +362,6 @@ class CoverService {
 							break;
 					}
 					\ob_end_clean();
-					\imagedestroy($scaledImg);
 				}
 			}
 		}
@@ -383,13 +380,12 @@ class CoverService {
 				$srcWidth = $meta[0];
 				$srcHeight = $meta[1];
 
-				$piece = imagecreatefromstring($pieceData['content']);
+				$piece = \imagecreatefromstring($pieceData['content']);
 
 				if ($piece === false) {
 					$this->logger->warning('Failed to open cover image to create a mosaic');
 				} else {
 					\imagecopyresampled($dstImage, $piece, $dstX, $dstY, 0, 0, $dstSize, $dstSize, $srcWidth, $srcHeight);
-					\imagedestroy($piece);
 				}
 			};
 
@@ -409,10 +405,9 @@ class CoverService {
 		$image = ['mimetype' => 'image/png'];
 		\ob_start();
 		\ob_clean();
-		imagepng($mosaicImg, null, 7, PNG_ALL_FILTERS);
+		\imagepng($mosaicImg, null, 7, PNG_ALL_FILTERS);
 		$image['content'] = \ob_get_contents();
 		\ob_end_clean();
-		\imagedestroy($mosaicImg);
 
 		return $image;
 	}

@@ -51,6 +51,12 @@
 				<dd ng-repeat-end><span ng-repeat="valueLine in tag.value track by $index" ng-class="{clickable: tagHasDetails(tag.key, valueLine)}" ng-click="showTagDetails(tag.key, valueLine)"
 				><br ng-if="!$first"/><span ng-bind-html="::formatDetailValue(valueLine, tag.key)"></span><button class="icon-info" ng-if="::tagHasDetails(tag.key, valueLine)"></button></span></dd>
 			</dl>
+			<h2 ng-if="details.replay_gain">Replay gain</h2>
+			<dl class="fileinfo">
+				<dt ng-repeat-start="tag in details.replay_gain">{{ ::formatDetailName(tag.key) }}</dt>
+				<dd ng-repeat-end><span ng-repeat="valueLine in tag.value track by $index" ng-class="{clickable: tagHasDetails(tag.key, valueLine)}" ng-click="showTagDetails(tag.key, valueLine)"
+				><br ng-if="!$first"/><span ng-bind-html="::formatDetailValue(valueLine, tag.key, 'replay_gain')"></span><button class="icon-info" ng-if="::tagHasDetails(tag.key, valueLine)"></button></span></dd>
+			</dl>
 		</div>
 
 		<div class="tab" id="lastfm-info" ng-show="selectedTab=='lastfm'">

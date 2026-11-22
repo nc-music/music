@@ -1,13 +1,54 @@
 ## [Unreleased]
 
 ### Added
+- Subsonic API: Proprietary extension `songListsNCM` providing the method `getSongList`
+  [#192](https://github.com/nc-music/music/pull/192) @paroj
+
+### Fixed
+- Translations not shown for languages having a two-part language code. The most notable examples were "zh-CN" (Simplified Chinese) and "de-DE" (German, formal). (since Music v3.2.0)
+  [#194](https://github.com/nc-music/music/pull/194) @ashanzzz
+- An image file named after an artist no longer doubles as the cover of the album in the same folder, unless the folder has no other image. A rescan is needed for this to take effect on an existing library
+  [#102](https://github.com/nc-music/music/issues/102)
+- Ampache API:
+  * Property `art` is now always a valid URL like on the original Ampache server, and the clients should use the property `has_art` to tell whether it resolves to a real image
+  * Art URL was broken if the API key used on the handshake had been deleted since
+  * Art fetched with the action `get_art` was not cached by the clients, unlike the art fetched from `image.php`
+    [#102](https://github.com/nc-music/music/issues/102)
+
+## 3.3.1 - 2026-11-08
+
+### Fixed
+- Incorrect artist MBID handling breaking the scan process in certain scenarios
+  [#189](https://github.com/nc-music/music/pull/189) @LubosKolouch
+- Subsonic API: XML format of `getArtistInfo` and `getArtistInfo2` using child elements for OpenSubsonic fields while attributes made more sense
+- Subsonic API: JSON format of `getArtistInfo` and `getArtistInfo2` rendering `largeImageUrl` incorrectly as an array instead of string
+  @trajano
+- Vulnerability [GHSA-c8wj-8p5h-r9g8](https://github.com/nc-music/oc-music/security/advisories/GHSA-c8wj-8p5h-r9g8)
+
+## 3.3.0 - 2026-11-01
+
+### Added
 - Subsonic API: Transcoding support in the `stream` endpoint
   [#163](https://github.com/nc-music/music/pull/163) @ipoupaille
   * Enabled by default if `ffmpeg` is available in the path
-  * To opt out, configure `'music.use_ffpmeg' => false`
-  * To use out-of-path ffmpeg, configure `'music.use_ffpmeg' => <path_to_ffmpeg_executable>`
+  * To opt out, configure `'music.use_ffmpeg' => false`
+  * To use out-of-path ffmpeg, configure `'music.use_ffmpeg' => <path_to_ffmpeg_executable>`
+- Ampache API: Transcoding support on actions `stream` and `download` and a pile of small gap-fillers
+  [#176](https://github.com/nc-music/music/pull/176) @lachlan-00
+  * The gap-fillers include also the new actions `song_tags`, `get_lyrics`, and `url_to_song`
+- Ampache API: Support the optional argument `client` of the actions `record_play` and `scrobble`
+- `TrackPlayedEvent` dispatched whenever a track play is recorded, allowing other apps to react to plays
+  [#85](https://github.com/nc-music/music/issues/85) @potagerGit
 
 ### Changed
+- Track details pane shows the replay gain data under the 'Technical' tab instead of the 'General' tab
+- Update the GetID3 library to the release version 1.9.28-202610301738
+- Radio and podcast streams hosted on the same server with Nextcloud can again be played (blocked since v3.1.1) but this has to specifically
+  enabled with the config key `music.allow_local_remote_servers`. These are never relayed via the Nextcloud server even when the relaying is
+  enabled in the config, and the client must be able to access the original stream source directly.
+  [#166](https://github.com/nc-music/music/issues/166)
+- Podcast feeds hosted on the same server with Nextcloud can again be subscribed (blocked since v3.1.1) when enabled with `music.allow_local_remote_servers`
+  [#177](https://github.com/nc-music/music/issues/177)
 
 ### Fixed
 - Unhandled exception breaking the Music UI when operating within the Nextcloud Desktop Workspace
@@ -16,13 +57,15 @@
   [#172](https://github.com/nc-music/music/pull/172) @Bubu
 - Subsonic API: HTTP error 500 when trying to open an album containing no tracks
   [#169](https://github.com/nc-music/music/issues/169)
-- An image file named after an artist no longer doubles as the cover of the album in the same folder, unless the folder has no other image. A rescan is needed for this to take effect on an existing library
-  [#102](https://github.com/nc-music/music/issues/102)
-- Ampache API:
-  * Property `art` is now always a valid URL like on the original Ampache server, and the clients should use the property `has_art` to tell whether it resolves to a real image
-  * Art URL was broken if the API key used on the handshake had been deleted since
-  * Art fetched with the action `get_art` was not cached by the clients, unlike the art fetched from `image.php`
-    [#102](https://github.com/nc-music/music/issues/102)
+- Metadata extraction failing for files containing the ID3v2.3 IPLS or ID3v2.2 IPL frame (since v3.2.0)
+  [#161](https://github.com/nc-music/music/pull/161)
+- Replay gain not scanned from FLAC and OPUS files (or if given anywhere expect in ID3v2.4 TXXX frames) (rescan required)
+  [#167](https://github.com/nc-music/music/issues/167)
+- Albums scanned and split incorrectly when a tacks contains more than one value for MusicBrainz Artist Id and/or MusicBrainz Album Artist Id.
+  [#165](https://github.com/nc-music/music/issues/165)
+- A few benign javascript errors emitting errors to the browser console
+  [#181](https://github.com/nc-music/music/issues/181)
+- Search not working in the playlist view when the list contains any broken track references
 
 ## 3.2.1 - 2026-08-31
 

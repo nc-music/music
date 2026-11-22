@@ -20,6 +20,7 @@ class RequestParameterExtractor {
 	public function __construct(
 		private IRequest $request,
 		private array $customFilters = [],
+		private array $paramAliases = [],
 	) {
 	}
 
@@ -50,6 +51,10 @@ class RequestParameterExtractor {
 			$parameterValue = $this->getRepeatedParam($paramName);
 		} else {
 			$parameterValue = $this->request->getParam($paramName);
+			if ($parameterValue === null && \array_key_exists($paramName, $this->paramAliases)) {
+				// Some Ampache API6 actions accept the object id under an alternative name
+				$parameterValue = $this->request->getParam($this->paramAliases[$paramName]);
+			}
 		}
 
 		if (\array_key_exists($paramName, $this->customFilters)) {

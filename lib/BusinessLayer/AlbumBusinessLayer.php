@@ -137,42 +137,6 @@ class AlbumBusinessLayer extends BusinessLayer {
 	}
 
 	/**
-	 * Returns all albums filtered by release year
-	 * @param int $fromYear
-	 * @param int $toYear
-	 * @param string $userId the name of the user
-	 * @param int|null $limit
-	 * @param int|null $offset
-	 * @return Album[] albums
-	 */
-	public function findAllByYearRange(
-			int $fromYear, int $toYear, string $userId, ?int $limit = null, ?int $offset = null) : array {
-		$reverseOrder = false;
-		if ($fromYear > $toYear) {
-			$reverseOrder = true;
-			Util::swap($fromYear, $toYear);
-		}
-
-		// Implement all the custom logic of this function here, without special Mapper function
-		$albums = \array_filter($this->findAll($userId), function ($album) use ($fromYear, $toYear) {
-			$years = $album->getYears();
-			return (!empty($years) && \min($years) <= $toYear && \max($years) >= $fromYear);
-		});
-
-		\usort($albums, function ($album1, $album2) use ($reverseOrder) {
-			return $reverseOrder
-				? $album2->yearToAPI() - $album1->yearToAPI()
-				: $album1->yearToAPI() - $album2->yearToAPI();
-		});
-
-		if ($limit !== null || $offset !== null) {
-			$albums = \array_slice($albums, $offset ?: 0, $limit);
-		}
-
-		return $albums;
-	}
-
-	/**
 	 * {@inheritdoc}
 	 * @see BusinessLayer::findAllByName()
 	 * @return Album[]

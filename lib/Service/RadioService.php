@@ -15,6 +15,7 @@
 namespace OCA\Music\Service;
 
 use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\Settings\SettingsStore;
 use OCA\Music\Utility\ArrayUtil;
 use OCA\Music\Utility\HttpUtil;
 use OCA\Music\Utility\StringUtil;
@@ -29,6 +30,7 @@ class RadioService {
 	public function __construct(
 		private IURLGenerator $urlGenerator,
 		private StreamTokenService $tokenService,
+		private SettingsStore $settings,
 		private Logger $logger,
 	) {
 	}
@@ -66,7 +68,7 @@ class RadioService {
 		$maxLength = 32 * 1024;
 		$timeout_s = 8;
 		['content' => $content, 'status_code' => $status_code, 'message' => $message]
-			= HttpUtil::loadFromUrl($metaUrl, $maxLength, $timeout_s);
+			= HttpUtil::loadFromUrl($metaUrl, $this->allowLocalStreams(), $maxLength, $timeout_s);
 
 		if ($status_code == 200) {
 			return $parseResult($content);
@@ -167,29 +169,29 @@ class RadioService {
 		$result = null;
 
 		$reqHeaders = [
-			'Accept' => '*/*',
+			'Accept'       => '*/*',
 			'Icy-MetaData' => '1',
-			'Connection' => 'Close',
+			'Connection'   => 'Close',
 		];
 		$context = HttpUtil::createContext($timeout, $reqHeaders);
-		$resolved = HttpUtil::resolveRedirections($streamUrl, $context);
+		$resolved = HttpUtil::resolveRedirections($streamUrl, $context, $this->allowLocalStreams());
 
 		// If the response headers contain any "icy-" headers, then this is an ICY stream and we can try to read the metadata from it.
 		if ($resolved['status_code'] >= 200 && $resolved['status_code'] < 300
-			&& ArrayUtil::find($resolved['headers'], fn($v, $k) => StringUtil::startsWith($k, 'icy-')) !== null) {
+			&& ArrayUtil::find($resolved['headers'], fn ($v, $k) => StringUtil::startsWith($k, 'icy-')) !== null) {
 
 			$result = [
-				'type' => 'icy',
-				'title' => null, // fetched below
-				'station' => $resolved['headers']['icy-name'] ?? null,
+				'type'        => 'icy',
+				'title'       => null, // fetched below
+				'station'     => $resolved['headers']['icy-name'] ?? null,
 				'description' => $resolved['headers']['icy-description'] ?? null,
-				'homepage' => $resolved['headers']['icy-url'] ?? null,
-				'genre' => $resolved['headers']['icy-genre'] ?? null,
-				'bitrate' => $resolved['headers']['icy-br'] ?? null
+				'homepage'    => $resolved['headers']['icy-url'] ?? null,
+				'genre'       => $resolved['headers']['icy-genre'] ?? null,
+				'bitrate'     => $resolved['headers']['icy-br'] ?? null
 			];
 
 			$interval = (int)($resolved['headers']['icy-metaint'] ?? '0');
-			if ($interval > 0 && $interval <= 64*1024) {
+			if ($interval > 0 && $interval <= 64 * 1024) {
 				$fp = \fopen($resolved['url'], 'rb', false, $context);
 				if ($fp !== false) {
 					$attempts = 0;
@@ -209,14 +211,15 @@ class RadioService {
 	/**
 	 * Sometimes the URL given as stream URL points to a playlist which in turn contains the actual
 	 * URL to be streamed. This function resolves such indirections.
-	 * @return array{url: ?string, hls: bool}
+	 * @return array{url: ?string, hls: bool, is_private_ip: bool} The resolved stream URL, whether it is an HLS stream, and whether the URL points to a private IP address
 	 */
 	public function resolveStreamUrl(string $url) : array {
 		$isHls = false;
 
 		// resolve redirections and get the headers to see the content type
 		$context = HttpUtil::createContext();
-		$resolved = HttpUtil::resolveRedirections($url, $context);
+		$resolved = HttpUtil::resolveRedirections($url, $context, $this->allowLocalStreams());
+		$isPrivateIp = $resolved['is_private_ip'];
 
 		if ($resolved['status_code'] >= 200 && $resolved['status_code'] < 300) {
 			$url = $resolved['url'];
@@ -249,7 +252,7 @@ class RadioService {
 					$url = Util::urlToAbsolute($entryUrl, $url);
 
 					// make a recursive call, sometimes playlist may contain another playlist URL
-					['url' => $url, 'hls' => $isHls] = $this->resolveStreamUrl($url);
+					['url' => $url, 'hls' => $isHls, 'is_private_ip' => $isPrivateIp] = $this->resolveStreamUrl($url);
 				}
 			}
 		} else {
@@ -257,12 +260,16 @@ class RadioService {
 			$url = null;
 		}
 
-		return ['url' => $url, 'hls' => $isHls];
+		if ($url !== null && $isPrivateIp) {
+			$url = Util::localhostUrlToExternal($url);
+		}
+
+		return ['url' => $url, 'hls' => $isHls, 'is_private_ip' => $isPrivateIp];
 	}
 
 	public function getHlsManifest(string $url) : array {
 		$maxLength = 8 * 1024;
-		$result = HttpUtil::loadFromUrl($url, $maxLength);
+		$result = HttpUtil::loadFromUrl($url, false, $maxLength);
 
 		if ($result['status_code'] == 200) {
 			// read the manifest line-by-line, and create a modified copy where each fragment URL is relayed through this server
@@ -301,6 +308,10 @@ class RadioService {
 		}
 
 		return $result;
+	}
+
+	private function allowLocalStreams() : bool {
+		return $this->settings->localRemoteServersAllowed();
 	}
 
 }

@@ -142,6 +142,19 @@ class Util {
 	}
 
 	/**
+	 * Convert a localhost URL to an external URL using the current HTTP_HOST.
+	 * If the URL is not a localhost URL, it is returned as-is.
+	 */
+	public static function localhostUrlToExternal(string $url) : string {
+		$urlParts = \parse_url($url);
+		if (\in_array($urlParts['host'] ?? null, ['localhost', '127.0.0.1'])) {
+			$urlParts['host'] = $_SERVER['HTTP_HOST'];
+			$url = self::buildUrl($urlParts);
+		}
+		return $url;
+	}
+
+	/**
 	 * Swap values of two variables in place
 	 */
 	public static function swap(mixed &$a, mixed &$b) : void {

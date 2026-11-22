@@ -142,7 +142,7 @@ class AmpacheClient {
 
 		$client = new Client(['verify' => false]);
 		return $client->get($baseUrl, [
-			'query' => $queryParams,
+			'query'       => $queryParams,
 			'http_errors' => $throwOnHttpError
 		]);
 	}

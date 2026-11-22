@@ -130,7 +130,7 @@ class Scan extends BaseCommand {
 
 		$output->writeln("  Status got in $statusTime ms");
 		$output->writeln("  Unscanned files: $unscannedCount");
-		$output->writeln("  Scanned files:");
+		$output->writeln('  Scanned files:');
 		$output->writeln("  - total: $scannedCount");
 		$output->writeln("  - dirty: $dirtyCount" . (($dirtyCount && $skipDirty) ? ' (skipped)' : ''));
 		$output->writeln("  - obsolete: $obsoleteCount" . (($obsoleteCount && !$cleanObsolete) ? ' (use --clean-obsolete to remove)' : ''));
