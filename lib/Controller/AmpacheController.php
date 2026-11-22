@@ -1910,9 +1910,13 @@ class AmpacheController extends ApiController {
 			$coverData = $this->coverService->getCover($entity, $userId, $userFolder, $size);
 			if ($coverData !== null) {
 				$response = new FileResponse($coverData);
-				// Without this, clients re-fetch the art on every use of the object. The cover of an entity may
-				// change, but the same is true of the images served by `image.php`, which caches for 30 days.
-				HttpUtil::setClientCachingDays($response, 30);
+				// Set caching headers so that clients wouldn't re-fetch the art on every use of the object. There's no
+				// cache busting to detect if the cover art of an entity is changed, but the same applies to the route
+				// `ampache/image.php` which likewise caches the image for 30 days. If the `auth` token is given as an
+				// URL argument (rather than in a HTTP header), then shorten the cache duration to 1 day since this URL
+				// is unlikely to remain valid for any longer.
+				$cacheDays = $this->request->getParam('auth') ? 1 : 30;
+				HttpUtil::setClientCachingDays($response, $cacheDays);
 				return $response;
 			}
 		} catch (BusinessLayerException $e) {
